@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CLI Usage - CAD Preprocess</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="../../index.html" class="logo">
+                <div class="logo-icon">CP</div>
+                <div class="logo-text">CAD Preprocess <span>v0.1.0</span></div>
+            </a>
+            <nav class="header-nav">
+                <a href="../../index.html">Home</a>
+                <a href="../installation.html">Installation</a>
+                <a href="../quickstart.html">Quick Start</a>
+                <a href="../api/index.html">API Reference</a>
+                <a href="https://github.com/Harshil-Anuwadia/cad-preprocess" target="_blank">GitHub</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-title">Getting Started</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../../index.html">Overview</a></li>
+                    <li><a href="../installation.html">Installation</a></li>
+                    <li><a href="../quickstart.html">Quick Start</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">User Guide</div>
+                <ul class="sidebar-nav">
+                    <li><a href="cli.html" class="active">CLI Usage</a></li>
+                    <li><a href="python-api.html">Python API</a></li>
+                    <li><a href="configuration.html">Configuration</a></li>
+                    <li><a href="metadata-profiles.html">Metadata Profiles</a></li>
+                    <li><a href="preprocessing.html">Preprocessing Pipeline</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">API Reference</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../api/index.html">Overview</a></li>
+                    <li><a href="../api/integration.html">Integration</a></li>
+                    <li><a href="../api/input_handler.html">Input Handler</a></li>
+                    <li><a href="../api/preprocessing_engine.html">Preprocessing Engine</a></li>
+                    <li><a href="../api/metadata_extractor.html">Metadata Extractor</a></li>
+                    <li><a href="../api/output_writer.html">Output Writer</a></li>
+                    <li><a href="../api/config.html">Configuration</a></li>
+                    <li><a href="../api/logging_utils.html">Logging Utilities</a></li>
+                    <li><a href="../api/cli.html">CLI Module</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">Resources</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../examples.html">Examples</a></li>
+                    <li><a href="../changelog.html">Changelog</a></li>
+                    <li><a href="../contributing.html">Contributing</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="content">
+            <nav class="breadcrumb">
+                <a href="../../index.html">Home</a> &gt; <a href="cli.html">User Guide</a> &gt; CLI Usage
+            </nav>
+
+            <h1>CLI Usage</h1>
+
+            <p>Complete reference for the <code>cad-preprocess</code> command-line interface.</p>
+
+            <div class="toc">
+                <div class="toc-title">Contents</div>
+                <ul>
+                    <li><a href="#synopsis">Synopsis</a></li>
+                    <li><a href="#required-args">Required Arguments</a></li>
+                    <li><a href="#optional-args">Optional Arguments</a></li>
+                    <li><a href="#preprocessing">Preprocessing Options</a></li>
+                    <li><a href="#metadata">Metadata Options</a></li>
+                    <li><a href="#examples">Examples</a></li>
+                    <li><a href="#exit-codes">Exit Codes</a></li>
+                </ul>
+            </div>
+
+            <h2 id="synopsis">Synopsis</h2>
+
+            <pre><code>cad-preprocess -i INPUT -o OUTPUT [options]</code></pre>
+
+            <h2 id="required-args">Required Arguments</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Argument</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>-i, --input</code></td>
+                        <td>Input DICOM file or directory containing DICOM files</td>
+                    </tr>
+                    <tr>
+                        <td><code>-o, --output</code></td>
+                        <td>Output directory for processed files</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2 id="optional-args">Optional Arguments</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Argument</th>
+                        <th>Default</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>-c, --config</code></td>
+                        <td>None</td>
+                        <td>Path to YAML configuration file</td>
+                    </tr>
+                    <tr>
+                        <td><code>--dry-run</code></td>
+                        <td>False</td>
+                        <td>Preview without processing</td>
+                    </tr>
+                    <tr>
+                        <td><code>-v, --verbose</code></td>
+                        <td>False</td>
+                        <td>Enable verbose output</td>
+                    </tr>
+                    <tr>
+                        <td><code>--version</code></td>
+                        <td>-</td>
+                        <td>Show version and exit</td>
+                    </tr>
+                    <tr>
+                        <td><code>-h, --help</code></td>
+                        <td>-</td>
+                        <td>Show help message</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2 id="preprocessing">Preprocessing Options</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Argument</th>
+                        <th>Default</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>--target-size</code></td>
+                        <td>None</td>
+                        <td>Resize images to this size (single int for square, or WxH)</td>
+                    </tr>
+                    <tr>
+                        <td><code>--normalize</code></td>
+                        <td>True</td>
+                        <td>Normalize pixel values to 0-255</td>
+                    </tr>
+                    <tr>
+                        <td><code>--no-normalize</code></td>
+                        <td>-</td>
+                        <td>Disable normalization</td>
+                    </tr>
+                    <tr>
+                        <td><code>--window-center</code></td>
+                        <td>Auto</td>
+                        <td>Window center for CT windowing</td>
+                    </tr>
+                    <tr>
+                        <td><code>--window-width</code></td>
+                        <td>Auto</td>
+                        <td>Window width for CT windowing</td>
+                    </tr>
+                    <tr>
+                        <td><code>--output-format</code></td>
+                        <td>png</td>
+                        <td>Output format: png, jpg, npy</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2 id="metadata">Metadata Options</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Argument</th>
+                        <th>Default</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>--metadata-profile</code></td>
+                        <td>minimal</td>
+                        <td>Metadata extraction profile: minimal, patient, geometry, ml, acquisition, full</td>
+                    </tr>
+                    <tr>
+                        <td><code>--no-metadata</code></td>
+                        <td>False</td>
+                        <td>Skip metadata extraction</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Metadata Profiles</h3>
+            <ul>
+                <li><strong>minimal</strong> - SOPInstanceUID, Modality only</li>
+                <li><strong>patient</strong> - Patient demographics (ID, Name, Age, Sex)</li>
+                <li><strong>geometry</strong> - Image dimensions, pixel spacing, slice thickness</li>
+                <li><strong>ml</strong> - Machine learning focused (geometry + rescale parameters)</li>
+                <li><strong>acquisition</strong> - Scanner info, protocol, acquisition parameters</li>
+                <li><strong>full</strong> - All available metadata</li>
+            </ul>
+
+            <h2 id="examples">Examples</h2>
+
+            <h3>Basic Processing</h3>
+            <pre><code><span class="comment"># Single file</span>
+cad-preprocess -i scan.dcm -o ./output
+
+<span class="comment"># Directory</span>
+cad-preprocess -i ./dicoms -o ./output
+
+<span class="comment"># Recursive (default behavior)</span>
+cad-preprocess -i ./patient_data -o ./output</code></pre>
+
+            <h3>With Configuration</h3>
+            <pre><code><span class="comment"># Use config file</span>
+cad-preprocess -i ./dicoms -o ./output -c config.yaml
+
+<span class="comment"># Override config with CLI args</span>
+cad-preprocess -i ./dicoms -o ./output -c config.yaml --target-size 256</code></pre>
+
+            <h3>CT Windowing</h3>
+            <pre><code><span class="comment"># Soft tissue window</span>
+cad-preprocess -i ./ct_scans -o ./output --window-center 40 --window-width 400
+
+<span class="comment"># Lung window</span>
+cad-preprocess -i ./ct_scans -o ./output --window-center -600 --window-width 1500
+
+<span class="comment"># Bone window</span>
+cad-preprocess -i ./ct_scans -o ./output --window-center 400 --window-width 1800
+
+<span class="comment"># Brain window</span>
+cad-preprocess -i ./ct_scans -o ./output --window-center 40 --window-width 80</code></pre>
+
+            <h3>Metadata Profiles</h3>
+            <pre><code><span class="comment"># ML training metadata</span>
+cad-preprocess -i ./dicoms -o ./output --metadata-profile ml
+
+<span class="comment"># Full metadata extraction</span>
+cad-preprocess -i ./dicoms -o ./output --metadata-profile full
+
+<span class="comment"># Skip metadata</span>
+cad-preprocess -i ./dicoms -o ./output --no-metadata</code></pre>
+
+            <h3>Output Formats</h3>
+            <pre><code><span class="comment"># PNG (default)</span>
+cad-preprocess -i ./dicoms -o ./output --output-format png
+
+<span class="comment"># NumPy arrays</span>
+cad-preprocess -i ./dicoms -o ./output --output-format npy
+
+<span class="comment"># JPEG</span>
+cad-preprocess -i ./dicoms -o ./output --output-format jpg</code></pre>
+
+            <h3>Preview and Verbose</h3>
+            <pre><code><span class="comment"># Dry run - preview what would be processed</span>
+cad-preprocess -i ./dicoms -o ./output --dry-run
+
+<span class="comment"># Verbose output</span>
+cad-preprocess -i ./dicoms -o ./output -v
+
+<span class="comment"># Both</span>
+cad-preprocess -i ./dicoms -o ./output --dry-run -v</code></pre>
+
+            <h3>Complete Example</h3>
+            <pre><code>cad-preprocess \
+    -i /data/patient_scans \
+    -o /data/processed \
+    -c /etc/cad-preprocess/config.yaml \
+    --target-size 512 \
+    --metadata-profile ml \
+    --window-center 40 \
+    --window-width 400 \
+    -v</code></pre>
+
+            <h2 id="exit-codes">Exit Codes</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Meaning</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>0</td>
+                        <td>Success</td>
+                    </tr>
+                    <tr>
+                        <td>1</td>
+                        <td>General error</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>Invalid arguments</td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>Input not found</td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td>No DICOM files found</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="info-box tip">
+                <div class="info-box-title">💡 Tip</div>
+                CLI arguments override configuration file settings. This allows you to use a base configuration and customize specific runs.
+            </div>
+        </main>
+    </div>
+
+    <footer class="footer">
+        <p>CAD Preprocess Documentation · <a href="https://github.com/Harshil-Anuwadia/cad-preprocess">GitHub</a> · MIT License</p>
+    </footer>
+</body>
+</html>

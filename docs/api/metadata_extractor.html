@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metadata Extractor - CAD Preprocess API</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="../../index.html" class="logo">
+                <div class="logo-icon">CP</div>
+                <div class="logo-text">CAD Preprocess <span>v0.1.0</span></div>
+            </a>
+            <nav class="header-nav">
+                <a href="../../index.html">Home</a>
+                <a href="../installation.html">Installation</a>
+                <a href="../quickstart.html">Quick Start</a>
+                <a href="index.html">API Reference</a>
+                <a href="https://github.com/Harshil-Anuwadia/cad-preprocess" target="_blank">GitHub</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-title">Getting Started</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../../index.html">Overview</a></li>
+                    <li><a href="../installation.html">Installation</a></li>
+                    <li><a href="../quickstart.html">Quick Start</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">User Guide</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../guides/cli.html">CLI Usage</a></li>
+                    <li><a href="../guides/python-api.html">Python API</a></li>
+                    <li><a href="../guides/configuration.html">Configuration</a></li>
+                    <li><a href="../guides/metadata-profiles.html">Metadata Profiles</a></li>
+                    <li><a href="../guides/preprocessing.html">Preprocessing Pipeline</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">API Reference</div>
+                <ul class="sidebar-nav">
+                    <li><a href="index.html">Overview</a></li>
+                    <li><a href="integration.html">Integration</a></li>
+                    <li><a href="input_handler.html">Input Handler</a></li>
+                    <li><a href="preprocessing_engine.html">Preprocessing Engine</a></li>
+                    <li><a href="metadata_extractor.html" class="active">Metadata Extractor</a></li>
+                    <li><a href="output_writer.html">Output Writer</a></li>
+                    <li><a href="config.html">Configuration</a></li>
+                    <li><a href="logging_utils.html">Logging Utilities</a></li>
+                    <li><a href="cli.html">CLI Module</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">Resources</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../examples.html">Examples</a></li>
+                    <li><a href="../changelog.html">Changelog</a></li>
+                    <li><a href="../contributing.html">Contributing</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="content">
+            <nav class="breadcrumb">
+                <a href="../../index.html">Home</a> &gt; <a href="index.html">API Reference</a> &gt; Metadata Extractor
+            </nav>
+
+            <h1>cad_preprocess.metadata_extractor</h1>
+
+            <p>Profile-based DICOM metadata extraction.</p>
+
+            <div class="toc">
+                <div class="toc-title">Contents</div>
+                <ul>
+                    <li><a href="#metadataextractor">MetadataExtractor</a></li>
+                    <li><a href="#profiles">Profile Constants</a></li>
+                    <li><a href="#functions">Utility Functions</a></li>
+                </ul>
+            </div>
+
+            <h2 id="metadataextractor">MetadataExtractor</h2>
+
+            <p>Extracts metadata from DICOM files based on predefined profiles.</p>
+
+            <div class="api-signature">
+                class MetadataExtractor(profile="minimal", tags=None, include_private=False)
+            </div>
+
+            <h4>Constructor Parameters</h4>
+            <div class="api-params">
+                <div class="api-param">
+                    <span class="api-param-name">profile</span>
+                    <span class="api-param-type">str</span>
+                    <div class="api-param-desc">Extraction profile: "minimal", "patient", "geometry", "ml", "acquisition", "full"</div>
+                </div>
+                <div class="api-param">
+                    <span class="api-param-name">tags</span>
+                    <span class="api-param-type">List[str | Tuple[int, int]] | None</span>
+                    <div class="api-param-desc">Custom list of tags to extract (overrides profile)</div>
+                </div>
+                <div class="api-param">
+                    <span class="api-param-name">include_private</span>
+                    <span class="api-param-type">bool</span>
+                    <div class="api-param-desc">Include private DICOM tags (default: False)</div>
+                </div>
+            </div>
+
+            <h3>Methods</h3>
+
+            <h4>extract()</h4>
+            <div class="api-signature">
+                extract(dcm) → Dict[str, Any]
+            </div>
+            <p>Extract metadata from a DICOM dataset.</p>
+            <div class="api-params">
+                <div class="api-param">
+                    <span class="api-param-name">dcm</span>
+                    <span class="api-param-type">pydicom.Dataset</span>
+                    <div class="api-param-desc">DICOM dataset</div>
+                </div>
+            </div>
+            <div class="api-returns">
+                <code>Dict[str, Any]</code> - Extracted metadata dictionary with snake_case keys
+            </div>
+
+            <h4>extract_from_file()</h4>
+            <div class="api-signature">
+                extract_from_file(path) → Dict[str, Any]
+            </div>
+            <p>Extract metadata directly from a file path.</p>
+
+            <h4>get_tag_value()</h4>
+            <div class="api-signature">
+                get_tag_value(dcm, tag) → Any
+            </div>
+            <p>Get a single tag value from a DICOM dataset.</p>
+
+            <h4>Example</h4>
+            <pre><code><span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> MetadataExtractor
+<span class="keyword">import</span> pydicom
+
+<span class="comment"># Using profile</span>
+extractor = MetadataExtractor(profile=<span class="string">"ml"</span>)
+dcm = pydicom.dcmread(<span class="string">"image.dcm"</span>)
+metadata = extractor.extract(dcm)
+
+<span class="keyword">print</span>(metadata[<span class="string">"modality"</span>])
+<span class="keyword">print</span>(metadata[<span class="string">"pixel_spacing"</span>])
+
+<span class="comment"># Using custom tags</span>
+custom_extractor = MetadataExtractor(tags=[
+    <span class="string">"PatientID"</span>,
+    <span class="string">"StudyDate"</span>,
+    (<span class="number">0x0018</span>, <span class="number">0x0050</span>)  <span class="comment"># SliceThickness</span>
+])
+custom_metadata = custom_extractor.extract(dcm)</code></pre>
+
+            <hr>
+
+            <h2 id="profiles">Profile Constants</h2>
+
+            <p>Predefined sets of DICOM tags for different use cases.</p>
+
+            <h4>MINIMAL_TAGS</h4>
+            <pre><code>MINIMAL_TAGS = [
+    <span class="string">"SOPInstanceUID"</span>,
+    <span class="string">"SOPClassUID"</span>,
+    <span class="string">"Modality"</span>,
+    <span class="string">"SeriesInstanceUID"</span>,
+    <span class="string">"StudyInstanceUID"</span>
+]</code></pre>
+
+            <h4>PATIENT_TAGS</h4>
+            <pre><code>PATIENT_TAGS = MINIMAL_TAGS + [
+    <span class="string">"PatientID"</span>,
+    <span class="string">"PatientName"</span>,
+    <span class="string">"PatientBirthDate"</span>,
+    <span class="string">"PatientSex"</span>,
+    <span class="string">"PatientAge"</span>,
+    <span class="string">"PatientWeight"</span>,
+    <span class="string">"StudyDate"</span>,
+    <span class="string">"StudyTime"</span>,
+    <span class="string">"AccessionNumber"</span>
+]</code></pre>
+
+            <h4>GEOMETRY_TAGS</h4>
+            <pre><code>GEOMETRY_TAGS = MINIMAL_TAGS + [
+    <span class="string">"Rows"</span>,
+    <span class="string">"Columns"</span>,
+    <span class="string">"PixelSpacing"</span>,
+    <span class="string">"SliceThickness"</span>,
+    <span class="string">"SpacingBetweenSlices"</span>,
+    <span class="string">"ImagePositionPatient"</span>,
+    <span class="string">"ImageOrientationPatient"</span>,
+    <span class="string">"SliceLocation"</span>,
+    <span class="string">"InstanceNumber"</span>,
+    <span class="string">"PhotometricInterpretation"</span>,
+    <span class="string">"BitsAllocated"</span>,
+    <span class="string">"BitsStored"</span>
+]</code></pre>
+
+            <h4>ML_TAGS</h4>
+            <pre><code>ML_TAGS = GEOMETRY_TAGS + [
+    <span class="string">"RescaleIntercept"</span>,
+    <span class="string">"RescaleSlope"</span>,
+    <span class="string">"RescaleType"</span>,
+    <span class="string">"WindowCenter"</span>,
+    <span class="string">"WindowWidth"</span>,
+    <span class="string">"PixelRepresentation"</span>,
+    <span class="string">"SamplesPerPixel"</span>
+]</code></pre>
+
+            <h4>ACQUISITION_TAGS</h4>
+            <pre><code>ACQUISITION_TAGS = MINIMAL_TAGS + [
+    <span class="string">"Manufacturer"</span>,
+    <span class="string">"ManufacturerModelName"</span>,
+    <span class="string">"StationName"</span>,
+    <span class="string">"InstitutionName"</span>,
+    <span class="string">"SoftwareVersions"</span>,
+    <span class="string">"ProtocolName"</span>,
+    <span class="string">"BodyPartExamined"</span>,
+    <span class="string">"KVP"</span>,
+    <span class="string">"XRayTubeCurrent"</span>,
+    <span class="string">"ConvolutionKernel"</span>,
+    <span class="string">"MagneticFieldStrength"</span>,
+    <span class="string">"RepetitionTime"</span>,
+    <span class="string">"EchoTime"</span>
+]</code></pre>
+
+            <hr>
+
+            <h2 id="functions">Utility Functions</h2>
+
+            <h4>dicom_to_dict()</h4>
+            <div class="api-signature">
+                dicom_to_dict(dcm, include_private=False) → Dict[str, Any]
+            </div>
+            <p>Convert entire DICOM dataset to dictionary.</p>
+
+            <h4>normalize_tag_name()</h4>
+            <div class="api-signature">
+                normalize_tag_name(tag_name) → str
+            </div>
+            <p>Convert DICOM tag name to snake_case.</p>
+            <pre><code><span class="keyword">from</span> cad_preprocess.metadata_extractor <span class="keyword">import</span> normalize_tag_name
+
+<span class="keyword">print</span>(normalize_tag_name(<span class="string">"PatientID"</span>))  <span class="comment"># "patient_id"</span>
+<span class="keyword">print</span>(normalize_tag_name(<span class="string">"SOPInstanceUID"</span>))  <span class="comment"># "sop_instance_uid"</span></code></pre>
+
+            <h4>serialize_value()</h4>
+            <div class="api-signature">
+                serialize_value(value) → Any
+            </div>
+            <p>Convert DICOM values to JSON-serializable format.</p>
+        </main>
+    </div>
+
+    <footer class="footer">
+        <p>CAD Preprocess Documentation · <a href="https://github.com/Harshil-Anuwadia/cad-preprocess">GitHub</a> · MIT License</p>
+    </footer>
+</body>
+</html>

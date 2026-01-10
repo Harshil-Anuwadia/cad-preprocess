@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuration - CAD Preprocess API</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="../../index.html" class="logo">
+                <div class="logo-icon">CP</div>
+                <div class="logo-text">CAD Preprocess <span>v0.1.0</span></div>
+            </a>
+            <nav class="header-nav">
+                <a href="../../index.html">Home</a>
+                <a href="../installation.html">Installation</a>
+                <a href="../quickstart.html">Quick Start</a>
+                <a href="index.html">API Reference</a>
+                <a href="https://github.com/Harshil-Anuwadia/cad-preprocess" target="_blank">GitHub</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-title">Getting Started</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../../index.html">Overview</a></li>
+                    <li><a href="../installation.html">Installation</a></li>
+                    <li><a href="../quickstart.html">Quick Start</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">User Guide</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../guides/cli.html">CLI Usage</a></li>
+                    <li><a href="../guides/python-api.html">Python API</a></li>
+                    <li><a href="../guides/configuration.html">Configuration</a></li>
+                    <li><a href="../guides/metadata-profiles.html">Metadata Profiles</a></li>
+                    <li><a href="../guides/preprocessing.html">Preprocessing Pipeline</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">API Reference</div>
+                <ul class="sidebar-nav">
+                    <li><a href="index.html">Overview</a></li>
+                    <li><a href="integration.html">Integration</a></li>
+                    <li><a href="input_handler.html">Input Handler</a></li>
+                    <li><a href="preprocessing_engine.html">Preprocessing Engine</a></li>
+                    <li><a href="metadata_extractor.html">Metadata Extractor</a></li>
+                    <li><a href="output_writer.html">Output Writer</a></li>
+                    <li><a href="config.html" class="active">Configuration</a></li>
+                    <li><a href="logging_utils.html">Logging Utilities</a></li>
+                    <li><a href="cli.html">CLI Module</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">Resources</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../examples.html">Examples</a></li>
+                    <li><a href="../changelog.html">Changelog</a></li>
+                    <li><a href="../contributing.html">Contributing</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="content">
+            <nav class="breadcrumb">
+                <a href="../../index.html">Home</a> &gt; <a href="index.html">API Reference</a> &gt; Configuration
+            </nav>
+
+            <h1>cad_preprocess.config</h1>
+
+            <p>Configuration management for preprocessing pipelines.</p>
+
+            <div class="toc">
+                <div class="toc-title">Contents</div>
+                <ul>
+                    <li><a href="#preprocessingconfig">PreprocessingConfig</a></li>
+                    <li><a href="#functions">Utility Functions</a></li>
+                </ul>
+            </div>
+
+            <h2 id="preprocessingconfig">PreprocessingConfig</h2>
+
+            <p>Immutable configuration container for preprocessing settings.</p>
+
+            <div class="api-signature">
+                class PreprocessingConfig(**kwargs)
+            </div>
+
+            <h4>Constructor Parameters</h4>
+            <div class="api-params">
+                <div class="api-param">
+                    <span class="api-param-name">target_size</span>
+                    <span class="api-param-type">int | Tuple[int, int] | None</span>
+                    <div class="api-param-desc">Target image size (default: None = keep original)</div>
+                </div>
+                <div class="api-param">
+                    <span class="api-param-name">normalize</span>
+                    <span class="api-param-type">bool</span>
+                    <div class="api-param-desc">Normalize pixel values to 0-255 (default: True)</div>
+                </div>
+                <div class="api-param">
+                    <span class="api-param-name">preserve_aspect_ratio</span>
+                    <span class="api-param-type">bool</span>
+                    <div class="api-param-desc">Maintain aspect ratio when resizing (default: True)</div>
+                </div>
+                <div class="api-param">
+                    <span class="api-param-name">window_center</span>
+                    <span class="api-param-type">float | None</span>
+                    <div class="api-param-desc">CT window center (default: None = use DICOM value)</div>
+                </div>
+                <div class="api-param">
+                    <span class="api-param-name">window_width</span>
+                    <span class="api-param-type">float | None</span>
+                    <div class="api-param-desc">CT window width (default: None = use DICOM value)</div>
+                </div>
+                <div class="api-param">
+                    <span class="api-param-name">interpolation</span>
+                    <span class="api-param-type">str</span>
+                    <div class="api-param-desc">Resize interpolation: "nearest", "bilinear", "bicubic" (default: "bilinear")</div>
+                </div>
+                <div class="api-param">
+                    <span class="api-param-name">output_format</span>
+                    <span class="api-param-type">str</span>
+                    <div class="api-param-desc">Output format: "png", "jpg", "npy" (default: "png")</div>
+                </div>
+                <div class="api-param">
+                    <span class="api-param-name">metadata_profile</span>
+                    <span class="api-param-type">str</span>
+                    <div class="api-param-desc">Metadata extraction profile (default: "minimal")</div>
+                </div>
+                <div class="api-param">
+                    <span class="api-param-name">naming_policy</span>
+                    <span class="api-param-type">str</span>
+                    <div class="api-param-desc">File naming policy (default: "sop_uid")</div>
+                </div>
+            </div>
+
+            <h3>Class Methods</h3>
+
+            <h4>from_yaml()</h4>
+            <div class="api-signature">
+                PreprocessingConfig.from_yaml(path) → PreprocessingConfig
+            </div>
+            <p>Load configuration from a YAML file.</p>
+            <pre><code>config = PreprocessingConfig.from_yaml(<span class="string">"config.yaml"</span>)</code></pre>
+
+            <h4>from_dict()</h4>
+            <div class="api-signature">
+                PreprocessingConfig.from_dict(data) → PreprocessingConfig
+            </div>
+            <p>Create configuration from a dictionary.</p>
+            <pre><code>config = PreprocessingConfig.from_dict({
+    <span class="string">"target_size"</span>: <span class="number">512</span>,
+    <span class="string">"normalize"</span>: <span class="keyword">True</span>
+})</code></pre>
+
+            <h4>default()</h4>
+            <div class="api-signature">
+                PreprocessingConfig.default() → PreprocessingConfig
+            </div>
+            <p>Create configuration with default values.</p>
+
+            <h3>Instance Methods</h3>
+
+            <h4>to_yaml()</h4>
+            <div class="api-signature">
+                to_yaml(path) → None
+            </div>
+            <p>Save configuration to a YAML file.</p>
+
+            <h4>to_dict()</h4>
+            <div class="api-signature">
+                to_dict() → Dict[str, Any]
+            </div>
+            <p>Convert configuration to dictionary.</p>
+
+            <h4>hash()</h4>
+            <div class="api-signature">
+                hash() → str
+            </div>
+            <p>Get SHA-256 hash of the configuration for reproducibility verification.</p>
+
+            <h4>merge()</h4>
+            <div class="api-signature">
+                merge(**overrides) → PreprocessingConfig
+            </div>
+            <p>Create a new config with some values overridden.</p>
+            <pre><code>base_config = PreprocessingConfig(target_size=<span class="number">512</span>)
+new_config = base_config.merge(normalize=<span class="keyword">False</span>)</code></pre>
+
+            <h4>Example</h4>
+            <pre><code><span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> PreprocessingConfig
+
+<span class="comment"># Create config programmatically</span>
+config = PreprocessingConfig(
+    target_size=<span class="number">512</span>,
+    normalize=<span class="keyword">True</span>,
+    metadata_profile=<span class="string">"ml"</span>,
+    window_center=<span class="number">40</span>,
+    window_width=<span class="number">400</span>
+)
+
+<span class="comment"># Get hash for reproducibility</span>
+<span class="keyword">print</span>(<span class="string">f"Config hash: </span>{config.hash()}<span class="string">"</span>)
+
+<span class="comment"># Save to YAML</span>
+config.to_yaml(<span class="string">"my_config.yaml"</span>)
+
+<span class="comment"># Load from YAML</span>
+loaded = PreprocessingConfig.from_yaml(<span class="string">"my_config.yaml"</span>)
+
+<span class="comment"># Verify they match</span>
+<span class="keyword">assert</span> config.hash() == loaded.hash()</code></pre>
+
+            <hr>
+
+            <h2 id="functions">Utility Functions</h2>
+
+            <h4>load_config()</h4>
+            <div class="api-signature">
+                load_config(path) → PreprocessingConfig
+            </div>
+            <p>Load configuration from file (YAML or JSON).</p>
+
+            <h4>validate_config()</h4>
+            <div class="api-signature">
+                validate_config(config) → List[str]
+            </div>
+            <p>Validate configuration and return list of warnings/errors.</p>
+            <pre><code><span class="keyword">from</span> cad_preprocess.config <span class="keyword">import</span> validate_config
+
+config = PreprocessingConfig(target_size=-<span class="number">1</span>)
+errors = validate_config(config)
+<span class="keyword">if</span> errors:
+    <span class="keyword">print</span>(<span class="string">"Config errors:"</span>, errors)</code></pre>
+
+            <h4>get_default_value()</h4>
+            <div class="api-signature">
+                get_default_value(key) → Any
+            </div>
+            <p>Get the default value for a configuration key.</p>
+
+            <div class="info-box note">
+                <div class="info-box-title">📝 Immutability</div>
+                PreprocessingConfig is designed to be immutable. Use the <code>merge()</code> method to create modified copies instead of modifying in place.
+            </div>
+        </main>
+    </div>
+
+    <footer class="footer">
+        <p>CAD Preprocess Documentation · <a href="https://github.com/Harshil-Anuwadia/cad-preprocess">GitHub</a> · MIT License</p>
+    </footer>
+</body>
+</html>

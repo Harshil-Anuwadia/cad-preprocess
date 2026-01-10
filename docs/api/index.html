@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Reference - CAD Preprocess</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="../../index.html" class="logo">
+                <div class="logo-icon">CP</div>
+                <div class="logo-text">CAD Preprocess <span>v0.1.0</span></div>
+            </a>
+            <nav class="header-nav">
+                <a href="../../index.html">Home</a>
+                <a href="../installation.html">Installation</a>
+                <a href="../quickstart.html">Quick Start</a>
+                <a href="index.html">API Reference</a>
+                <a href="https://github.com/Harshil-Anuwadia/cad-preprocess" target="_blank">GitHub</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-title">Getting Started</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../../index.html">Overview</a></li>
+                    <li><a href="../installation.html">Installation</a></li>
+                    <li><a href="../quickstart.html">Quick Start</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">User Guide</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../guides/cli.html">CLI Usage</a></li>
+                    <li><a href="../guides/python-api.html">Python API</a></li>
+                    <li><a href="../guides/configuration.html">Configuration</a></li>
+                    <li><a href="../guides/metadata-profiles.html">Metadata Profiles</a></li>
+                    <li><a href="../guides/preprocessing.html">Preprocessing Pipeline</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">API Reference</div>
+                <ul class="sidebar-nav">
+                    <li><a href="index.html" class="active">Overview</a></li>
+                    <li><a href="integration.html">Integration</a></li>
+                    <li><a href="input_handler.html">Input Handler</a></li>
+                    <li><a href="preprocessing_engine.html">Preprocessing Engine</a></li>
+                    <li><a href="metadata_extractor.html">Metadata Extractor</a></li>
+                    <li><a href="output_writer.html">Output Writer</a></li>
+                    <li><a href="config.html">Configuration</a></li>
+                    <li><a href="logging_utils.html">Logging Utilities</a></li>
+                    <li><a href="cli.html">CLI Module</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">Resources</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../examples.html">Examples</a></li>
+                    <li><a href="../changelog.html">Changelog</a></li>
+                    <li><a href="../contributing.html">Contributing</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="content">
+            <nav class="breadcrumb">
+                <a href="../../index.html">Home</a> &gt; API Reference
+            </nav>
+
+            <h1>API Reference</h1>
+
+            <p>Complete API documentation for the CAD Preprocess library.</p>
+
+            <h2>Package Structure</h2>
+
+            <pre><code>cad_preprocess/
+├── __init__.py           <span class="comment"># Package exports</span>
+├── integration.py        <span class="comment"># High-level API (CADPreprocessor, preprocess)</span>
+├── input_handler.py      <span class="comment"># DICOM discovery and validation</span>
+├── preprocessing_engine.py  <span class="comment"># Image processing pipeline</span>
+├── metadata_extractor.py <span class="comment"># Metadata extraction</span>
+├── output_writer.py      <span class="comment"># File persistence</span>
+├── config.py             <span class="comment"># Configuration management</span>
+├── logging_utils.py      <span class="comment"># Logging and error handling</span>
+└── cli.py                <span class="comment"># Command-line interface</span></code></pre>
+
+            <h2>Quick Import Reference</h2>
+
+            <pre><code><span class="comment"># High-level API (recommended)</span>
+<span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> preprocess, CADPreprocessor
+
+<span class="comment"># Configuration</span>
+<span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> PreprocessingConfig
+
+<span class="comment"># Individual modules</span>
+<span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> (
+    InputHandler,
+    PreprocessingEngine,
+    MetadataExtractor,
+    OutputWriter
+)
+
+<span class="comment"># Logging utilities</span>
+<span class="keyword">from</span> cad_preprocess.logging_utils <span class="keyword">import</span> (
+    ProcessingStats,
+    ProcessingError,
+    fail_safe,
+    setup_logging
+)</code></pre>
+
+            <h2>Module Overview</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Module</th>
+                        <th>Description</th>
+                        <th>Key Classes/Functions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><a href="integration.html">integration</a></td>
+                        <td>High-level API for common workflows</td>
+                        <td><code>CADPreprocessor</code>, <code>preprocess()</code></td>
+                    </tr>
+                    <tr>
+                        <td><a href="input_handler.html">input_handler</a></td>
+                        <td>DICOM file discovery and validation</td>
+                        <td><code>InputHandler</code>, <code>DicomFile</code></td>
+                    </tr>
+                    <tr>
+                        <td><a href="preprocessing_engine.html">preprocessing_engine</a></td>
+                        <td>Image preprocessing pipeline</td>
+                        <td><code>PreprocessingEngine</code></td>
+                    </tr>
+                    <tr>
+                        <td><a href="metadata_extractor.html">metadata_extractor</a></td>
+                        <td>DICOM metadata extraction</td>
+                        <td><code>MetadataExtractor</code></td>
+                    </tr>
+                    <tr>
+                        <td><a href="output_writer.html">output_writer</a></td>
+                        <td>File output and persistence</td>
+                        <td><code>OutputWriter</code></td>
+                    </tr>
+                    <tr>
+                        <td><a href="config.html">config</a></td>
+                        <td>Configuration management</td>
+                        <td><code>PreprocessingConfig</code></td>
+                    </tr>
+                    <tr>
+                        <td><a href="logging_utils.html">logging_utils</a></td>
+                        <td>Logging and error handling</td>
+                        <td><code>ProcessingStats</code>, <code>fail_safe</code></td>
+                    </tr>
+                    <tr>
+                        <td><a href="cli.html">cli</a></td>
+                        <td>Command-line interface</td>
+                        <td><code>main()</code>, <code>parse_args()</code></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2>Type Definitions</h2>
+
+            <h3>ProcessingResult</h3>
+            <pre><code><span class="keyword">class</span> <span class="class-name">ProcessingResult</span>:
+    sop_instance_uid: str      <span class="comment"># Unique identifier</span>
+    image: np.ndarray          <span class="comment"># Preprocessed image array</span>
+    metadata: Dict[str, Any]   <span class="comment"># Extracted metadata</span>
+    original_shape: Tuple[int, int]  <span class="comment"># Original dimensions</span>
+    final_shape: Tuple[int, int]     <span class="comment"># Final dimensions</span>
+    modality: str              <span class="comment"># DICOM modality</span>
+    processing_time: float     <span class="comment"># Time in seconds</span></code></pre>
+
+            <h3>ProcessingStats</h3>
+            <pre><code><span class="keyword">class</span> <span class="class-name">ProcessingStats</span>:
+    total: int        <span class="comment"># Total files found</span>
+    processed: int    <span class="comment"># Successfully processed</span>
+    failed: int       <span class="comment"># Failed to process</span>
+    skipped: int      <span class="comment"># Skipped (invalid DICOM)</span>
+    duration: float   <span class="comment"># Total time in seconds</span></code></pre>
+
+            <h2>Exceptions</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Exception</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>ProcessingError</code></td>
+                        <td>Base exception for processing errors</td>
+                    </tr>
+                    <tr>
+                        <td><code>DicomReadError</code></td>
+                        <td>Failed to read DICOM file</td>
+                    </tr>
+                    <tr>
+                        <td><code>ConfigurationError</code></td>
+                        <td>Invalid configuration</td>
+                    </tr>
+                    <tr>
+                        <td><code>OutputError</code></td>
+                        <td>Failed to write output file</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2>Version Information</h2>
+
+            <pre><code><span class="keyword">import</span> cad_preprocess
+
+<span class="keyword">print</span>(cad_preprocess.__version__)  <span class="comment"># "0.1.0"</span></code></pre>
+        </main>
+    </div>
+
+    <footer class="footer">
+        <p>CAD Preprocess Documentation · <a href="https://github.com/Harshil-Anuwadia/cad-preprocess">GitHub</a> · MIT License</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metadata Profiles - CAD Preprocess</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="../../index.html" class="logo">
+                <div class="logo-icon">CP</div>
+                <div class="logo-text">CAD Preprocess <span>v0.1.0</span></div>
+            </a>
+            <nav class="header-nav">
+                <a href="../../index.html">Home</a>
+                <a href="../installation.html">Installation</a>
+                <a href="../quickstart.html">Quick Start</a>
+                <a href="../api/index.html">API Reference</a>
+                <a href="https://github.com/Harshil-Anuwadia/cad-preprocess" target="_blank">GitHub</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-title">Getting Started</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../../index.html">Overview</a></li>
+                    <li><a href="../installation.html">Installation</a></li>
+                    <li><a href="../quickstart.html">Quick Start</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">User Guide</div>
+                <ul class="sidebar-nav">
+                    <li><a href="cli.html">CLI Usage</a></li>
+                    <li><a href="python-api.html">Python API</a></li>
+                    <li><a href="configuration.html">Configuration</a></li>
+                    <li><a href="metadata-profiles.html" class="active">Metadata Profiles</a></li>
+                    <li><a href="preprocessing.html">Preprocessing Pipeline</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">API Reference</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../api/index.html">Overview</a></li>
+                    <li><a href="../api/integration.html">Integration</a></li>
+                    <li><a href="../api/input_handler.html">Input Handler</a></li>
+                    <li><a href="../api/preprocessing_engine.html">Preprocessing Engine</a></li>
+                    <li><a href="../api/metadata_extractor.html">Metadata Extractor</a></li>
+                    <li><a href="../api/output_writer.html">Output Writer</a></li>
+                    <li><a href="../api/config.html">Configuration</a></li>
+                    <li><a href="../api/logging_utils.html">Logging Utilities</a></li>
+                    <li><a href="../api/cli.html">CLI Module</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">Resources</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../examples.html">Examples</a></li>
+                    <li><a href="../changelog.html">Changelog</a></li>
+                    <li><a href="../contributing.html">Contributing</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="content">
+            <nav class="breadcrumb">
+                <a href="../../index.html">Home</a> &gt; <a href="cli.html">User Guide</a> &gt; Metadata Profiles
+            </nav>
+
+            <h1>Metadata Profiles</h1>
+
+            <p>CAD Preprocess provides predefined metadata extraction profiles for different use cases.</p>
+
+            <div class="toc">
+                <div class="toc-title">Contents</div>
+                <ul>
+                    <li><a href="#overview">Overview</a></li>
+                    <li><a href="#minimal">minimal Profile</a></li>
+                    <li><a href="#patient">patient Profile</a></li>
+                    <li><a href="#geometry">geometry Profile</a></li>
+                    <li><a href="#ml">ml Profile</a></li>
+                    <li><a href="#acquisition">acquisition Profile</a></li>
+                    <li><a href="#full">full Profile</a></li>
+                    <li><a href="#custom">Custom Extraction</a></li>
+                </ul>
+            </div>
+
+            <h2 id="overview">Overview</h2>
+
+            <p>Metadata profiles control which DICOM tags are extracted and saved alongside processed images. Choose a profile based on your needs:</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Profile</th>
+                        <th>Use Case</th>
+                        <th>Tags</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>minimal</code></td>
+                        <td>Basic identification</td>
+                        <td>~5</td>
+                    </tr>
+                    <tr>
+                        <td><code>patient</code></td>
+                        <td>Patient tracking</td>
+                        <td>~15</td>
+                    </tr>
+                    <tr>
+                        <td><code>geometry</code></td>
+                        <td>Spatial analysis</td>
+                        <td>~20</td>
+                    </tr>
+                    <tr>
+                        <td><code>ml</code></td>
+                        <td>Machine learning</td>
+                        <td>~30</td>
+                    </tr>
+                    <tr>
+                        <td><code>acquisition</code></td>
+                        <td>Scanner/protocol info</td>
+                        <td>~25</td>
+                    </tr>
+                    <tr>
+                        <td><code>full</code></td>
+                        <td>Complete extraction</td>
+                        <td>All available</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2 id="minimal">minimal Profile</h2>
+
+            <p>Essential identification only. Best for workflows that just need to track processed files.</p>
+
+            <h4>Extracted Tags</h4>
+            <ul>
+                <li><code>SOPInstanceUID</code> - Unique image identifier</li>
+                <li><code>SOPClassUID</code> - DICOM SOP class</li>
+                <li><code>Modality</code> - Imaging modality (CT, MR, etc.)</li>
+                <li><code>SeriesInstanceUID</code> - Series identifier</li>
+                <li><code>StudyInstanceUID</code> - Study identifier</li>
+            </ul>
+
+            <h4>Example Output</h4>
+            <pre><code>{
+    <span class="string">"sop_instance_uid"</span>: <span class="string">"1.2.840.113619.2.55.3.123456"</span>,
+    <span class="string">"sop_class_uid"</span>: <span class="string">"1.2.840.10008.5.1.4.1.1.2"</span>,
+    <span class="string">"modality"</span>: <span class="string">"CT"</span>,
+    <span class="string">"series_instance_uid"</span>: <span class="string">"1.2.840.113619.2.55.3.789"</span>,
+    <span class="string">"study_instance_uid"</span>: <span class="string">"1.2.840.113619.2.55.3.456"</span>
+}</code></pre>
+
+            <h2 id="patient">patient Profile</h2>
+
+            <p>Patient demographics and identifiers. Use for patient tracking and cohort analysis.</p>
+
+            <h4>Extracted Tags</h4>
+            <ul>
+                <li>All from <strong>minimal</strong></li>
+                <li><code>PatientID</code> - Patient identifier</li>
+                <li><code>PatientName</code> - Patient name</li>
+                <li><code>PatientBirthDate</code> - Date of birth</li>
+                <li><code>PatientSex</code> - Gender</li>
+                <li><code>PatientAge</code> - Age at acquisition</li>
+                <li><code>PatientWeight</code> - Weight (kg)</li>
+                <li><code>StudyDate</code> - Study date</li>
+                <li><code>StudyTime</code> - Study time</li>
+                <li><code>AccessionNumber</code> - Accession number</li>
+                <li><code>ReferringPhysicianName</code> - Referring physician</li>
+            </ul>
+
+            <div class="info-box warning">
+                <div class="info-box-title">⚠️ Privacy Warning</div>
+                The patient profile extracts PHI (Protected Health Information). Use the <code>anonymize: true</code> option if de-identification is required.
+            </div>
+
+            <h2 id="geometry">geometry Profile</h2>
+
+            <p>Spatial and dimensional information. Best for image registration and 3D reconstruction.</p>
+
+            <h4>Extracted Tags</h4>
+            <ul>
+                <li>All from <strong>minimal</strong></li>
+                <li><code>Rows</code> - Image height in pixels</li>
+                <li><code>Columns</code> - Image width in pixels</li>
+                <li><code>PixelSpacing</code> - Physical pixel dimensions [row, col] in mm</li>
+                <li><code>SliceThickness</code> - Slice thickness in mm</li>
+                <li><code>SpacingBetweenSlices</code> - Distance between slices</li>
+                <li><code>ImagePositionPatient</code> - 3D position [x, y, z]</li>
+                <li><code>ImageOrientationPatient</code> - Direction cosines</li>
+                <li><code>SliceLocation</code> - Relative slice position</li>
+                <li><code>InstanceNumber</code> - Image sequence number</li>
+                <li><code>PhotometricInterpretation</code> - Color model</li>
+                <li><code>BitsAllocated</code> - Bits per pixel</li>
+                <li><code>BitsStored</code> - Significant bits</li>
+            </ul>
+
+            <h4>Example Output</h4>
+            <pre><code>{
+    <span class="string">"sop_instance_uid"</span>: <span class="string">"1.2.840.113619.2.55.3.123456"</span>,
+    <span class="string">"modality"</span>: <span class="string">"CT"</span>,
+    <span class="string">"rows"</span>: <span class="number">512</span>,
+    <span class="string">"columns"</span>: <span class="number">512</span>,
+    <span class="string">"pixel_spacing"</span>: [<span class="number">0.488281</span>, <span class="number">0.488281</span>],
+    <span class="string">"slice_thickness"</span>: <span class="number">1.0</span>,
+    <span class="string">"image_position_patient"</span>: [<span class="number">-124.5</span>, <span class="number">-124.5</span>, <span class="number">-200.0</span>],
+    <span class="string">"image_orientation_patient"</span>: [<span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>]
+}</code></pre>
+
+            <h2 id="ml">ml Profile</h2>
+
+            <p>Machine learning focused. Includes geometry plus intensity rescaling parameters.</p>
+
+            <h4>Extracted Tags</h4>
+            <ul>
+                <li>All from <strong>geometry</strong></li>
+                <li><code>RescaleIntercept</code> - Intensity offset (b in y = mx + b)</li>
+                <li><code>RescaleSlope</code> - Intensity scale (m in y = mx + b)</li>
+                <li><code>RescaleType</code> - Units after rescale (e.g., HU)</li>
+                <li><code>WindowCenter</code> - Display window center(s)</li>
+                <li><code>WindowWidth</code> - Display window width(s)</li>
+                <li><code>WindowCenterWidthExplanation</code> - Window descriptions</li>
+                <li><code>PixelRepresentation</code> - Signed/unsigned pixels</li>
+                <li><code>SamplesPerPixel</code> - Color channels</li>
+            </ul>
+
+            <div class="info-box tip">
+                <div class="info-box-title">💡 Recommended for ML</div>
+                The <code>ml</code> profile provides the essential metadata needed to properly reconstruct Hounsfield Units and understand pixel intensity semantics.
+            </div>
+
+            <h4>Example Output</h4>
+            <pre><code>{
+    <span class="string">"sop_instance_uid"</span>: <span class="string">"1.2.840.113619.2.55.3.123456"</span>,
+    <span class="string">"modality"</span>: <span class="string">"CT"</span>,
+    <span class="string">"rows"</span>: <span class="number">512</span>,
+    <span class="string">"columns"</span>: <span class="number">512</span>,
+    <span class="string">"pixel_spacing"</span>: [<span class="number">0.488281</span>, <span class="number">0.488281</span>],
+    <span class="string">"slice_thickness"</span>: <span class="number">1.0</span>,
+    <span class="string">"rescale_intercept"</span>: <span class="number">-1024</span>,
+    <span class="string">"rescale_slope"</span>: <span class="number">1.0</span>,
+    <span class="string">"rescale_type"</span>: <span class="string">"HU"</span>,
+    <span class="string">"window_center"</span>: [<span class="number">40</span>],
+    <span class="string">"window_width"</span>: [<span class="number">400</span>]
+}</code></pre>
+
+            <h2 id="acquisition">acquisition Profile</h2>
+
+            <p>Scanner and acquisition parameters. For quality control and multi-site studies.</p>
+
+            <h4>Extracted Tags</h4>
+            <ul>
+                <li>All from <strong>minimal</strong></li>
+                <li><code>Manufacturer</code> - Equipment manufacturer</li>
+                <li><code>ManufacturerModelName</code> - Scanner model</li>
+                <li><code>StationName</code> - Station identifier</li>
+                <li><code>InstitutionName</code> - Institution name</li>
+                <li><code>SoftwareVersions</code> - Scanner software version</li>
+                <li><code>ProtocolName</code> - Acquisition protocol</li>
+                <li><code>BodyPartExamined</code> - Anatomical region</li>
+                <li><code>KVP</code> - Tube voltage (CT)</li>
+                <li><code>XRayTubeCurrent</code> - Tube current (CT)</li>
+                <li><code>ExposureTime</code> - X-ray exposure time</li>
+                <li><code>ConvolutionKernel</code> - Reconstruction kernel</li>
+                <li><code>MagneticFieldStrength</code> - Field strength (MRI)</li>
+                <li><code>RepetitionTime</code> - TR (MRI)</li>
+                <li><code>EchoTime</code> - TE (MRI)</li>
+                <li><code>FlipAngle</code> - Flip angle (MRI)</li>
+            </ul>
+
+            <h2 id="full">full Profile</h2>
+
+            <p>Extracts all available metadata from the DICOM file. Use when you need complete information or are unsure what you'll need.</p>
+
+            <div class="info-box warning">
+                <div class="info-box-title">⚠️ Large Output</div>
+                The full profile can produce very large metadata files. Consider using a specific profile if you know what metadata you need.
+            </div>
+
+            <h2 id="custom">Custom Metadata Extraction</h2>
+
+            <p>For custom tag extraction, use the <code>MetadataExtractor</code> class directly:</p>
+
+            <pre><code><span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> MetadataExtractor
+<span class="keyword">import</span> pydicom
+
+<span class="comment"># Define custom tags</span>
+custom_tags = [
+    <span class="string">"PatientID"</span>,
+    <span class="string">"StudyDate"</span>,
+    <span class="string">"Modality"</span>,
+    (<span class="number">0x0018</span>, <span class="number">0x0050</span>),  <span class="comment"># SliceThickness by tag number</span>
+]
+
+<span class="comment"># Extract</span>
+extractor = MetadataExtractor(tags=custom_tags)
+dcm = pydicom.dcmread(<span class="string">"image.dcm"</span>)
+metadata = extractor.extract(dcm)
+
+<span class="keyword">print</span>(metadata)</code></pre>
+
+            <h3>Combining Profiles</h3>
+            <pre><code><span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> MetadataExtractor
+
+<span class="comment"># Get tags from multiple profiles</span>
+extractor = MetadataExtractor(profiles=[<span class="string">"geometry"</span>, <span class="string">"acquisition"</span>])</code></pre>
+
+            <div class="info-box tip">
+                <div class="info-box-title">💡 Tip</div>
+                Use the <code>ml</code> profile for deep learning workflows - it provides the essential metadata for proper image preprocessing without unnecessary fields.
+            </div>
+        </main>
+    </div>
+
+    <footer class="footer">
+        <p>CAD Preprocess Documentation · <a href="https://github.com/Harshil-Anuwadia/cad-preprocess">GitHub</a> · MIT License</p>
+    </footer>
+</body>
+</html>

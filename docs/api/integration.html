@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integration Module - CAD Preprocess API</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="../../index.html" class="logo">
+                <div class="logo-icon">CP</div>
+                <div class="logo-text">CAD Preprocess <span>v0.1.0</span></div>
+            </a>
+            <nav class="header-nav">
+                <a href="../../index.html">Home</a>
+                <a href="../installation.html">Installation</a>
+                <a href="../quickstart.html">Quick Start</a>
+                <a href="index.html">API Reference</a>
+                <a href="https://github.com/Harshil-Anuwadia/cad-preprocess" target="_blank">GitHub</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-title">Getting Started</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../../index.html">Overview</a></li>
+                    <li><a href="../installation.html">Installation</a></li>
+                    <li><a href="../quickstart.html">Quick Start</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">User Guide</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../guides/cli.html">CLI Usage</a></li>
+                    <li><a href="../guides/python-api.html">Python API</a></li>
+                    <li><a href="../guides/configuration.html">Configuration</a></li>
+                    <li><a href="../guides/metadata-profiles.html">Metadata Profiles</a></li>
+                    <li><a href="../guides/preprocessing.html">Preprocessing Pipeline</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">API Reference</div>
+                <ul class="sidebar-nav">
+                    <li><a href="index.html">Overview</a></li>
+                    <li><a href="integration.html" class="active">Integration</a></li>
+                    <li><a href="input_handler.html">Input Handler</a></li>
+                    <li><a href="preprocessing_engine.html">Preprocessing Engine</a></li>
+                    <li><a href="metadata_extractor.html">Metadata Extractor</a></li>
+                    <li><a href="output_writer.html">Output Writer</a></li>
+                    <li><a href="config.html">Configuration</a></li>
+                    <li><a href="logging_utils.html">Logging Utilities</a></li>
+                    <li><a href="cli.html">CLI Module</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">Resources</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../examples.html">Examples</a></li>
+                    <li><a href="../changelog.html">Changelog</a></li>
+                    <li><a href="../contributing.html">Contributing</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="content">
+            <nav class="breadcrumb">
+                <a href="../../index.html">Home</a> &gt; <a href="index.html">API Reference</a> &gt; Integration
+            </nav>
+
+            <h1>cad_preprocess.integration</h1>
+
+            <p>High-level API for DICOM preprocessing. This module provides the main entry points for the library.</p>
+
+            <div class="toc">
+                <div class="toc-title">Contents</div>
+                <ul>
+                    <li><a href="#preprocess">preprocess()</a></li>
+                    <li><a href="#cadpreprocessor">CADPreprocessor</a></li>
+                    <li><a href="#processingresult">ProcessingResult</a></li>
+                    <li><a href="#processingmanifest">ProcessingManifest</a></li>
+                </ul>
+            </div>
+
+            <h2 id="preprocess">preprocess()</h2>
+
+            <p>Simple function to preprocess a single DICOM file.</p>
+
+            <div class="api-signature">
+                preprocess(input_path, output_dir, **kwargs) → ProcessingResult
+            </div>
+
+            <h4>Parameters</h4>
+            <div class="api-params">
+                <div class="api-param">
+                    <span class="api-param-name">input_path</span>
+                    <span class="api-param-type">str | Path</span>
+                    <div class="api-param-desc">Path to DICOM file</div>
+                </div>
+                <div class="api-param">
+                    <span class="api-param-name">output_dir</span>
+                    <span class="api-param-type">str | Path</span>
+                    <div class="api-param-desc">Output directory for processed files</div>
+                </div>
+                <div class="api-param">
+                    <span class="api-param-name">**kwargs</span>
+                    <span class="api-param-type">Any</span>
+                    <div class="api-param-desc">Additional preprocessing options (target_size, normalize, etc.)</div>
+                </div>
+            </div>
+
+            <h4>Returns</h4>
+            <div class="api-returns">
+                <code>ProcessingResult</code> - Object containing processed image and metadata
+            </div>
+
+            <h4>Example</h4>
+            <pre><code><span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> preprocess
+
+result = preprocess(<span class="string">"image.dcm"</span>, <span class="string">"output/"</span>)
+<span class="keyword">print</span>(result.sop_instance_uid)
+<span class="keyword">print</span>(result.image.shape)</code></pre>
+
+            <hr>
+
+            <h2 id="cadpreprocessor">CADPreprocessor</h2>
+
+            <p>Main class for batch DICOM preprocessing with full configuration support.</p>
+
+            <div class="api-signature">
+                class CADPreprocessor(config=None, **kwargs)
+            </div>
+
+            <h4>Constructor Parameters</h4>
+            <div class="api-params">
+                <div class="api-param">
+                    <span class="api-param-name">config</span>
+                    <span class="api-param-type">PreprocessingConfig | None</span>
+                    <div class="api-param-desc">Configuration object. If None, uses default settings.</div>
+                </div>
+                <div class="api-param">
+                    <span class="api-param-name">target_size</span>
+                    <span class="api-param-type">int | None</span>
+                    <div class="api-param-desc">Target image size</div>
+                </div>
+                <div class="api-param">
+                    <span class="api-param-name">normalize</span>
+                    <span class="api-param-type">bool</span>
+                    <div class="api-param-desc">Whether to normalize pixel values (default: True)</div>
+                </div>
+                <div class="api-param">
+                    <span class="api-param-name">metadata_profile</span>
+                    <span class="api-param-type">str</span>
+                    <div class="api-param-desc">Metadata extraction profile (default: "minimal")</div>
+                </div>
+                <div class="api-param">
+                    <span class="api-param-name">window_center</span>
+                    <span class="api-param-type">float | None</span>
+                    <div class="api-param-desc">CT window center</div>
+                </div>
+                <div class="api-param">
+                    <span class="api-param-name">window_width</span>
+                    <span class="api-param-type">float | None</span>
+                    <div class="api-param-desc">CT window width</div>
+                </div>
+            </div>
+
+            <h3>Class Methods</h3>
+
+            <h4>from_config()</h4>
+            <div class="api-signature">
+                CADPreprocessor.from_config(config_path) → CADPreprocessor
+            </div>
+            <p>Create a preprocessor from a YAML configuration file.</p>
+            <pre><code>processor = CADPreprocessor.from_config(<span class="string">"config.yaml"</span>)</code></pre>
+
+            <h3>Instance Methods</h3>
+
+            <h4>process_file()</h4>
+            <div class="api-signature">
+                process_file(input_path, output_dir=None) → ProcessingResult
+            </div>
+            <p>Process a single DICOM file.</p>
+            <div class="api-params">
+                <div class="api-param">
+                    <span class="api-param-name">input_path</span>
+                    <span class="api-param-type">str | Path</span>
+                    <div class="api-param-desc">Path to DICOM file</div>
+                </div>
+                <div class="api-param">
+                    <span class="api-param-name">output_dir</span>
+                    <span class="api-param-type">str | Path | None</span>
+                    <div class="api-param-desc">Output directory. If None, doesn't save to disk.</div>
+                </div>
+            </div>
+
+            <h4>process_directory()</h4>
+            <div class="api-signature">
+                process_directory(input_dir, output_dir) → List[ProcessingResult]
+            </div>
+            <p>Process all DICOM files in a directory.</p>
+            <div class="api-params">
+                <div class="api-param">
+                    <span class="api-param-name">input_dir</span>
+                    <span class="api-param-type">str | Path</span>
+                    <div class="api-param-desc">Input directory containing DICOM files</div>
+                </div>
+                <div class="api-param">
+                    <span class="api-param-name">output_dir</span>
+                    <span class="api-param-type">str | Path</span>
+                    <div class="api-param-desc">Output directory for processed files</div>
+                </div>
+            </div>
+
+            <h3>Properties</h3>
+
+            <h4>config_hash</h4>
+            <div class="api-signature">
+                config_hash → str
+            </div>
+            <p>SHA-256 hash of the current configuration. Use for reproducibility verification.</p>
+            <pre><code><span class="keyword">print</span>(processor.config_hash)
+<span class="comment"># "a1b2c3d4e5f6..."</span></code></pre>
+
+            <h4>stats</h4>
+            <div class="api-signature">
+                stats → ProcessingStats
+            </div>
+            <p>Statistics for the current processing session.</p>
+
+            <h4>Example</h4>
+            <pre><code><span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> CADPreprocessor
+
+<span class="comment"># Create processor</span>
+processor = CADPreprocessor(target_size=<span class="number">512</span>, metadata_profile=<span class="string">"ml"</span>)
+
+<span class="comment"># Process directory</span>
+results = processor.process_directory(<span class="string">"dicoms/"</span>, <span class="string">"output/"</span>)
+
+<span class="comment"># Check stats</span>
+<span class="keyword">print</span>(<span class="string">f"Processed: </span>{processor.stats.processed}<span class="string">"</span>)
+<span class="keyword">print</span>(<span class="string">f"Config hash: </span>{processor.config_hash}<span class="string">"</span>)</code></pre>
+
+            <hr>
+
+            <h2 id="processingresult">ProcessingResult</h2>
+
+            <p>Container for a single processed DICOM file's results.</p>
+
+            <div class="api-signature">
+                class ProcessingResult
+            </div>
+
+            <h4>Attributes</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Attribute</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>sop_instance_uid</code></td>
+                        <td>str</td>
+                        <td>DICOM SOP Instance UID</td>
+                    </tr>
+                    <tr>
+                        <td><code>image</code></td>
+                        <td>np.ndarray</td>
+                        <td>Preprocessed image array</td>
+                    </tr>
+                    <tr>
+                        <td><code>metadata</code></td>
+                        <td>Dict[str, Any]</td>
+                        <td>Extracted metadata dictionary</td>
+                    </tr>
+                    <tr>
+                        <td><code>original_shape</code></td>
+                        <td>Tuple[int, int]</td>
+                        <td>Original image dimensions (H, W)</td>
+                    </tr>
+                    <tr>
+                        <td><code>final_shape</code></td>
+                        <td>Tuple[int, int]</td>
+                        <td>Final image dimensions (H, W)</td>
+                    </tr>
+                    <tr>
+                        <td><code>modality</code></td>
+                        <td>str</td>
+                        <td>DICOM modality (CT, MR, etc.)</td>
+                    </tr>
+                    <tr>
+                        <td><code>processing_time</code></td>
+                        <td>float</td>
+                        <td>Processing time in seconds</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <hr>
+
+            <h2 id="processingmanifest">ProcessingManifest</h2>
+
+            <p>Manifest containing information about a batch processing run.</p>
+
+            <div class="api-signature">
+                class ProcessingManifest
+            </div>
+
+            <h4>Attributes</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Attribute</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>timestamp</code></td>
+                        <td>str</td>
+                        <td>ISO format timestamp</td>
+                    </tr>
+                    <tr>
+                        <td><code>config_hash</code></td>
+                        <td>str</td>
+                        <td>Configuration hash for reproducibility</td>
+                    </tr>
+                    <tr>
+                        <td><code>total_processed</code></td>
+                        <td>int</td>
+                        <td>Number of files processed</td>
+                    </tr>
+                    <tr>
+                        <td><code>failed</code></td>
+                        <td>int</td>
+                        <td>Number of failed files</td>
+                    </tr>
+                    <tr>
+                        <td><code>files</code></td>
+                        <td>List[Dict]</td>
+                        <td>List of processed file information</td>
+                    </tr>
+                </tbody>
+            </table>
+        </main>
+    </div>
+
+    <footer class="footer">
+        <p>CAD Preprocess Documentation · <a href="https://github.com/Harshil-Anuwadia/cad-preprocess">GitHub</a> · MIT License</p>
+    </footer>
+</body>
+</html>

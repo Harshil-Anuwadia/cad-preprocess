@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Output Writer - CAD Preprocess API</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="../../index.html" class="logo">
+                <div class="logo-icon">CP</div>
+                <div class="logo-text">CAD Preprocess <span>v0.1.0</span></div>
+            </a>
+            <nav class="header-nav">
+                <a href="../../index.html">Home</a>
+                <a href="../installation.html">Installation</a>
+                <a href="../quickstart.html">Quick Start</a>
+                <a href="index.html">API Reference</a>
+                <a href="https://github.com/Harshil-Anuwadia/cad-preprocess" target="_blank">GitHub</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-title">Getting Started</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../../index.html">Overview</a></li>
+                    <li><a href="../installation.html">Installation</a></li>
+                    <li><a href="../quickstart.html">Quick Start</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">User Guide</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../guides/cli.html">CLI Usage</a></li>
+                    <li><a href="../guides/python-api.html">Python API</a></li>
+                    <li><a href="../guides/configuration.html">Configuration</a></li>
+                    <li><a href="../guides/metadata-profiles.html">Metadata Profiles</a></li>
+                    <li><a href="../guides/preprocessing.html">Preprocessing Pipeline</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">API Reference</div>
+                <ul class="sidebar-nav">
+                    <li><a href="index.html">Overview</a></li>
+                    <li><a href="integration.html">Integration</a></li>
+                    <li><a href="input_handler.html">Input Handler</a></li>
+                    <li><a href="preprocessing_engine.html">Preprocessing Engine</a></li>
+                    <li><a href="metadata_extractor.html">Metadata Extractor</a></li>
+                    <li><a href="output_writer.html" class="active">Output Writer</a></li>
+                    <li><a href="config.html">Configuration</a></li>
+                    <li><a href="logging_utils.html">Logging Utilities</a></li>
+                    <li><a href="cli.html">CLI Module</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">Resources</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../examples.html">Examples</a></li>
+                    <li><a href="../changelog.html">Changelog</a></li>
+                    <li><a href="../contributing.html">Contributing</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="content">
+            <nav class="breadcrumb">
+                <a href="../../index.html">Home</a> &gt; <a href="index.html">API Reference</a> &gt; Output Writer
+            </nav>
+
+            <h1>cad_preprocess.output_writer</h1>
+
+            <p>File persistence with configurable naming policies and output formats.</p>
+
+            <div class="toc">
+                <div class="toc-title">Contents</div>
+                <ul>
+                    <li><a href="#outputwriter">OutputWriter</a></li>
+                    <li><a href="#naming">Naming Policies</a></li>
+                </ul>
+            </div>
+
+            <h2 id="outputwriter">OutputWriter</h2>
+
+            <p>Handles saving processed images and metadata to disk.</p>
+
+            <div class="api-signature">
+                class OutputWriter(output_dir, format="png", naming_policy="sop_uid", **kwargs)
+            </div>
+
+            <h4>Constructor Parameters</h4>
+            <div class="api-params">
+                <div class="api-param">
+                    <span class="api-param-name">output_dir</span>
+                    <span class="api-param-type">str | Path</span>
+                    <div class="api-param-desc">Base output directory</div>
+                </div>
+                <div class="api-param">
+                    <span class="api-param-name">format</span>
+                    <span class="api-param-type">str</span>
+                    <div class="api-param-desc">Output format: "png", "jpg", "npy" (default: "png")</div>
+                </div>
+                <div class="api-param">
+                    <span class="api-param-name">naming_policy</span>
+                    <span class="api-param-type">str</span>
+                    <div class="api-param-desc">File naming policy: "sop_uid", "patient_study", "sequential"</div>
+                </div>
+                <div class="api-param">
+                    <span class="api-param-name">create_subdirs</span>
+                    <span class="api-param-type">bool</span>
+                    <div class="api-param-desc">Create images/, metadata/, logs/ subdirectories (default: True)</div>
+                </div>
+                <div class="api-param">
+                    <span class="api-param-name">jpeg_quality</span>
+                    <span class="api-param-type">int</span>
+                    <div class="api-param-desc">JPEG quality 1-100 (default: 95)</div>
+                </div>
+            </div>
+
+            <h3>Methods</h3>
+
+            <h4>write_image()</h4>
+            <div class="api-signature">
+                write_image(image, identifier) → Path
+            </div>
+            <p>Save a processed image to disk.</p>
+            <div class="api-params">
+                <div class="api-param">
+                    <span class="api-param-name">image</span>
+                    <span class="api-param-type">np.ndarray</span>
+                    <div class="api-param-desc">Image array to save</div>
+                </div>
+                <div class="api-param">
+                    <span class="api-param-name">identifier</span>
+                    <span class="api-param-type">str</span>
+                    <div class="api-param-desc">Unique identifier (used for filename)</div>
+                </div>
+            </div>
+            <div class="api-returns">
+                <code>Path</code> - Path to saved image file
+            </div>
+
+            <h4>write_metadata()</h4>
+            <div class="api-signature">
+                write_metadata(metadata, identifier) → Path
+            </div>
+            <p>Save metadata as JSON file.</p>
+            <div class="api-params">
+                <div class="api-param">
+                    <span class="api-param-name">metadata</span>
+                    <span class="api-param-type">Dict[str, Any]</span>
+                    <div class="api-param-desc">Metadata dictionary</div>
+                </div>
+                <div class="api-param">
+                    <span class="api-param-name">identifier</span>
+                    <span class="api-param-type">str</span>
+                    <div class="api-param-desc">Unique identifier</div>
+                </div>
+            </div>
+            <div class="api-returns">
+                <code>Path</code> - Path to saved JSON file
+            </div>
+
+            <h4>write_manifest()</h4>
+            <div class="api-signature">
+                write_manifest(manifest) → Path
+            </div>
+            <p>Save processing manifest.</p>
+
+            <h4>write_result()</h4>
+            <div class="api-signature">
+                write_result(result) → Tuple[Path, Path]
+            </div>
+            <p>Save both image and metadata from a ProcessingResult.</p>
+            <div class="api-returns">
+                <code>Tuple[Path, Path]</code> - Paths to (image_file, metadata_file)
+            </div>
+
+            <h4>get_filename()</h4>
+            <div class="api-signature">
+                get_filename(identifier, extension) → str
+            </div>
+            <p>Generate filename based on naming policy.</p>
+
+            <h4>Example</h4>
+            <pre><code><span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> OutputWriter
+<span class="keyword">import</span> numpy <span class="keyword">as</span> np
+
+<span class="comment"># Create writer</span>
+writer = OutputWriter(
+    output_dir=<span class="string">"./output"</span>,
+    format=<span class="string">"png"</span>,
+    naming_policy=<span class="string">"sop_uid"</span>
+)
+
+<span class="comment"># Save image</span>
+image = np.random.randint(<span class="number">0</span>, <span class="number">255</span>, (<span class="number">512</span>, <span class="number">512</span>), dtype=np.uint8)
+image_path = writer.write_image(image, <span class="string">"1.2.840.113619.2.55.3"</span>)
+
+<span class="comment"># Save metadata</span>
+metadata = {<span class="string">"modality"</span>: <span class="string">"CT"</span>, <span class="string">"rows"</span>: <span class="number">512</span>}
+meta_path = writer.write_metadata(metadata, <span class="string">"1.2.840.113619.2.55.3"</span>)
+
+<span class="keyword">print</span>(<span class="string">f"Image: </span>{image_path}<span class="string">"</span>)
+<span class="keyword">print</span>(<span class="string">f"Metadata: </span>{meta_path}<span class="string">"</span>)</code></pre>
+
+            <hr>
+
+            <h2 id="naming">Naming Policies</h2>
+
+            <h3>sop_uid (default)</h3>
+            <p>Uses the DICOM SOP Instance UID as the filename.</p>
+            <pre><code>1.2.840.113619.2.55.3.123456789.png
+1.2.840.113619.2.55.3.123456789.json</code></pre>
+
+            <h3>patient_study</h3>
+            <p>Uses PatientID_StudyDate_InstanceNumber format.</p>
+            <pre><code>PATIENT001_20260110_001.png
+PATIENT001_20260110_001.json</code></pre>
+
+            <h3>sequential</h3>
+            <p>Uses sequential numbering.</p>
+            <pre><code>000001.png
+000001.json
+000002.png
+000002.json</code></pre>
+
+            <h3>Output Directory Structure</h3>
+            <pre><code>output/
+├── images/            <span class="comment"># Processed images</span>
+│   ├── 1.2.840...png
+│   └── ...
+├── metadata/          <span class="comment"># JSON metadata files</span>
+│   ├── 1.2.840...json
+│   └── ...
+├── logs/              <span class="comment"># Processing logs</span>
+│   └── processing_log_YYYYMMDD.json
+└── manifest.json      <span class="comment"># Batch manifest</span></code></pre>
+        </main>
+    </div>
+
+    <footer class="footer">
+        <p>CAD Preprocess Documentation · <a href="https://github.com/Harshil-Anuwadia/cad-preprocess">GitHub</a> · MIT License</p>
+    </footer>
+</body>
+</html>

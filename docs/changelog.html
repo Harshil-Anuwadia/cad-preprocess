@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Changelog - CAD Preprocess</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="../index.html" class="logo">
+                <div class="logo-icon">CP</div>
+                <div class="logo-text">CAD Preprocess <span>v0.1.0</span></div>
+            </a>
+            <nav class="header-nav">
+                <a href="../index.html">Home</a>
+                <a href="installation.html">Installation</a>
+                <a href="quickstart.html">Quick Start</a>
+                <a href="api/index.html">API Reference</a>
+                <a href="https://github.com/Harshil-Anuwadia/cad-preprocess" target="_blank">GitHub</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-title">Getting Started</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../index.html">Overview</a></li>
+                    <li><a href="installation.html">Installation</a></li>
+                    <li><a href="quickstart.html">Quick Start</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">User Guide</div>
+                <ul class="sidebar-nav">
+                    <li><a href="guides/cli.html">CLI Usage</a></li>
+                    <li><a href="guides/python-api.html">Python API</a></li>
+                    <li><a href="guides/configuration.html">Configuration</a></li>
+                    <li><a href="guides/metadata-profiles.html">Metadata Profiles</a></li>
+                    <li><a href="guides/preprocessing.html">Preprocessing Pipeline</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">API Reference</div>
+                <ul class="sidebar-nav">
+                    <li><a href="api/index.html">Overview</a></li>
+                    <li><a href="api/integration.html">Integration</a></li>
+                    <li><a href="api/input_handler.html">Input Handler</a></li>
+                    <li><a href="api/preprocessing_engine.html">Preprocessing Engine</a></li>
+                    <li><a href="api/metadata_extractor.html">Metadata Extractor</a></li>
+                    <li><a href="api/output_writer.html">Output Writer</a></li>
+                    <li><a href="api/config.html">Configuration</a></li>
+                    <li><a href="api/logging_utils.html">Logging Utilities</a></li>
+                    <li><a href="api/cli.html">CLI Module</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">Resources</div>
+                <ul class="sidebar-nav">
+                    <li><a href="examples.html">Examples</a></li>
+                    <li><a href="changelog.html" class="active">Changelog</a></li>
+                    <li><a href="contributing.html">Contributing</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="content">
+            <nav class="breadcrumb">
+                <a href="../index.html">Home</a> &gt; Changelog
+            </nav>
+
+            <h1>Changelog</h1>
+
+            <p>All notable changes to CAD Preprocess are documented here.</p>
+
+            <p>The format is based on <a href="https://keepachangelog.com/en/1.0.0/">Keep a Changelog</a>, and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
+
+            <h2>[0.1.0] - 2026-01-10</h2>
+
+            <p>🎉 <strong>Initial Release</strong></p>
+
+            <h3>Added</h3>
+            <ul>
+                <li><strong>Input Handler Module</strong>
+                    <ul>
+                        <li>Recursive DICOM file discovery</li>
+                        <li>DICOM validation and filtering</li>
+                        <li>Support for .dcm, .dicom, and extensionless files</li>
+                    </ul>
+                </li>
+                <li><strong>Preprocessing Engine</strong>
+                    <ul>
+                        <li>Deterministic image preprocessing pipeline</li>
+                        <li>CT windowing with configurable center/width</li>
+                        <li>Rescale slope/intercept application</li>
+                        <li>Image normalization to 0-255</li>
+                        <li>Configurable resize with multiple interpolation methods</li>
+                    </ul>
+                </li>
+                <li><strong>Metadata Extractor</strong>
+                    <ul>
+                        <li>Profile-based metadata extraction</li>
+                        <li>Profiles: minimal, patient, geometry, ml, acquisition, full</li>
+                        <li>Custom tag extraction support</li>
+                    </ul>
+                </li>
+                <li><strong>Output Writer</strong>
+                    <ul>
+                        <li>PNG, JPEG, and NumPy output formats</li>
+                        <li>Configurable naming policies (sop_uid, patient_study, sequential)</li>
+                        <li>Automatic directory structure creation</li>
+                        <li>Processing manifest generation</li>
+                    </ul>
+                </li>
+                <li><strong>Configuration System</strong>
+                    <ul>
+                        <li>YAML configuration file support</li>
+                        <li>Environment variable overrides</li>
+                        <li>CLI argument overrides</li>
+                        <li>Configuration hashing for reproducibility</li>
+                    </ul>
+                </li>
+                <li><strong>CLI Interface</strong>
+                    <ul>
+                        <li>Full-featured command-line interface</li>
+                        <li>Dry-run mode for previewing</li>
+                        <li>Verbose output option</li>
+                    </ul>
+                </li>
+                <li><strong>Logging & Error Handling</strong>
+                    <ul>
+                        <li>Structured JSON logging</li>
+                        <li>Processing statistics tracking</li>
+                        <li>Fail-safe decorator for graceful error handling</li>
+                    </ul>
+                </li>
+                <li><strong>Integration API</strong>
+                    <ul>
+                        <li><code>preprocess()</code> one-liner function</li>
+                        <li><code>CADPreprocessor</code> class for batch processing</li>
+                        <li>Config hash for train/inference reproducibility</li>
+                    </ul>
+                </li>
+            </ul>
+
+            <h3>Dependencies</h3>
+            <ul>
+                <li>Python &gt;= 3.9</li>
+                <li>pydicom &gt;= 2.3.0</li>
+                <li>numpy &gt;= 1.21.0</li>
+                <li>Pillow &gt;= 9.0.0</li>
+                <li>PyYAML &gt;= 6.0</li>
+                <li>scikit-image &gt;= 0.19.0</li>
+            </ul>
+
+            <hr>
+
+            <h2>Future Releases</h2>
+
+            <h3>[0.2.0] - Planned</h3>
+            <ul>
+                <li>Multi-frame DICOM support</li>
+                <li>DICOM-RT structure set handling</li>
+                <li>Parallel processing support</li>
+                <li>Progress bar for CLI</li>
+            </ul>
+
+            <h3>[0.3.0] - Planned</h3>
+            <ul>
+                <li>GPU acceleration (optional)</li>
+                <li>Additional output formats (TIFF, NIfTI)</li>
+                <li>Plugin architecture for custom preprocessing steps</li>
+            </ul>
+        </main>
+    </div>
+
+    <footer class="footer">
+        <p>CAD Preprocess Documentation · <a href="https://github.com/Harshil-Anuwadia/cad-preprocess">GitHub</a> · MIT License</p>
+    </footer>
+</body>
+</html>

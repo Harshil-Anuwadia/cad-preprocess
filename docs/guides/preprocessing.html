@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preprocessing Pipeline - CAD Preprocess</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="../../index.html" class="logo">
+                <div class="logo-icon">CP</div>
+                <div class="logo-text">CAD Preprocess <span>v0.1.0</span></div>
+            </a>
+            <nav class="header-nav">
+                <a href="../../index.html">Home</a>
+                <a href="../installation.html">Installation</a>
+                <a href="../quickstart.html">Quick Start</a>
+                <a href="../api/index.html">API Reference</a>
+                <a href="https://github.com/Harshil-Anuwadia/cad-preprocess" target="_blank">GitHub</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-title">Getting Started</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../../index.html">Overview</a></li>
+                    <li><a href="../installation.html">Installation</a></li>
+                    <li><a href="../quickstart.html">Quick Start</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">User Guide</div>
+                <ul class="sidebar-nav">
+                    <li><a href="cli.html">CLI Usage</a></li>
+                    <li><a href="python-api.html">Python API</a></li>
+                    <li><a href="configuration.html">Configuration</a></li>
+                    <li><a href="metadata-profiles.html">Metadata Profiles</a></li>
+                    <li><a href="preprocessing.html" class="active">Preprocessing Pipeline</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">API Reference</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../api/index.html">Overview</a></li>
+                    <li><a href="../api/integration.html">Integration</a></li>
+                    <li><a href="../api/input_handler.html">Input Handler</a></li>
+                    <li><a href="../api/preprocessing_engine.html">Preprocessing Engine</a></li>
+                    <li><a href="../api/metadata_extractor.html">Metadata Extractor</a></li>
+                    <li><a href="../api/output_writer.html">Output Writer</a></li>
+                    <li><a href="../api/config.html">Configuration</a></li>
+                    <li><a href="../api/logging_utils.html">Logging Utilities</a></li>
+                    <li><a href="../api/cli.html">CLI Module</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">Resources</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../examples.html">Examples</a></li>
+                    <li><a href="../changelog.html">Changelog</a></li>
+                    <li><a href="../contributing.html">Contributing</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="content">
+            <nav class="breadcrumb">
+                <a href="../../index.html">Home</a> &gt; <a href="cli.html">User Guide</a> &gt; Preprocessing Pipeline
+            </nav>
+
+            <h1>Preprocessing Pipeline</h1>
+
+            <p>Understanding the preprocessing steps and how to customize them.</p>
+
+            <div class="toc">
+                <div class="toc-title">Contents</div>
+                <ul>
+                    <li><a href="#overview">Pipeline Overview</a></li>
+                    <li><a href="#steps">Processing Steps</a></li>
+                    <li><a href="#windowing">CT Windowing</a></li>
+                    <li><a href="#normalization">Normalization</a></li>
+                    <li><a href="#resizing">Resizing</a></li>
+                    <li><a href="#determinism">Determinism</a></li>
+                </ul>
+            </div>
+
+            <h2 id="overview">Pipeline Overview</h2>
+
+            <p>The preprocessing pipeline transforms raw DICOM pixel data into analysis-ready images:</p>
+
+            <pre><code>DICOM File
+    │
+    ▼
+┌─────────────────────┐
+│ 1. Read Pixel Data  │  Extract pixel array from DICOM
+└─────────────────────┘
+    │
+    ▼
+┌─────────────────────┐
+│ 2. Apply Rescale    │  RescaleSlope × pixels + RescaleIntercept
+└─────────────────────┘
+    │
+    ▼
+┌─────────────────────┐
+│ 3. CT Windowing     │  Apply window center/width (CT only)
+└─────────────────────┘
+    │
+    ▼
+┌─────────────────────┐
+│ 4. Normalize        │  Scale to 0-255 range
+└─────────────────────┘
+    │
+    ▼
+┌─────────────────────┐
+│ 5. Resize           │  Resize to target dimensions
+└─────────────────────┘
+    │
+    ▼
+Output Image (PNG/NPY)</code></pre>
+
+            <h2 id="steps">Processing Steps</h2>
+
+            <h3>1. Read Pixel Data</h3>
+            <p>Raw pixel data is extracted from the DICOM file using pydicom:</p>
+            <pre><code><span class="comment"># Internally uses:</span>
+pixel_array = dcm.pixel_array  <span class="comment"># Returns numpy array</span></code></pre>
+
+            <h3>2. Apply Rescale Transform</h3>
+            <p>DICOM images often store raw sensor values. The rescale transform converts to meaningful units:</p>
+            <pre><code><span class="comment"># For CT: converts to Hounsfield Units (HU)</span>
+hu_values = pixel_array * RescaleSlope + RescaleIntercept
+
+<span class="comment"># Example: Raw value 2000, Slope=1, Intercept=-1024</span>
+<span class="comment"># HU = 2000 * 1 + (-1024) = 976 HU (bone)</span></code></pre>
+
+            <h3>3. CT Windowing</h3>
+            <p>Window/level transformation maps a range of values to display range:</p>
+            <pre><code><span class="comment"># Window maps [center-width/2, center+width/2] to [0, 255]</span>
+<span class="comment"># Example: Soft tissue window (center=40, width=400)</span>
+<span class="comment"># Maps HU range [-160, 240] to [0, 255]</span></code></pre>
+
+            <h3>4. Normalize</h3>
+            <p>Scales pixel values to 0-255 range:</p>
+            <pre><code><span class="comment"># Min-max normalization</span>
+normalized = (image - min) / (max - min) * 255</code></pre>
+
+            <h3>5. Resize</h3>
+            <p>Resizes to target dimensions while optionally preserving aspect ratio:</p>
+            <pre><code><span class="comment"># Bilinear interpolation (default)</span>
+resized = resize(image, target_size, interpolation=<span class="string">'bilinear'</span>)</code></pre>
+
+            <h2 id="windowing">CT Windowing</h2>
+
+            <p>CT windowing is critical for visualizing specific tissue types:</p>
+
+            <h3>Common Window Presets</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tissue Type</th>
+                        <th>Window Center</th>
+                        <th>Window Width</th>
+                        <th>HU Range</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Soft Tissue</td>
+                        <td>40</td>
+                        <td>400</td>
+                        <td>-160 to 240</td>
+                    </tr>
+                    <tr>
+                        <td>Lung</td>
+                        <td>-600</td>
+                        <td>1500</td>
+                        <td>-1350 to -150</td>
+                    </tr>
+                    <tr>
+                        <td>Bone</td>
+                        <td>400</td>
+                        <td>1800</td>
+                        <td>-500 to 1300</td>
+                    </tr>
+                    <tr>
+                        <td>Brain</td>
+                        <td>40</td>
+                        <td>80</td>
+                        <td>0 to 80</td>
+                    </tr>
+                    <tr>
+                        <td>Liver</td>
+                        <td>60</td>
+                        <td>150</td>
+                        <td>-15 to 135</td>
+                    </tr>
+                    <tr>
+                        <td>Mediastinum</td>
+                        <td>50</td>
+                        <td>350</td>
+                        <td>-125 to 225</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Using Windowing</h3>
+            <pre><code><span class="comment"># CLI</span>
+cad-preprocess -i ct_scan.dcm -o ./output \
+    --window-center -600 --window-width 1500  <span class="comment"># Lung window</span>
+
+<span class="comment"># Python</span>
+processor = CADPreprocessor(
+    window_center=-<span class="number">600</span>,
+    window_width=<span class="number">1500</span>
+)</code></pre>
+
+            <h3>Auto Windowing</h3>
+            <p>If not specified, CAD Preprocess uses the window values stored in the DICOM file:</p>
+            <pre><code><span class="comment"># Uses DICOM-embedded window values</span>
+cad-preprocess -i ct_scan.dcm -o ./output  <span class="comment"># No window args = auto</span></code></pre>
+
+            <h2 id="normalization">Normalization</h2>
+
+            <h3>Default: Min-Max Normalization</h3>
+            <pre><code><span class="comment"># Scales to [0, 255]</span>
+normalized = (image - image.min()) / (image.max() - image.min()) * 255
+normalized = normalized.astype(np.uint8)</code></pre>
+
+            <h3>Disable Normalization</h3>
+            <pre><code><span class="comment"># Keep original values (useful for numpy output)</span>
+cad-preprocess -i ./dicoms -o ./output --no-normalize --output-format npy</code></pre>
+
+            <h2 id="resizing">Resizing</h2>
+
+            <h3>Target Size Options</h3>
+            <pre><code><span class="comment"># Square output</span>
+cad-preprocess -i ./dicoms -o ./output --target-size 512
+
+<span class="comment"># In config.yaml</span>
+preprocessing:
+  target_size: 512
+  preserve_aspect_ratio: true</code></pre>
+
+            <h3>Interpolation Methods</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Method</th>
+                        <th>Description</th>
+                        <th>Use Case</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>nearest</code></td>
+                        <td>Nearest neighbor</td>
+                        <td>Masks, labels</td>
+                    </tr>
+                    <tr>
+                        <td><code>bilinear</code></td>
+                        <td>Bilinear (default)</td>
+                        <td>General purpose</td>
+                    </tr>
+                    <tr>
+                        <td><code>bicubic</code></td>
+                        <td>Bicubic</td>
+                        <td>High quality</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2 id="determinism">Determinism</h2>
+
+            <p>CAD Preprocess guarantees deterministic results:</p>
+
+            <ul>
+                <li><strong>Same input + same config = same output</strong></li>
+                <li>No random operations in the pipeline</li>
+                <li>Config hash ensures identical preprocessing</li>
+            </ul>
+
+            <pre><code><span class="comment"># Verify determinism</span>
+processor1 = CADPreprocessor.from_config(<span class="string">"config.yaml"</span>)
+result1 = processor1.process_file(<span class="string">"image.dcm"</span>)
+
+processor2 = CADPreprocessor.from_config(<span class="string">"config.yaml"</span>)
+result2 = processor2.process_file(<span class="string">"image.dcm"</span>)
+
+<span class="comment"># These will be identical</span>
+<span class="keyword">assert</span> np.array_equal(result1.image, result2.image)
+<span class="keyword">assert</span> processor1.config_hash == processor2.config_hash</code></pre>
+
+            <div class="info-box note">
+                <div class="info-box-title">📝 Why Determinism Matters</div>
+                In ML workflows, training and inference must use identical preprocessing. The config hash feature allows you to verify this automatically.
+            </div>
+
+            <h3>Config Hash</h3>
+            <p>The config hash is a SHA-256 hash of all preprocessing parameters:</p>
+            <pre><code>processor = CADPreprocessor.from_config(<span class="string">"config.yaml"</span>)
+<span class="keyword">print</span>(processor.config_hash)
+<span class="comment"># Output: "a1b2c3d4e5f6..." (64 character hex string)</span></code></pre>
+
+            <p>Store this hash with your trained model to ensure inference uses matching preprocessing.</p>
+        </main>
+    </div>
+
+    <footer class="footer">
+        <p>CAD Preprocess Documentation · <a href="https://github.com/Harshil-Anuwadia/cad-preprocess">GitHub</a> · MIT License</p>
+    </footer>
+</body>
+</html>

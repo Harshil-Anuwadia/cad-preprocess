@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Examples - CAD Preprocess</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="../index.html" class="logo">
+                <div class="logo-icon">CP</div>
+                <div class="logo-text">CAD Preprocess <span>v0.1.0</span></div>
+            </a>
+            <nav class="header-nav">
+                <a href="../index.html">Home</a>
+                <a href="installation.html">Installation</a>
+                <a href="quickstart.html">Quick Start</a>
+                <a href="api/index.html">API Reference</a>
+                <a href="https://github.com/Harshil-Anuwadia/cad-preprocess" target="_blank">GitHub</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-title">Getting Started</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../index.html">Overview</a></li>
+                    <li><a href="installation.html">Installation</a></li>
+                    <li><a href="quickstart.html">Quick Start</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">User Guide</div>
+                <ul class="sidebar-nav">
+                    <li><a href="guides/cli.html">CLI Usage</a></li>
+                    <li><a href="guides/python-api.html">Python API</a></li>
+                    <li><a href="guides/configuration.html">Configuration</a></li>
+                    <li><a href="guides/metadata-profiles.html">Metadata Profiles</a></li>
+                    <li><a href="guides/preprocessing.html">Preprocessing Pipeline</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">API Reference</div>
+                <ul class="sidebar-nav">
+                    <li><a href="api/index.html">Overview</a></li>
+                    <li><a href="api/integration.html">Integration</a></li>
+                    <li><a href="api/input_handler.html">Input Handler</a></li>
+                    <li><a href="api/preprocessing_engine.html">Preprocessing Engine</a></li>
+                    <li><a href="api/metadata_extractor.html">Metadata Extractor</a></li>
+                    <li><a href="api/output_writer.html">Output Writer</a></li>
+                    <li><a href="api/config.html">Configuration</a></li>
+                    <li><a href="api/logging_utils.html">Logging Utilities</a></li>
+                    <li><a href="api/cli.html">CLI Module</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">Resources</div>
+                <ul class="sidebar-nav">
+                    <li><a href="examples.html" class="active">Examples</a></li>
+                    <li><a href="changelog.html">Changelog</a></li>
+                    <li><a href="contributing.html">Contributing</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="content">
+            <nav class="breadcrumb">
+                <a href="../index.html">Home</a> &gt; Examples
+            </nav>
+
+            <h1>Examples</h1>
+
+            <p>Practical examples for common use cases.</p>
+
+            <div class="toc">
+                <div class="toc-title">Contents</div>
+                <ul>
+                    <li><a href="#basic">Basic Processing</a></li>
+                    <li><a href="#pytorch">PyTorch Integration</a></li>
+                    <li><a href="#batch">Batch Processing Script</a></li>
+                    <li><a href="#multi-window">Multi-Window CT</a></li>
+                    <li><a href="#reproducibility">Reproducibility Check</a></li>
+                </ul>
+            </div>
+
+            <h2 id="basic">Basic Processing</h2>
+
+            <h3>Process Single File</h3>
+            <pre><code><span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> preprocess
+
+<span class="comment"># Simple one-liner</span>
+result = preprocess(<span class="string">"chest_ct.dcm"</span>, <span class="string">"output/"</span>)
+
+<span class="keyword">print</span>(<span class="string">f"UID: </span>{result.sop_instance_uid}<span class="string">"</span>)
+<span class="keyword">print</span>(<span class="string">f"Shape: </span>{result.image.shape}<span class="string">"</span>)
+<span class="keyword">print</span>(<span class="string">f"Modality: </span>{result.modality}<span class="string">"</span>)</code></pre>
+
+            <h3>Process Directory with Options</h3>
+            <pre><code><span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> CADPreprocessor
+
+processor = CADPreprocessor(
+    target_size=<span class="number">512</span>,
+    normalize=<span class="keyword">True</span>,
+    metadata_profile=<span class="string">"ml"</span>
+)
+
+results = processor.process_directory(<span class="string">"dicoms/"</span>, <span class="string">"output/"</span>)
+
+<span class="keyword">print</span>(<span class="string">f"Processed </span>{len(results)}<span class="string"> files"</span>)
+<span class="keyword">print</span>(<span class="string">f"Stats: </span>{processor.stats.to_dict()}<span class="string">"</span>)</code></pre>
+
+            <hr>
+
+            <h2 id="pytorch">PyTorch Dataset Integration</h2>
+
+            <h3>Custom Dataset Class</h3>
+            <pre><code><span class="keyword">import</span> torch
+<span class="keyword">from</span> torch.utils.data <span class="keyword">import</span> Dataset, DataLoader
+<span class="keyword">from</span> pathlib <span class="keyword">import</span> Path
+<span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> CADPreprocessor
+
+<span class="keyword">class</span> <span class="class-name">DICOMDataset</span>(Dataset):
+    <span class="string">"""PyTorch Dataset for DICOM files using CAD Preprocess."""</span>
+    
+    <span class="keyword">def</span> <span class="function">__init__</span>(self, dicom_dir, config_path=<span class="keyword">None</span>, transform=<span class="keyword">None</span>):
+        self.dicom_dir = Path(dicom_dir)
+        self.transform = transform
+        
+        <span class="comment"># Initialize processor</span>
+        <span class="keyword">if</span> config_path:
+            self.processor = CADPreprocessor.from_config(config_path)
+        <span class="keyword">else</span>:
+            self.processor = CADPreprocessor(
+                target_size=<span class="number">224</span>,
+                normalize=<span class="keyword">True</span>,
+                metadata_profile=<span class="string">"ml"</span>
+            )
+        
+        <span class="comment"># Discover DICOM files</span>
+        self.files = list(self.dicom_dir.glob(<span class="string">"**/*.dcm"</span>))
+        
+    <span class="keyword">def</span> <span class="function">__len__</span>(self):
+        <span class="keyword">return</span> len(self.files)
+    
+    <span class="keyword">def</span> <span class="function">__getitem__</span>(self, idx):
+        <span class="comment"># Process DICOM file</span>
+        result = self.processor.process_file(self.files[idx])
+        
+        <span class="comment"># Convert to tensor</span>
+        image = torch.from_numpy(result.image).float()
+        image = image.unsqueeze(<span class="number">0</span>)  <span class="comment"># Add channel dimension</span>
+        
+        <span class="comment"># Normalize to [0, 1]</span>
+        image = image / <span class="number">255.0</span>
+        
+        <span class="keyword">if</span> self.transform:
+            image = self.transform(image)
+        
+        <span class="keyword">return</span> image, result.metadata
+
+<span class="comment"># Usage</span>
+dataset = DICOMDataset(<span class="string">"./training_data"</span>, <span class="string">"config.yaml"</span>)
+dataloader = DataLoader(dataset, batch_size=<span class="number">16</span>, shuffle=<span class="keyword">True</span>)
+
+<span class="keyword">for</span> images, metadata <span class="keyword">in</span> dataloader:
+    <span class="keyword">print</span>(images.shape)  <span class="comment"># torch.Size([16, 1, 224, 224])</span>
+    <span class="keyword">break</span></code></pre>
+
+            <hr>
+
+            <h2 id="batch">Batch Processing Script</h2>
+
+            <pre><code><span class="string">#!/usr/bin/env python3</span>
+<span class="string">"""Batch process multiple patient directories."""</span>
+
+<span class="keyword">import</span> argparse
+<span class="keyword">from</span> pathlib <span class="keyword">import</span> Path
+<span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> CADPreprocessor
+
+<span class="keyword">def</span> <span class="function">process_patients</span>(input_base, output_base, config_path):
+    <span class="string">"""Process all patient directories."""</span>
+    
+    <span class="comment"># Initialize processor</span>
+    processor = CADPreprocessor.from_config(config_path)
+    
+    <span class="comment"># Find all patient directories</span>
+    input_base = Path(input_base)
+    output_base = Path(output_base)
+    patient_dirs = [d <span class="keyword">for</span> d <span class="keyword">in</span> input_base.iterdir() <span class="keyword">if</span> d.is_dir()]
+    
+    <span class="keyword">print</span>(<span class="string">f"Found </span>{len(patient_dirs)}<span class="string"> patient directories"</span>)
+    <span class="keyword">print</span>(<span class="string">f"Config hash: </span>{processor.config_hash}<span class="string">"</span>)
+    
+    total_processed = <span class="number">0</span>
+    total_failed = <span class="number">0</span>
+    
+    <span class="keyword">for</span> patient_dir <span class="keyword">in</span> patient_dirs:
+        output_dir = output_base / patient_dir.name
+        
+        <span class="keyword">print</span>(<span class="string">f"Processing </span>{patient_dir.name}<span class="string">..."</span>)
+        
+        results = processor.process_directory(patient_dir, output_dir)
+        
+        total_processed += processor.stats.processed
+        total_failed += processor.stats.failed
+        
+        <span class="keyword">print</span>(<span class="string">f"  Processed: </span>{processor.stats.processed}<span class="string">"</span>)
+        <span class="keyword">print</span>(<span class="string">f"  Failed: </span>{processor.stats.failed}<span class="string">"</span>)
+    
+    <span class="keyword">print</span>(<span class="string">f"\n=== Summary ==="</span>)
+    <span class="keyword">print</span>(<span class="string">f"Total processed: </span>{total_processed}<span class="string">"</span>)
+    <span class="keyword">print</span>(<span class="string">f"Total failed: </span>{total_failed}<span class="string">"</span>)
+
+<span class="keyword">if</span> __name__ == <span class="string">"__main__"</span>:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(<span class="string">"input"</span>, help=<span class="string">"Input directory"</span>)
+    parser.add_argument(<span class="string">"output"</span>, help=<span class="string">"Output directory"</span>)
+    parser.add_argument(<span class="string">"-c"</span>, <span class="string">"--config"</span>, default=<span class="string">"config.yaml"</span>)
+    
+    args = parser.parse_args()
+    process_patients(args.input, args.output, args.config)</code></pre>
+
+            <hr>
+
+            <h2 id="multi-window">Multi-Window CT Processing</h2>
+
+            <p>Process CT images with multiple window settings:</p>
+
+            <pre><code><span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> CADPreprocessor
+<span class="keyword">from</span> pathlib <span class="keyword">import</span> Path
+
+<span class="comment"># Window presets</span>
+WINDOWS = {
+    <span class="string">"lung"</span>: (<span class="number">-600</span>, <span class="number">1500</span>),
+    <span class="string">"soft_tissue"</span>: (<span class="number">40</span>, <span class="number">400</span>),
+    <span class="string">"bone"</span>: (<span class="number">400</span>, <span class="number">1800</span>),
+    <span class="string">"brain"</span>: (<span class="number">40</span>, <span class="number">80</span>),
+}
+
+<span class="keyword">def</span> <span class="function">multi_window_process</span>(input_dir, output_base):
+    <span class="string">"""Process CT with multiple window settings."""</span>
+    
+    input_dir = Path(input_dir)
+    output_base = Path(output_base)
+    
+    <span class="keyword">for</span> window_name, (wc, ww) <span class="keyword">in</span> WINDOWS.items():
+        <span class="keyword">print</span>(<span class="string">f"\nProcessing with </span>{window_name}<span class="string"> window..."</span>)
+        
+        processor = CADPreprocessor(
+            target_size=<span class="number">512</span>,
+            window_center=wc,
+            window_width=ww,
+            metadata_profile=<span class="string">"ml"</span>
+        )
+        
+        output_dir = output_base / window_name
+        results = processor.process_directory(input_dir, output_dir)
+        
+        <span class="keyword">print</span>(<span class="string">f"  Processed </span>{len(results)}<span class="string"> images"</span>)
+
+<span class="comment"># Usage</span>
+multi_window_process(<span class="string">"./ct_scans"</span>, <span class="string">"./output"</span>)
+
+<span class="comment"># Creates:
+# output/
+#   lung/
+#   soft_tissue/
+#   bone/
+#   brain/</span></code></pre>
+
+            <hr>
+
+            <h2 id="reproducibility">Reproducibility Verification</h2>
+
+            <pre><code><span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> CADPreprocessor, PreprocessingConfig
+<span class="keyword">import</span> numpy <span class="keyword">as</span> np
+<span class="keyword">import</span> json
+
+<span class="comment"># Training: Create and save config</span>
+<span class="keyword">def</span> <span class="function">train_model</span>(data_dir, config_path):
+    processor = CADPreprocessor.from_config(config_path)
+    
+    <span class="comment"># Process training data</span>
+    results = processor.process_directory(data_dir, <span class="string">"train_processed/"</span>)
+    
+    <span class="comment"># Save config hash with model</span>
+    model_info = {
+        <span class="string">"config_hash"</span>: processor.config_hash,
+        <span class="string">"model_path"</span>: <span class="string">"model.pt"</span>,
+        <span class="string">"training_files"</span>: len(results)
+    }
+    
+    <span class="keyword">with</span> open(<span class="string">"model_info.json"</span>, <span class="string">"w"</span>) <span class="keyword">as</span> f:
+        json.dump(model_info, f)
+    
+    <span class="keyword">return</span> processor.config_hash
+
+<span class="comment"># Inference: Verify config matches</span>
+<span class="keyword">def</span> <span class="function">run_inference</span>(data_dir, config_path):
+    <span class="comment"># Load model info</span>
+    <span class="keyword">with</span> open(<span class="string">"model_info.json"</span>) <span class="keyword">as</span> f:
+        model_info = json.load(f)
+    
+    <span class="comment"># Create processor</span>
+    processor = CADPreprocessor.from_config(config_path)
+    
+    <span class="comment"># Verify config matches training</span>
+    <span class="keyword">if</span> processor.config_hash != model_info[<span class="string">"config_hash"</span>]:
+        <span class="keyword">raise</span> ValueError(
+            <span class="string">f"Config mismatch! "</span>
+            <span class="string">f"Training: </span>{model_info[<span class="string">'config_hash'</span>]}<span class="string">, "</span>
+            <span class="string">f"Inference: </span>{processor.config_hash}<span class="string">"</span>
+        )
+    
+    <span class="keyword">print</span>(<span class="string">"✓ Config verified - preprocessing is identical to training"</span>)
+    
+    <span class="comment"># Process inference data</span>
+    results = processor.process_directory(data_dir, <span class="string">"inference_processed/"</span>)
+    <span class="keyword">return</span> results
+
+<span class="comment"># Usage</span>
+train_hash = train_model(<span class="string">"./train_data"</span>, <span class="string">"config.yaml"</span>)
+<span class="keyword">print</span>(<span class="string">f"Training config hash: </span>{train_hash}<span class="string">"</span>)
+
+results = run_inference(<span class="string">"./test_data"</span>, <span class="string">"config.yaml"</span>)</code></pre>
+
+            <div class="info-box tip">
+                <div class="info-box-title">💡 More Examples</div>
+                Check the <a href="https://github.com/Harshil-Anuwadia/cad-preprocess">GitHub repository</a> for additional examples and sample code.
+            </div>
+        </main>
+    </div>
+
+    <footer class="footer">
+        <p>CAD Preprocess Documentation · <a href="https://github.com/Harshil-Anuwadia/cad-preprocess">GitHub</a> · MIT License</p>
+    </footer>
+</body>
+</html>

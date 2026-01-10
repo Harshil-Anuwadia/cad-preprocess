@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preprocessing Engine - CAD Preprocess API</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="../../index.html" class="logo">
+                <div class="logo-icon">CP</div>
+                <div class="logo-text">CAD Preprocess <span>v0.1.0</span></div>
+            </a>
+            <nav class="header-nav">
+                <a href="../../index.html">Home</a>
+                <a href="../installation.html">Installation</a>
+                <a href="../quickstart.html">Quick Start</a>
+                <a href="index.html">API Reference</a>
+                <a href="https://github.com/Harshil-Anuwadia/cad-preprocess" target="_blank">GitHub</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-title">Getting Started</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../../index.html">Overview</a></li>
+                    <li><a href="../installation.html">Installation</a></li>
+                    <li><a href="../quickstart.html">Quick Start</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">User Guide</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../guides/cli.html">CLI Usage</a></li>
+                    <li><a href="../guides/python-api.html">Python API</a></li>
+                    <li><a href="../guides/configuration.html">Configuration</a></li>
+                    <li><a href="../guides/metadata-profiles.html">Metadata Profiles</a></li>
+                    <li><a href="../guides/preprocessing.html">Preprocessing Pipeline</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">API Reference</div>
+                <ul class="sidebar-nav">
+                    <li><a href="index.html">Overview</a></li>
+                    <li><a href="integration.html">Integration</a></li>
+                    <li><a href="input_handler.html">Input Handler</a></li>
+                    <li><a href="preprocessing_engine.html" class="active">Preprocessing Engine</a></li>
+                    <li><a href="metadata_extractor.html">Metadata Extractor</a></li>
+                    <li><a href="output_writer.html">Output Writer</a></li>
+                    <li><a href="config.html">Configuration</a></li>
+                    <li><a href="logging_utils.html">Logging Utilities</a></li>
+                    <li><a href="cli.html">CLI Module</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">Resources</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../examples.html">Examples</a></li>
+                    <li><a href="../changelog.html">Changelog</a></li>
+                    <li><a href="../contributing.html">Contributing</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="content">
+            <nav class="breadcrumb">
+                <a href="../../index.html">Home</a> &gt; <a href="index.html">API Reference</a> &gt; Preprocessing Engine
+            </nav>
+
+            <h1>cad_preprocess.preprocessing_engine</h1>
+
+            <p>Deterministic image preprocessing pipeline for DICOM images.</p>
+
+            <div class="toc">
+                <div class="toc-title">Contents</div>
+                <ul>
+                    <li><a href="#preprocessingengine">PreprocessingEngine</a></li>
+                    <li><a href="#functions">Utility Functions</a></li>
+                </ul>
+            </div>
+
+            <h2 id="preprocessingengine">PreprocessingEngine</h2>
+
+            <p>Core preprocessing engine that applies deterministic transformations to DICOM images.</p>
+
+            <div class="api-signature">
+                class PreprocessingEngine(config=None, **kwargs)
+            </div>
+
+            <h4>Constructor Parameters</h4>
+            <div class="api-params">
+                <div class="api-param">
+                    <span class="api-param-name">config</span>
+                    <span class="api-param-type">PreprocessingConfig | None</span>
+                    <div class="api-param-desc">Configuration object</div>
+                </div>
+                <div class="api-param">
+                    <span class="api-param-name">target_size</span>
+                    <span class="api-param-type">int | Tuple[int, int] | None</span>
+                    <div class="api-param-desc">Target output size</div>
+                </div>
+                <div class="api-param">
+                    <span class="api-param-name">normalize</span>
+                    <span class="api-param-type">bool</span>
+                    <div class="api-param-desc">Normalize to 0-255 (default: True)</div>
+                </div>
+                <div class="api-param">
+                    <span class="api-param-name">window_center</span>
+                    <span class="api-param-type">float | None</span>
+                    <div class="api-param-desc">CT window center (None = use DICOM value)</div>
+                </div>
+                <div class="api-param">
+                    <span class="api-param-name">window_width</span>
+                    <span class="api-param-type">float | None</span>
+                    <div class="api-param-desc">CT window width (None = use DICOM value)</div>
+                </div>
+                <div class="api-param">
+                    <span class="api-param-name">interpolation</span>
+                    <span class="api-param-type">str</span>
+                    <div class="api-param-desc">Resize interpolation: "nearest", "bilinear", "bicubic"</div>
+                </div>
+            </div>
+
+            <h3>Methods</h3>
+
+            <h4>process()</h4>
+            <div class="api-signature">
+                process(dcm) → np.ndarray
+            </div>
+            <p>Process a DICOM dataset and return the preprocessed image.</p>
+            <div class="api-params">
+                <div class="api-param">
+                    <span class="api-param-name">dcm</span>
+                    <span class="api-param-type">pydicom.Dataset</span>
+                    <div class="api-param-desc">DICOM dataset to process</div>
+                </div>
+            </div>
+            <div class="api-returns">
+                <code>np.ndarray</code> - Preprocessed image array (uint8 if normalized)
+            </div>
+
+            <h4>apply_rescale()</h4>
+            <div class="api-signature">
+                apply_rescale(pixel_array, dcm) → np.ndarray
+            </div>
+            <p>Apply rescale slope and intercept transformation.</p>
+            <pre><code><span class="comment"># Internal formula: output = pixel_array * RescaleSlope + RescaleIntercept</span></code></pre>
+
+            <h4>apply_windowing()</h4>
+            <div class="api-signature">
+                apply_windowing(image, window_center, window_width) → np.ndarray
+            </div>
+            <p>Apply CT windowing transformation.</p>
+            <div class="api-params">
+                <div class="api-param">
+                    <span class="api-param-name">image</span>
+                    <span class="api-param-type">np.ndarray</span>
+                    <div class="api-param-desc">Input image (typically in HU)</div>
+                </div>
+                <div class="api-param">
+                    <span class="api-param-name">window_center</span>
+                    <span class="api-param-type">float</span>
+                    <div class="api-param-desc">Window center value</div>
+                </div>
+                <div class="api-param">
+                    <span class="api-param-name">window_width</span>
+                    <span class="api-param-type">float</span>
+                    <div class="api-param-desc">Window width value</div>
+                </div>
+            </div>
+
+            <h4>normalize_image()</h4>
+            <div class="api-signature">
+                normalize_image(image) → np.ndarray
+            </div>
+            <p>Normalize image to 0-255 range.</p>
+
+            <h4>resize_image()</h4>
+            <div class="api-signature">
+                resize_image(image, target_size) → np.ndarray
+            </div>
+            <p>Resize image to target dimensions.</p>
+
+            <h4>Example</h4>
+            <pre><code><span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> PreprocessingEngine
+<span class="keyword">import</span> pydicom
+
+<span class="comment"># Create engine</span>
+engine = PreprocessingEngine(
+    target_size=<span class="number">512</span>,
+    normalize=<span class="keyword">True</span>,
+    window_center=<span class="number">40</span>,
+    window_width=<span class="number">400</span>
+)
+
+<span class="comment"># Process DICOM</span>
+dcm = pydicom.dcmread(<span class="string">"ct_image.dcm"</span>)
+processed = engine.process(dcm)
+
+<span class="keyword">print</span>(processed.shape)  <span class="comment"># (512, 512)</span>
+<span class="keyword">print</span>(processed.dtype)  <span class="comment"># uint8</span></code></pre>
+
+            <hr>
+
+            <h2 id="functions">Utility Functions</h2>
+
+            <h4>apply_voi_lut()</h4>
+            <div class="api-signature">
+                apply_voi_lut(pixel_array, dcm) → np.ndarray
+            </div>
+            <p>Apply Value of Interest (VOI) LUT if present in DICOM.</p>
+
+            <h4>get_window_values()</h4>
+            <div class="api-signature">
+                get_window_values(dcm) → Tuple[float, float] | None
+            </div>
+            <p>Extract window center/width from DICOM dataset.</p>
+            <pre><code><span class="keyword">from</span> cad_preprocess.preprocessing_engine <span class="keyword">import</span> get_window_values
+
+wc, ww = get_window_values(dcm)
+<span class="keyword">if</span> wc <span class="keyword">is not None</span>:
+    <span class="keyword">print</span>(<span class="string">f"Window: </span>{wc}<span class="string"> / </span>{ww}<span class="string">"</span>)</code></pre>
+
+            <h4>convert_to_hu()</h4>
+            <div class="api-signature">
+                convert_to_hu(pixel_array, dcm) → np.ndarray
+            </div>
+            <p>Convert CT pixel values to Hounsfield Units.</p>
+            <pre><code><span class="keyword">from</span> cad_preprocess.preprocessing_engine <span class="keyword">import</span> convert_to_hu
+
+hu_image = convert_to_hu(dcm.pixel_array, dcm)
+<span class="keyword">print</span>(<span class="string">f"HU range: </span>{hu_image.min()}<span class="string"> to </span>{hu_image.max()}<span class="string">"</span>)</code></pre>
+
+            <div class="info-box note">
+                <div class="info-box-title">📝 Determinism</div>
+                All operations in PreprocessingEngine are deterministic. The same input with the same configuration will always produce identical output.
+            </div>
+        </main>
+    </div>
+
+    <footer class="footer">
+        <p>CAD Preprocess Documentation · <a href="https://github.com/Harshil-Anuwadia/cad-preprocess">GitHub</a> · MIT License</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python API - CAD Preprocess</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="../../index.html" class="logo">
+                <div class="logo-icon">CP</div>
+                <div class="logo-text">CAD Preprocess <span>v0.1.0</span></div>
+            </a>
+            <nav class="header-nav">
+                <a href="../../index.html">Home</a>
+                <a href="../installation.html">Installation</a>
+                <a href="../quickstart.html">Quick Start</a>
+                <a href="../api/index.html">API Reference</a>
+                <a href="https://github.com/Harshil-Anuwadia/cad-preprocess" target="_blank">GitHub</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-title">Getting Started</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../../index.html">Overview</a></li>
+                    <li><a href="../installation.html">Installation</a></li>
+                    <li><a href="../quickstart.html">Quick Start</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">User Guide</div>
+                <ul class="sidebar-nav">
+                    <li><a href="cli.html">CLI Usage</a></li>
+                    <li><a href="python-api.html" class="active">Python API</a></li>
+                    <li><a href="configuration.html">Configuration</a></li>
+                    <li><a href="metadata-profiles.html">Metadata Profiles</a></li>
+                    <li><a href="preprocessing.html">Preprocessing Pipeline</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">API Reference</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../api/index.html">Overview</a></li>
+                    <li><a href="../api/integration.html">Integration</a></li>
+                    <li><a href="../api/input_handler.html">Input Handler</a></li>
+                    <li><a href="../api/preprocessing_engine.html">Preprocessing Engine</a></li>
+                    <li><a href="../api/metadata_extractor.html">Metadata Extractor</a></li>
+                    <li><a href="../api/output_writer.html">Output Writer</a></li>
+                    <li><a href="../api/config.html">Configuration</a></li>
+                    <li><a href="../api/logging_utils.html">Logging Utilities</a></li>
+                    <li><a href="../api/cli.html">CLI Module</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">Resources</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../examples.html">Examples</a></li>
+                    <li><a href="../changelog.html">Changelog</a></li>
+                    <li><a href="../contributing.html">Contributing</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="content">
+            <nav class="breadcrumb">
+                <a href="../../index.html">Home</a> &gt; <a href="cli.html">User Guide</a> &gt; Python API
+            </nav>
+
+            <h1>Python API Guide</h1>
+
+            <p>Learn how to integrate CAD Preprocess into your Python applications.</p>
+
+            <div class="toc">
+                <div class="toc-title">Contents</div>
+                <ul>
+                    <li><a href="#basic-usage">Basic Usage</a></li>
+                    <li><a href="#cad-preprocessor">CADPreprocessor Class</a></li>
+                    <li><a href="#processing-results">Processing Results</a></li>
+                    <li><a href="#configuration">Configuration</a></li>
+                    <li><a href="#reproducibility">Reproducibility</a></li>
+                    <li><a href="#error-handling">Error Handling</a></li>
+                    <li><a href="#integration-patterns">Integration Patterns</a></li>
+                </ul>
+            </div>
+
+            <h2 id="basic-usage">Basic Usage</h2>
+
+            <h3>Simple One-Liner</h3>
+            <pre><code><span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> preprocess
+
+<span class="comment"># Process a single DICOM file</span>
+result = preprocess(<span class="string">"image.dcm"</span>, <span class="string">"output/"</span>)
+
+<span class="comment"># Access results</span>
+<span class="keyword">print</span>(result.sop_instance_uid)
+<span class="keyword">print</span>(result.image.shape)
+<span class="keyword">print</span>(result.metadata)</code></pre>
+
+            <h3>Import Options</h3>
+            <pre><code><span class="comment"># High-level API</span>
+<span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> preprocess, CADPreprocessor
+
+<span class="comment"># Individual modules</span>
+<span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> InputHandler, PreprocessingEngine
+<span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> MetadataExtractor, OutputWriter
+<span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> PreprocessingConfig</code></pre>
+
+            <h2 id="cad-preprocessor">CADPreprocessor Class</h2>
+
+            <p>The main class for batch processing with full configuration support.</p>
+
+            <h3>Creating a Processor</h3>
+            <pre><code><span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> CADPreprocessor
+
+<span class="comment"># Default settings</span>
+processor = CADPreprocessor()
+
+<span class="comment"># With custom settings</span>
+processor = CADPreprocessor(
+    target_size=<span class="number">512</span>,
+    normalize=<span class="keyword">True</span>,
+    metadata_profile=<span class="string">"ml"</span>,
+    window_center=<span class="number">40</span>,
+    window_width=<span class="number">400</span>
+)
+
+<span class="comment"># From configuration file</span>
+processor = CADPreprocessor.from_config(<span class="string">"config.yaml"</span>)</code></pre>
+
+            <h3>Processing Single Files</h3>
+            <pre><code>processor = CADPreprocessor()
+
+<span class="comment"># Process without saving</span>
+result = processor.process_file(<span class="string">"image.dcm"</span>)
+
+<span class="comment"># Process and save</span>
+result = processor.process_file(<span class="string">"image.dcm"</span>, output_dir=<span class="string">"output/"</span>)</code></pre>
+
+            <h3>Processing Directories</h3>
+            <pre><code>processor = CADPreprocessor()
+
+<span class="comment"># Process all DICOM files in directory</span>
+results = processor.process_directory(<span class="string">"dicoms/"</span>, <span class="string">"output/"</span>)
+
+<span class="keyword">print</span>(<span class="string">f"Processed: </span>{len(results)}<span class="string"> files"</span>)</code></pre>
+
+            <h3>Accessing Statistics</h3>
+            <pre><code>processor = CADPreprocessor()
+results = processor.process_directory(<span class="string">"dicoms/"</span>, <span class="string">"output/"</span>)
+
+<span class="comment"># Get processing statistics</span>
+stats = processor.stats
+<span class="keyword">print</span>(<span class="string">f"Total: </span>{stats.total}<span class="string">"</span>)
+<span class="keyword">print</span>(<span class="string">f"Processed: </span>{stats.processed}<span class="string">"</span>)
+<span class="keyword">print</span>(<span class="string">f"Failed: </span>{stats.failed}<span class="string">"</span>)
+<span class="keyword">print</span>(<span class="string">f"Skipped: </span>{stats.skipped}<span class="string">"</span>)
+<span class="keyword">print</span>(<span class="string">f"Duration: </span>{stats.duration}<span class="string">s"</span>)</code></pre>
+
+            <h2 id="processing-results">Processing Results</h2>
+
+            <p>Each processed file returns a <code>ProcessingResult</code> object.</p>
+
+            <pre><code>result = processor.process_file(<span class="string">"image.dcm"</span>)
+
+<span class="comment"># Access result attributes</span>
+result.sop_instance_uid   <span class="comment"># Unique identifier</span>
+result.image              <span class="comment"># Preprocessed numpy array</span>
+result.metadata           <span class="comment"># Extracted metadata dict</span>
+result.original_shape     <span class="comment"># Original image shape</span>
+result.final_shape        <span class="comment"># Final image shape</span>
+result.modality           <span class="comment"># DICOM modality</span>
+result.processing_time    <span class="comment"># Time taken (seconds)</span></code></pre>
+
+            <h2 id="configuration">Configuration</h2>
+
+            <h3>Programmatic Configuration</h3>
+            <pre><code><span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> PreprocessingConfig, CADPreprocessor
+
+<span class="comment"># Create config object</span>
+config = PreprocessingConfig(
+    target_size=<span class="number">512</span>,
+    normalize=<span class="keyword">True</span>,
+    output_format=<span class="string">"png"</span>,
+    metadata_profile=<span class="string">"ml"</span>,
+    window_center=<span class="number">40</span>,
+    window_width=<span class="number">400</span>
+)
+
+<span class="comment"># Use with processor</span>
+processor = CADPreprocessor(config=config)</code></pre>
+
+            <h3>Loading from YAML</h3>
+            <pre><code><span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> PreprocessingConfig
+
+<span class="comment"># Load from file</span>
+config = PreprocessingConfig.from_yaml(<span class="string">"config.yaml"</span>)
+
+<span class="comment"># Save to file</span>
+config.to_yaml(<span class="string">"new_config.yaml"</span>)</code></pre>
+
+            <h3>Configuration Dict</h3>
+            <pre><code><span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> PreprocessingConfig
+
+<span class="comment"># From dict</span>
+config = PreprocessingConfig.from_dict({
+    <span class="string">"target_size"</span>: <span class="number">512</span>,
+    <span class="string">"normalize"</span>: <span class="keyword">True</span>,
+    <span class="string">"metadata_profile"</span>: <span class="string">"ml"</span>
+})
+
+<span class="comment"># To dict</span>
+config_dict = config.to_dict()</code></pre>
+
+            <h2 id="reproducibility">Reproducibility</h2>
+
+            <p>CAD Preprocess provides config hashing to ensure identical preprocessing between training and inference.</p>
+
+            <pre><code><span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> CADPreprocessor
+
+<span class="comment"># Training: save config hash</span>
+train_processor = CADPreprocessor.from_config(<span class="string">"config.yaml"</span>)
+config_hash = train_processor.config_hash
+<span class="keyword">print</span>(<span class="string">f"Training config hash: </span>{config_hash}<span class="string">"</span>)
+
+<span class="comment"># Save hash with your model</span>
+model_info = {
+    <span class="string">"model_path"</span>: <span class="string">"model.pt"</span>,
+    <span class="string">"preprocessing_hash"</span>: config_hash
+}
+
+<span class="comment"># Inference: verify config matches</span>
+inference_processor = CADPreprocessor.from_config(<span class="string">"config.yaml"</span>)
+<span class="keyword">if</span> inference_processor.config_hash != config_hash:
+    <span class="keyword">raise</span> ValueError(<span class="string">"Preprocessing config mismatch!"</span>)</code></pre>
+
+            <h2 id="error-handling">Error Handling</h2>
+
+            <h3>Try/Except Pattern</h3>
+            <pre><code><span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> preprocess
+<span class="keyword">from</span> cad_preprocess.logging_utils <span class="keyword">import</span> ProcessingError
+
+<span class="keyword">try</span>:
+    result = preprocess(<span class="string">"image.dcm"</span>, <span class="string">"output/"</span>)
+<span class="keyword">except</span> ProcessingError <span class="keyword">as</span> e:
+    <span class="keyword">print</span>(<span class="string">f"Processing failed: </span>{e}<span class="string">"</span>)
+<span class="keyword">except</span> FileNotFoundError:
+    <span class="keyword">print</span>(<span class="string">"File not found"</span>)</code></pre>
+
+            <h3>Fail-Safe Processing</h3>
+            <pre><code><span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> CADPreprocessor
+<span class="keyword">from</span> cad_preprocess.logging_utils <span class="keyword">import</span> fail_safe
+
+<span class="decorator">@fail_safe</span>(default=<span class="keyword">None</span>)
+<span class="keyword">def</span> <span class="function">safe_process</span>(path):
+    processor = CADPreprocessor()
+    <span class="keyword">return</span> processor.process_file(path)
+
+<span class="comment"># Returns None instead of raising on error</span>
+result = safe_process(<span class="string">"possibly_corrupt.dcm"</span>)</code></pre>
+
+            <h2 id="integration-patterns">Integration Patterns</h2>
+
+            <h3>PyTorch Dataset</h3>
+            <pre><code><span class="keyword">import</span> torch
+<span class="keyword">from</span> torch.utils.data <span class="keyword">import</span> Dataset
+<span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> CADPreprocessor
+
+<span class="keyword">class</span> <span class="class-name">DICOMDataset</span>(Dataset):
+    <span class="keyword">def</span> <span class="function">__init__</span>(self, dicom_dir, config_path):
+        self.processor = CADPreprocessor.from_config(config_path)
+        self.files = list(Path(dicom_dir).glob(<span class="string">"*.dcm"</span>))
+    
+    <span class="keyword">def</span> <span class="function">__len__</span>(self):
+        <span class="keyword">return</span> len(self.files)
+    
+    <span class="keyword">def</span> <span class="function">__getitem__</span>(self, idx):
+        result = self.processor.process_file(self.files[idx])
+        image = torch.from_numpy(result.image).float()
+        <span class="keyword">return</span> image, result.metadata</code></pre>
+
+            <h3>Batch Processing Script</h3>
+            <pre><code><span class="keyword">from</span> pathlib <span class="keyword">import</span> Path
+<span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> CADPreprocessor
+
+<span class="keyword">def</span> <span class="function">batch_process</span>(input_dirs, output_base, config_path):
+    processor = CADPreprocessor.from_config(config_path)
+    
+    <span class="keyword">for</span> input_dir <span class="keyword">in</span> input_dirs:
+        output_dir = output_base / Path(input_dir).name
+        results = processor.process_directory(input_dir, output_dir)
+        <span class="keyword">print</span>(<span class="string">f"</span>{input_dir}<span class="string">: </span>{len(results)}<span class="string"> processed"</span>)
+    
+    <span class="keyword">return</span> processor.stats
+
+<span class="comment"># Usage</span>
+stats = batch_process(
+    [<span class="string">"data/patient1"</span>, <span class="string">"data/patient2"</span>],
+    Path(<span class="string">"output"</span>),
+    <span class="string">"config.yaml"</span>
+)</code></pre>
+
+            <h3>Parallel Processing</h3>
+            <pre><code><span class="keyword">from</span> concurrent.futures <span class="keyword">import</span> ProcessPoolExecutor
+<span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> preprocess
+
+<span class="keyword">def</span> <span class="function">process_file</span>(args):
+    input_path, output_dir = args
+    <span class="keyword">return</span> preprocess(input_path, output_dir)
+
+<span class="comment"># Process files in parallel</span>
+files = [(<span class="string">"file1.dcm"</span>, <span class="string">"out/"</span>), (<span class="string">"file2.dcm"</span>, <span class="string">"out/"</span>)]
+<span class="keyword">with</span> ProcessPoolExecutor(max_workers=<span class="number">4</span>) <span class="keyword">as</span> executor:
+    results = list(executor.map(process_file, files))</code></pre>
+
+            <div class="info-box tip">
+                <div class="info-box-title">💡 Next Steps</div>
+                For detailed API documentation, see the <a href="../api/index.html">API Reference</a>.
+            </div>
+        </main>
+    </div>
+
+    <footer class="footer">
+        <p>CAD Preprocess Documentation · <a href="https://github.com/Harshil-Anuwadia/cad-preprocess">GitHub</a> · MIT License</p>
+    </footer>
+</body>
+</html>

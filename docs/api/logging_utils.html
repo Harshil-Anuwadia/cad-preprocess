@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logging Utilities - CAD Preprocess API</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="../../index.html" class="logo">
+                <div class="logo-icon">CP</div>
+                <div class="logo-text">CAD Preprocess <span>v0.1.0</span></div>
+            </a>
+            <nav class="header-nav">
+                <a href="../../index.html">Home</a>
+                <a href="../installation.html">Installation</a>
+                <a href="../quickstart.html">Quick Start</a>
+                <a href="index.html">API Reference</a>
+                <a href="https://github.com/Harshil-Anuwadia/cad-preprocess" target="_blank">GitHub</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-title">Getting Started</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../../index.html">Overview</a></li>
+                    <li><a href="../installation.html">Installation</a></li>
+                    <li><a href="../quickstart.html">Quick Start</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">User Guide</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../guides/cli.html">CLI Usage</a></li>
+                    <li><a href="../guides/python-api.html">Python API</a></li>
+                    <li><a href="../guides/configuration.html">Configuration</a></li>
+                    <li><a href="../guides/metadata-profiles.html">Metadata Profiles</a></li>
+                    <li><a href="../guides/preprocessing.html">Preprocessing Pipeline</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">API Reference</div>
+                <ul class="sidebar-nav">
+                    <li><a href="index.html">Overview</a></li>
+                    <li><a href="integration.html">Integration</a></li>
+                    <li><a href="input_handler.html">Input Handler</a></li>
+                    <li><a href="preprocessing_engine.html">Preprocessing Engine</a></li>
+                    <li><a href="metadata_extractor.html">Metadata Extractor</a></li>
+                    <li><a href="output_writer.html">Output Writer</a></li>
+                    <li><a href="config.html">Configuration</a></li>
+                    <li><a href="logging_utils.html" class="active">Logging Utilities</a></li>
+                    <li><a href="cli.html">CLI Module</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">Resources</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../examples.html">Examples</a></li>
+                    <li><a href="../changelog.html">Changelog</a></li>
+                    <li><a href="../contributing.html">Contributing</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="content">
+            <nav class="breadcrumb">
+                <a href="../../index.html">Home</a> &gt; <a href="index.html">API Reference</a> &gt; Logging Utilities
+            </nav>
+
+            <h1>cad_preprocess.logging_utils</h1>
+
+            <p>Structured logging, error handling, and processing statistics.</p>
+
+            <div class="toc">
+                <div class="toc-title">Contents</div>
+                <ul>
+                    <li><a href="#processingstats">ProcessingStats</a></li>
+                    <li><a href="#exceptions">Exceptions</a></li>
+                    <li><a href="#decorators">Decorators</a></li>
+                    <li><a href="#functions">Utility Functions</a></li>
+                </ul>
+            </div>
+
+            <h2 id="processingstats">ProcessingStats</h2>
+
+            <p>Tracks processing statistics for batch operations.</p>
+
+            <div class="api-signature">
+                class ProcessingStats
+            </div>
+
+            <h4>Attributes</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Attribute</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>total</code></td>
+                        <td>int</td>
+                        <td>Total files discovered</td>
+                    </tr>
+                    <tr>
+                        <td><code>processed</code></td>
+                        <td>int</td>
+                        <td>Successfully processed</td>
+                    </tr>
+                    <tr>
+                        <td><code>failed</code></td>
+                        <td>int</td>
+                        <td>Failed to process</td>
+                    </tr>
+                    <tr>
+                        <td><code>skipped</code></td>
+                        <td>int</td>
+                        <td>Skipped (invalid/unsupported)</td>
+                    </tr>
+                    <tr>
+                        <td><code>start_time</code></td>
+                        <td>datetime</td>
+                        <td>When processing started</td>
+                    </tr>
+                    <tr>
+                        <td><code>end_time</code></td>
+                        <td>datetime | None</td>
+                        <td>When processing ended</td>
+                    </tr>
+                    <tr>
+                        <td><code>duration</code></td>
+                        <td>float</td>
+                        <td>Total duration in seconds</td>
+                    </tr>
+                    <tr>
+                        <td><code>errors</code></td>
+                        <td>List[Dict]</td>
+                        <td>List of error details</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h4>Methods</h4>
+
+            <h4>increment_processed()</h4>
+            <div class="api-signature">
+                increment_processed() → None
+            </div>
+
+            <h4>increment_failed()</h4>
+            <div class="api-signature">
+                increment_failed(error, file_path=None) → None
+            </div>
+
+            <h4>increment_skipped()</h4>
+            <div class="api-signature">
+                increment_skipped(reason=None) → None
+            </div>
+
+            <h4>finish()</h4>
+            <div class="api-signature">
+                finish() → None
+            </div>
+            <p>Mark processing as complete and calculate duration.</p>
+
+            <h4>to_dict()</h4>
+            <div class="api-signature">
+                to_dict() → Dict[str, Any]
+            </div>
+
+            <h4>Example</h4>
+            <pre><code><span class="keyword">from</span> cad_preprocess.logging_utils <span class="keyword">import</span> ProcessingStats
+
+stats = ProcessingStats()
+stats.total = <span class="number">100</span>
+
+<span class="keyword">for</span> file <span class="keyword">in</span> files:
+    <span class="keyword">try</span>:
+        process(file)
+        stats.increment_processed()
+    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:
+        stats.increment_failed(e, file)
+
+stats.finish()
+<span class="keyword">print</span>(<span class="string">f"Processed </span>{stats.processed}<span class="string">/</span>{stats.total}<span class="string"> in </span>{stats.duration}<span class="string">s"</span>)</code></pre>
+
+            <hr>
+
+            <h2 id="exceptions">Exceptions</h2>
+
+            <h4>ProcessingError</h4>
+            <div class="api-signature">
+                class ProcessingError(Exception)
+            </div>
+            <p>Base exception for all processing errors.</p>
+
+            <h4>DicomReadError</h4>
+            <div class="api-signature">
+                class DicomReadError(ProcessingError)
+            </div>
+            <p>Failed to read or parse DICOM file.</p>
+
+            <h4>ConfigurationError</h4>
+            <div class="api-signature">
+                class ConfigurationError(ProcessingError)
+            </div>
+            <p>Invalid configuration.</p>
+
+            <h4>OutputError</h4>
+            <div class="api-signature">
+                class OutputError(ProcessingError)
+            </div>
+            <p>Failed to write output file.</p>
+
+            <h4>Example</h4>
+            <pre><code><span class="keyword">from</span> cad_preprocess.logging_utils <span class="keyword">import</span> ProcessingError, DicomReadError
+
+<span class="keyword">try</span>:
+    result = process_file(<span class="string">"image.dcm"</span>)
+<span class="keyword">except</span> DicomReadError <span class="keyword">as</span> e:
+    <span class="keyword">print</span>(<span class="string">f"Invalid DICOM: </span>{e}<span class="string">"</span>)
+<span class="keyword">except</span> ProcessingError <span class="keyword">as</span> e:
+    <span class="keyword">print</span>(<span class="string">f"Processing failed: </span>{e}<span class="string">"</span>)</code></pre>
+
+            <hr>
+
+            <h2 id="decorators">Decorators</h2>
+
+            <h4>@fail_safe</h4>
+            <div class="api-signature">
+                @fail_safe(default=None, log=True, reraise=False)
+            </div>
+            <p>Decorator that catches exceptions and returns a default value instead.</p>
+
+            <div class="api-params">
+                <div class="api-param">
+                    <span class="api-param-name">default</span>
+                    <span class="api-param-type">Any</span>
+                    <div class="api-param-desc">Value to return on exception</div>
+                </div>
+                <div class="api-param">
+                    <span class="api-param-name">log</span>
+                    <span class="api-param-type">bool</span>
+                    <div class="api-param-desc">Log the exception (default: True)</div>
+                </div>
+                <div class="api-param">
+                    <span class="api-param-name">reraise</span>
+                    <span class="api-param-type">bool</span>
+                    <div class="api-param-desc">Re-raise after logging (default: False)</div>
+                </div>
+            </div>
+
+            <pre><code><span class="keyword">from</span> cad_preprocess.logging_utils <span class="keyword">import</span> fail_safe
+
+<span class="decorator">@fail_safe</span>(default=<span class="keyword">None</span>)
+<span class="keyword">def</span> <span class="function">safe_process</span>(path):
+    <span class="comment"># If this raises, returns None instead</span>
+    <span class="keyword">return</span> process_file(path)
+
+result = safe_process(<span class="string">"maybe_corrupt.dcm"</span>)
+<span class="keyword">if</span> result <span class="keyword">is None</span>:
+    <span class="keyword">print</span>(<span class="string">"Processing failed"</span>)</code></pre>
+
+            <h4>@log_execution_time</h4>
+            <div class="api-signature">
+                @log_execution_time(logger=None)
+            </div>
+            <p>Log the execution time of a function.</p>
+
+            <pre><code><span class="keyword">from</span> cad_preprocess.logging_utils <span class="keyword">import</span> log_execution_time
+
+<span class="decorator">@log_execution_time</span>()
+<span class="keyword">def</span> <span class="function">slow_function</span>():
+    <span class="comment"># Logs: "slow_function took 2.34s"</span>
+    time.sleep(<span class="number">2</span>)</code></pre>
+
+            <hr>
+
+            <h2 id="functions">Utility Functions</h2>
+
+            <h4>setup_logging()</h4>
+            <div class="api-signature">
+                setup_logging(level="INFO", log_file=None, format="json") → logging.Logger
+            </div>
+            <p>Configure logging for the library.</p>
+            <div class="api-params">
+                <div class="api-param">
+                    <span class="api-param-name">level</span>
+                    <span class="api-param-type">str</span>
+                    <div class="api-param-desc">Log level: DEBUG, INFO, WARNING, ERROR</div>
+                </div>
+                <div class="api-param">
+                    <span class="api-param-name">log_file</span>
+                    <span class="api-param-type">str | Path | None</span>
+                    <div class="api-param-desc">Path to log file (None = console only)</div>
+                </div>
+                <div class="api-param">
+                    <span class="api-param-name">format</span>
+                    <span class="api-param-type">str</span>
+                    <div class="api-param-desc">Log format: "json" or "text"</div>
+                </div>
+            </div>
+
+            <pre><code><span class="keyword">from</span> cad_preprocess.logging_utils <span class="keyword">import</span> setup_logging
+
+<span class="comment"># Setup logging</span>
+logger = setup_logging(
+    level=<span class="string">"DEBUG"</span>,
+    log_file=<span class="string">"processing.log"</span>,
+    format=<span class="string">"json"</span>
+)</code></pre>
+
+            <h4>get_logger()</h4>
+            <div class="api-signature">
+                get_logger(name=None) → logging.Logger
+            </div>
+            <p>Get the library logger.</p>
+
+            <h4>log_error()</h4>
+            <div class="api-signature">
+                log_error(error, context=None) → None
+            </div>
+            <p>Log an error with context information.</p>
+
+            <pre><code><span class="keyword">from</span> cad_preprocess.logging_utils <span class="keyword">import</span> log_error
+
+<span class="keyword">try</span>:
+    process()
+<span class="keyword">except</span> Exception <span class="keyword">as</span> e:
+    log_error(e, context={<span class="string">"file"</span>: <span class="string">"image.dcm"</span>, <span class="string">"step"</span>: <span class="string">"windowing"</span>})</code></pre>
+        </main>
+    </div>
+
+    <footer class="footer">
+        <p>CAD Preprocess Documentation · <a href="https://github.com/Harshil-Anuwadia/cad-preprocess">GitHub</a> · MIT License</p>
+    </footer>
+</body>
+</html>

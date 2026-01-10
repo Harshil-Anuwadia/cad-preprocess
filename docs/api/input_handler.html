@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Input Handler - CAD Preprocess API</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="../../index.html" class="logo">
+                <div class="logo-icon">CP</div>
+                <div class="logo-text">CAD Preprocess <span>v0.1.0</span></div>
+            </a>
+            <nav class="header-nav">
+                <a href="../../index.html">Home</a>
+                <a href="../installation.html">Installation</a>
+                <a href="../quickstart.html">Quick Start</a>
+                <a href="index.html">API Reference</a>
+                <a href="https://github.com/Harshil-Anuwadia/cad-preprocess" target="_blank">GitHub</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-title">Getting Started</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../../index.html">Overview</a></li>
+                    <li><a href="../installation.html">Installation</a></li>
+                    <li><a href="../quickstart.html">Quick Start</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">User Guide</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../guides/cli.html">CLI Usage</a></li>
+                    <li><a href="../guides/python-api.html">Python API</a></li>
+                    <li><a href="../guides/configuration.html">Configuration</a></li>
+                    <li><a href="../guides/metadata-profiles.html">Metadata Profiles</a></li>
+                    <li><a href="../guides/preprocessing.html">Preprocessing Pipeline</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">API Reference</div>
+                <ul class="sidebar-nav">
+                    <li><a href="index.html">Overview</a></li>
+                    <li><a href="integration.html">Integration</a></li>
+                    <li><a href="input_handler.html" class="active">Input Handler</a></li>
+                    <li><a href="preprocessing_engine.html">Preprocessing Engine</a></li>
+                    <li><a href="metadata_extractor.html">Metadata Extractor</a></li>
+                    <li><a href="output_writer.html">Output Writer</a></li>
+                    <li><a href="config.html">Configuration</a></li>
+                    <li><a href="logging_utils.html">Logging Utilities</a></li>
+                    <li><a href="cli.html">CLI Module</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">Resources</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../examples.html">Examples</a></li>
+                    <li><a href="../changelog.html">Changelog</a></li>
+                    <li><a href="../contributing.html">Contributing</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="content">
+            <nav class="breadcrumb">
+                <a href="../../index.html">Home</a> &gt; <a href="index.html">API Reference</a> &gt; Input Handler
+            </nav>
+
+            <h1>cad_preprocess.input_handler</h1>
+
+            <p>DICOM file discovery, validation, and loading.</p>
+
+            <div class="toc">
+                <div class="toc-title">Contents</div>
+                <ul>
+                    <li><a href="#inputhandler">InputHandler</a></li>
+                    <li><a href="#dicomfile">DicomFile</a></li>
+                    <li><a href="#functions">Utility Functions</a></li>
+                </ul>
+            </div>
+
+            <h2 id="inputhandler">InputHandler</h2>
+
+            <p>Discovers and validates DICOM files in directories.</p>
+
+            <div class="api-signature">
+                class InputHandler(recursive=True, extensions=None, validate=True)
+            </div>
+
+            <h4>Constructor Parameters</h4>
+            <div class="api-params">
+                <div class="api-param">
+                    <span class="api-param-name">recursive</span>
+                    <span class="api-param-type">bool</span>
+                    <div class="api-param-desc">Scan subdirectories recursively (default: True)</div>
+                </div>
+                <div class="api-param">
+                    <span class="api-param-name">extensions</span>
+                    <span class="api-param-type">List[str] | None</span>
+                    <div class="api-param-desc">File extensions to include (default: [".dcm", ".dicom", ""])</div>
+                </div>
+                <div class="api-param">
+                    <span class="api-param-name">validate</span>
+                    <span class="api-param-type">bool</span>
+                    <div class="api-param-desc">Validate DICOM headers (default: True)</div>
+                </div>
+            </div>
+
+            <h3>Methods</h3>
+
+            <h4>discover()</h4>
+            <div class="api-signature">
+                discover(path) → List[DicomFile]
+            </div>
+            <p>Discover DICOM files in the given path.</p>
+            <div class="api-params">
+                <div class="api-param">
+                    <span class="api-param-name">path</span>
+                    <span class="api-param-type">str | Path</span>
+                    <div class="api-param-desc">File path or directory to scan</div>
+                </div>
+            </div>
+            <div class="api-returns">
+                <code>List[DicomFile]</code> - List of discovered DICOM files
+            </div>
+
+            <h4>load()</h4>
+            <div class="api-signature">
+                load(path) → pydicom.Dataset
+            </div>
+            <p>Load a single DICOM file.</p>
+            <div class="api-params">
+                <div class="api-param">
+                    <span class="api-param-name">path</span>
+                    <span class="api-param-type">str | Path</span>
+                    <div class="api-param-desc">Path to DICOM file</div>
+                </div>
+            </div>
+            <div class="api-returns">
+                <code>pydicom.Dataset</code> - Loaded DICOM dataset
+            </div>
+
+            <h4>is_valid_dicom()</h4>
+            <div class="api-signature">
+                is_valid_dicom(path) → bool
+            </div>
+            <p>Check if a file is a valid DICOM file.</p>
+
+            <h4>Example</h4>
+            <pre><code><span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> InputHandler
+
+handler = InputHandler(recursive=<span class="keyword">True</span>)
+
+<span class="comment"># Discover files</span>
+files = handler.discover(<span class="string">"./dicoms"</span>)
+<span class="keyword">print</span>(<span class="string">f"Found </span>{len(files)}<span class="string"> DICOM files"</span>)
+
+<span class="comment"># Load a specific file</span>
+dcm = handler.load(<span class="string">"image.dcm"</span>)
+<span class="keyword">print</span>(dcm.Modality)</code></pre>
+
+            <hr>
+
+            <h2 id="dicomfile">DicomFile</h2>
+
+            <p>Represents a discovered DICOM file with basic metadata.</p>
+
+            <div class="api-signature">
+                class DicomFile
+            </div>
+
+            <h4>Attributes</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Attribute</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>path</code></td>
+                        <td>Path</td>
+                        <td>Absolute path to the file</td>
+                    </tr>
+                    <tr>
+                        <td><code>sop_instance_uid</code></td>
+                        <td>str | None</td>
+                        <td>SOP Instance UID (if validated)</td>
+                    </tr>
+                    <tr>
+                        <td><code>modality</code></td>
+                        <td>str | None</td>
+                        <td>DICOM modality (if validated)</td>
+                    </tr>
+                    <tr>
+                        <td><code>size_bytes</code></td>
+                        <td>int</td>
+                        <td>File size in bytes</td>
+                    </tr>
+                    <tr>
+                        <td><code>is_valid</code></td>
+                        <td>bool</td>
+                        <td>Whether the file passed validation</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h4>Example</h4>
+            <pre><code><span class="keyword">for</span> dicom_file <span class="keyword">in</span> handler.discover(<span class="string">"./dicoms"</span>):
+    <span class="keyword">print</span>(<span class="string">f"</span>{dicom_file.path}<span class="string">: </span>{dicom_file.modality}<span class="string">"</span>)
+    <span class="keyword">if</span> dicom_file.is_valid:
+        <span class="keyword">print</span>(<span class="string">f"  UID: </span>{dicom_file.sop_instance_uid}<span class="string">"</span>)</code></pre>
+
+            <hr>
+
+            <h2 id="functions">Utility Functions</h2>
+
+            <h4>is_dicom_file()</h4>
+            <div class="api-signature">
+                is_dicom_file(path) → bool
+            </div>
+            <p>Quick check if a file has DICOM magic bytes.</p>
+            <pre><code><span class="keyword">from</span> cad_preprocess.input_handler <span class="keyword">import</span> is_dicom_file
+
+<span class="keyword">if</span> is_dicom_file(<span class="string">"unknown_file"</span>):
+    <span class="keyword">print</span>(<span class="string">"This is a DICOM file"</span>)</code></pre>
+
+            <h4>find_dicom_files()</h4>
+            <div class="api-signature">
+                find_dicom_files(directory, recursive=True) → Generator[Path, None, None]
+            </div>
+            <p>Generator that yields paths to DICOM files.</p>
+            <pre><code><span class="keyword">from</span> cad_preprocess.input_handler <span class="keyword">import</span> find_dicom_files
+
+<span class="keyword">for</span> path <span class="keyword">in</span> find_dicom_files(<span class="string">"./data"</span>):
+    <span class="keyword">print</span>(path)</code></pre>
+        </main>
+    </div>
+
+    <footer class="footer">
+        <p>CAD Preprocess Documentation · <a href="https://github.com/Harshil-Anuwadia/cad-preprocess">GitHub</a> · MIT License</p>
+    </footer>
+</body>
+</html>

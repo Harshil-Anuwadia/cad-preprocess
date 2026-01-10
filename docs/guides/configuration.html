@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuration - CAD Preprocess</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="../../index.html" class="logo">
+                <div class="logo-icon">CP</div>
+                <div class="logo-text">CAD Preprocess <span>v0.1.0</span></div>
+            </a>
+            <nav class="header-nav">
+                <a href="../../index.html">Home</a>
+                <a href="../installation.html">Installation</a>
+                <a href="../quickstart.html">Quick Start</a>
+                <a href="../api/index.html">API Reference</a>
+                <a href="https://github.com/Harshil-Anuwadia/cad-preprocess" target="_blank">GitHub</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-title">Getting Started</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../../index.html">Overview</a></li>
+                    <li><a href="../installation.html">Installation</a></li>
+                    <li><a href="../quickstart.html">Quick Start</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">User Guide</div>
+                <ul class="sidebar-nav">
+                    <li><a href="cli.html">CLI Usage</a></li>
+                    <li><a href="python-api.html">Python API</a></li>
+                    <li><a href="configuration.html" class="active">Configuration</a></li>
+                    <li><a href="metadata-profiles.html">Metadata Profiles</a></li>
+                    <li><a href="preprocessing.html">Preprocessing Pipeline</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">API Reference</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../api/index.html">Overview</a></li>
+                    <li><a href="../api/integration.html">Integration</a></li>
+                    <li><a href="../api/input_handler.html">Input Handler</a></li>
+                    <li><a href="../api/preprocessing_engine.html">Preprocessing Engine</a></li>
+                    <li><a href="../api/metadata_extractor.html">Metadata Extractor</a></li>
+                    <li><a href="../api/output_writer.html">Output Writer</a></li>
+                    <li><a href="../api/config.html">Configuration</a></li>
+                    <li><a href="../api/logging_utils.html">Logging Utilities</a></li>
+                    <li><a href="../api/cli.html">CLI Module</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">Resources</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../examples.html">Examples</a></li>
+                    <li><a href="../changelog.html">Changelog</a></li>
+                    <li><a href="../contributing.html">Contributing</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="content">
+            <nav class="breadcrumb">
+                <a href="../../index.html">Home</a> &gt; <a href="cli.html">User Guide</a> &gt; Configuration
+            </nav>
+
+            <h1>Configuration</h1>
+
+            <p>CAD Preprocess uses YAML configuration files for reproducible preprocessing settings.</p>
+
+            <div class="toc">
+                <div class="toc-title">Contents</div>
+                <ul>
+                    <li><a href="#overview">Overview</a></li>
+                    <li><a href="#complete-example">Complete Example</a></li>
+                    <li><a href="#options">Configuration Options</a></li>
+                    <li><a href="#env-vars">Environment Variables</a></li>
+                    <li><a href="#priority">Configuration Priority</a></li>
+                </ul>
+            </div>
+
+            <h2 id="overview">Overview</h2>
+
+            <p>Configuration can be specified in three ways:</p>
+            <ol>
+                <li><strong>YAML file</strong> - For reproducible, version-controlled settings</li>
+                <li><strong>CLI arguments</strong> - For quick overrides</li>
+                <li><strong>Python code</strong> - For programmatic configuration</li>
+            </ol>
+
+            <h2 id="complete-example">Complete Configuration Example</h2>
+
+            <pre><code><span class="comment"># config.yaml - Complete CAD Preprocess configuration</span>
+
+<span class="comment"># Preprocessing settings</span>
+preprocessing:
+  target_size: 512              <span class="comment"># Resize images (null for original)</span>
+  normalize: true               <span class="comment"># Normalize to 0-255</span>
+  preserve_aspect_ratio: true   <span class="comment"># Maintain aspect ratio when resizing</span>
+  
+  <span class="comment"># CT windowing (null for auto)</span>
+  window_center: null
+  window_width: null
+  
+  <span class="comment"># Interpolation for resizing</span>
+  interpolation: bilinear       <span class="comment"># nearest, bilinear, bicubic</span>
+
+<span class="comment"># Output settings</span>
+output:
+  format: png                   <span class="comment"># png, jpg, npy</span>
+  naming_policy: sop_uid        <span class="comment"># sop_uid, patient_study, sequential</span>
+  create_subdirs: true          <span class="comment"># Create images/, metadata/, logs/</span>
+  
+  <span class="comment"># JPEG quality (only for jpg format)</span>
+  jpeg_quality: 95
+
+<span class="comment"># Metadata extraction</span>
+metadata:
+  profile: ml                   <span class="comment"># minimal, patient, geometry, ml, acquisition, full</span>
+  include_private: false        <span class="comment"># Include private DICOM tags</span>
+  anonymize: false              <span class="comment"># Remove patient identifiers</span>
+
+<span class="comment"># Input handling</span>
+input:
+  recursive: true               <span class="comment"># Scan subdirectories</span>
+  extensions:                   <span class="comment"># File extensions to consider</span>
+    - .dcm
+    - .dicom
+    - ""                        <span class="comment"># Files without extension</span>
+  validate_dicom: true          <span class="comment"># Validate DICOM headers</span>
+
+<span class="comment"># Logging</span>
+logging:
+  level: INFO                   <span class="comment"># DEBUG, INFO, WARNING, ERROR</span>
+  save_logs: true               <span class="comment"># Save processing logs</span>
+  log_format: json              <span class="comment"># json, text</span></code></pre>
+
+            <h2 id="options">Configuration Options</h2>
+
+            <h3>Preprocessing Options</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Option</th>
+                        <th>Type</th>
+                        <th>Default</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>target_size</code></td>
+                        <td>int/null</td>
+                        <td>null</td>
+                        <td>Resize output to this size. Null keeps original size.</td>
+                    </tr>
+                    <tr>
+                        <td><code>normalize</code></td>
+                        <td>bool</td>
+                        <td>true</td>
+                        <td>Normalize pixel values to 0-255 range.</td>
+                    </tr>
+                    <tr>
+                        <td><code>preserve_aspect_ratio</code></td>
+                        <td>bool</td>
+                        <td>true</td>
+                        <td>Maintain aspect ratio when resizing.</td>
+                    </tr>
+                    <tr>
+                        <td><code>window_center</code></td>
+                        <td>float/null</td>
+                        <td>null</td>
+                        <td>CT window center. Null uses DICOM value.</td>
+                    </tr>
+                    <tr>
+                        <td><code>window_width</code></td>
+                        <td>float/null</td>
+                        <td>null</td>
+                        <td>CT window width. Null uses DICOM value.</td>
+                    </tr>
+                    <tr>
+                        <td><code>interpolation</code></td>
+                        <td>string</td>
+                        <td>bilinear</td>
+                        <td>Resize interpolation: nearest, bilinear, bicubic</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Output Options</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Option</th>
+                        <th>Type</th>
+                        <th>Default</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>format</code></td>
+                        <td>string</td>
+                        <td>png</td>
+                        <td>Output format: png, jpg, npy</td>
+                    </tr>
+                    <tr>
+                        <td><code>naming_policy</code></td>
+                        <td>string</td>
+                        <td>sop_uid</td>
+                        <td>File naming: sop_uid, patient_study, sequential</td>
+                    </tr>
+                    <tr>
+                        <td><code>create_subdirs</code></td>
+                        <td>bool</td>
+                        <td>true</td>
+                        <td>Create images/, metadata/, logs/ subdirectories</td>
+                    </tr>
+                    <tr>
+                        <td><code>jpeg_quality</code></td>
+                        <td>int</td>
+                        <td>95</td>
+                        <td>JPEG quality (1-100), only for jpg format</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Metadata Options</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Option</th>
+                        <th>Type</th>
+                        <th>Default</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>profile</code></td>
+                        <td>string</td>
+                        <td>minimal</td>
+                        <td>Extraction profile (see Metadata Profiles)</td>
+                    </tr>
+                    <tr>
+                        <td><code>include_private</code></td>
+                        <td>bool</td>
+                        <td>false</td>
+                        <td>Include private DICOM tags</td>
+                    </tr>
+                    <tr>
+                        <td><code>anonymize</code></td>
+                        <td>bool</td>
+                        <td>false</td>
+                        <td>Remove patient identifying information</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Input Options</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Option</th>
+                        <th>Type</th>
+                        <th>Default</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>recursive</code></td>
+                        <td>bool</td>
+                        <td>true</td>
+                        <td>Recursively scan subdirectories</td>
+                    </tr>
+                    <tr>
+                        <td><code>extensions</code></td>
+                        <td>list</td>
+                        <td>[.dcm, .dicom, ""]</td>
+                        <td>File extensions to process</td>
+                    </tr>
+                    <tr>
+                        <td><code>validate_dicom</code></td>
+                        <td>bool</td>
+                        <td>true</td>
+                        <td>Validate DICOM file headers</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Logging Options</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Option</th>
+                        <th>Type</th>
+                        <th>Default</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>level</code></td>
+                        <td>string</td>
+                        <td>INFO</td>
+                        <td>Log level: DEBUG, INFO, WARNING, ERROR</td>
+                    </tr>
+                    <tr>
+                        <td><code>save_logs</code></td>
+                        <td>bool</td>
+                        <td>true</td>
+                        <td>Save logs to output directory</td>
+                    </tr>
+                    <tr>
+                        <td><code>log_format</code></td>
+                        <td>string</td>
+                        <td>json</td>
+                        <td>Log format: json, text</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2 id="env-vars">Environment Variables</h2>
+
+            <p>Configuration can also be set via environment variables:</p>
+
+            <pre><code><span class="comment"># Set via environment</span>
+export CAD_PREPROCESS_TARGET_SIZE=512
+export CAD_PREPROCESS_METADATA_PROFILE=ml
+export CAD_PREPROCESS_NORMALIZE=true
+
+<span class="comment"># Then run</span>
+cad-preprocess -i ./dicoms -o ./output</code></pre>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Environment Variable</th>
+                        <th>Config Equivalent</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>CAD_PREPROCESS_TARGET_SIZE</code></td>
+                        <td>preprocessing.target_size</td>
+                    </tr>
+                    <tr>
+                        <td><code>CAD_PREPROCESS_NORMALIZE</code></td>
+                        <td>preprocessing.normalize</td>
+                    </tr>
+                    <tr>
+                        <td><code>CAD_PREPROCESS_OUTPUT_FORMAT</code></td>
+                        <td>output.format</td>
+                    </tr>
+                    <tr>
+                        <td><code>CAD_PREPROCESS_METADATA_PROFILE</code></td>
+                        <td>metadata.profile</td>
+                    </tr>
+                    <tr>
+                        <td><code>CAD_PREPROCESS_LOG_LEVEL</code></td>
+                        <td>logging.level</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2 id="priority">Configuration Priority</h2>
+
+            <p>When the same option is set in multiple places, the priority is:</p>
+
+            <ol>
+                <li><strong>CLI arguments</strong> (highest priority)</li>
+                <li><strong>Environment variables</strong></li>
+                <li><strong>YAML configuration file</strong></li>
+                <li><strong>Default values</strong> (lowest priority)</li>
+            </ol>
+
+            <pre><code><span class="comment"># Example: CLI overrides config file</span>
+cad-preprocess -i ./dicoms -o ./output \
+    -c config.yaml \
+    --target-size 256  <span class="comment"># This overrides config.yaml's target_size</span></code></pre>
+
+            <div class="info-box note">
+                <div class="info-box-title">📝 Note</div>
+                Always version control your configuration files to ensure reproducibility. The config hash feature lets you verify that training and inference use identical preprocessing.
+            </div>
+        </main>
+    </div>
+
+    <footer class="footer">
+        <p>CAD Preprocess Documentation · <a href="https://github.com/Harshil-Anuwadia/cad-preprocess">GitHub</a> · MIT License</p>
+    </footer>
+</body>
+</html>

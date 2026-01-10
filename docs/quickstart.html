@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Start - CAD Preprocess</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="../index.html" class="logo">
+                <div class="logo-icon">CP</div>
+                <div class="logo-text">CAD Preprocess <span>v0.1.0</span></div>
+            </a>
+            <nav class="header-nav">
+                <a href="../index.html">Home</a>
+                <a href="installation.html">Installation</a>
+                <a href="quickstart.html">Quick Start</a>
+                <a href="api/index.html">API Reference</a>
+                <a href="https://github.com/Harshil-Anuwadia/cad-preprocess" target="_blank">GitHub</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-title">Getting Started</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../index.html">Overview</a></li>
+                    <li><a href="installation.html">Installation</a></li>
+                    <li><a href="quickstart.html" class="active">Quick Start</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">User Guide</div>
+                <ul class="sidebar-nav">
+                    <li><a href="guides/cli.html">CLI Usage</a></li>
+                    <li><a href="guides/python-api.html">Python API</a></li>
+                    <li><a href="guides/configuration.html">Configuration</a></li>
+                    <li><a href="guides/metadata-profiles.html">Metadata Profiles</a></li>
+                    <li><a href="guides/preprocessing.html">Preprocessing Pipeline</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">API Reference</div>
+                <ul class="sidebar-nav">
+                    <li><a href="api/index.html">Overview</a></li>
+                    <li><a href="api/integration.html">Integration</a></li>
+                    <li><a href="api/input_handler.html">Input Handler</a></li>
+                    <li><a href="api/preprocessing_engine.html">Preprocessing Engine</a></li>
+                    <li><a href="api/metadata_extractor.html">Metadata Extractor</a></li>
+                    <li><a href="api/output_writer.html">Output Writer</a></li>
+                    <li><a href="api/config.html">Configuration</a></li>
+                    <li><a href="api/logging_utils.html">Logging Utilities</a></li>
+                    <li><a href="api/cli.html">CLI Module</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">Resources</div>
+                <ul class="sidebar-nav">
+                    <li><a href="examples.html">Examples</a></li>
+                    <li><a href="changelog.html">Changelog</a></li>
+                    <li><a href="contributing.html">Contributing</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="content">
+            <nav class="breadcrumb">
+                <a href="../index.html">Home</a> &gt; Quick Start
+            </nav>
+
+            <h1>Quick Start</h1>
+
+            <p>Get up and running with CAD Preprocess in 5 minutes.</p>
+
+            <div class="toc">
+                <div class="toc-title">Contents</div>
+                <ul>
+                    <li><a href="#basic-usage">Basic Usage</a></li>
+                    <li><a href="#cli-examples">CLI Examples</a></li>
+                    <li><a href="#python-examples">Python API Examples</a></li>
+                    <li><a href="#output">Understanding Output</a></li>
+                    <li><a href="#next-steps">Next Steps</a></li>
+                </ul>
+            </div>
+
+            <h2 id="basic-usage">Basic Usage</h2>
+
+            <p>CAD Preprocess can be used in two ways:</p>
+            <ol>
+                <li><strong>Command Line Interface (CLI)</strong> - For quick processing and scripts</li>
+                <li><strong>Python API</strong> - For integration into your applications</li>
+            </ol>
+
+            <h2 id="cli-examples">CLI Examples</h2>
+
+            <h3>Process a Single DICOM File</h3>
+            <pre><code>cad-preprocess -i image.dcm -o ./output</code></pre>
+
+            <h3>Process a Directory of DICOM Files</h3>
+            <pre><code>cad-preprocess -i ./dicoms -o ./output</code></pre>
+
+            <h3>Use a Configuration File</h3>
+            <pre><code>cad-preprocess -i ./dicoms -o ./output -c config.yaml</code></pre>
+
+            <h3>Preview Without Processing (Dry Run)</h3>
+            <pre><code>cad-preprocess -i ./dicoms -o ./output --dry-run</code></pre>
+            <p>This shows what would be processed without actually creating any output files.</p>
+
+            <h3>Specify Metadata Profile</h3>
+            <pre><code><span class="comment"># Extract ML-focused metadata</span>
+cad-preprocess -i ./dicoms -o ./output --metadata-profile ml
+
+<span class="comment"># Extract minimal metadata only</span>
+cad-preprocess -i ./dicoms -o ./output --metadata-profile minimal</code></pre>
+
+            <h3>Custom Window Settings (CT Images)</h3>
+            <pre><code><span class="comment"># Lung window</span>
+cad-preprocess -i ./dicoms -o ./output --window-center -600 --window-width 1500
+
+<span class="comment"># Bone window</span>
+cad-preprocess -i ./dicoms -o ./output --window-center 400 --window-width 1800</code></pre>
+
+            <h3>Resize Output Images</h3>
+            <pre><code>cad-preprocess -i ./dicoms -o ./output --target-size 512</code></pre>
+
+            <h2 id="python-examples">Python API Examples</h2>
+
+            <h3>Simple One-Liner</h3>
+            <pre><code><span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> preprocess
+
+<span class="comment"># Process a single file</span>
+result = preprocess(<span class="string">"image.dcm"</span>, <span class="string">"output/"</span>)
+<span class="keyword">print</span>(<span class="string">f"Processed: </span>{result.sop_instance_uid}<span class="string">"</span>)
+<span class="keyword">print</span>(<span class="string">f"Shape: </span>{result.image.shape}<span class="string">"</span>)</code></pre>
+
+            <h3>Batch Processing</h3>
+            <pre><code><span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> CADPreprocessor
+
+<span class="comment"># Create processor</span>
+processor = CADPreprocessor()
+
+<span class="comment"># Process entire directory</span>
+results = processor.process_directory(<span class="string">"dicoms/"</span>, <span class="string">"output/"</span>)
+
+<span class="keyword">print</span>(<span class="string">f"Processed </span>{len(results)}<span class="string"> files"</span>)
+<span class="keyword">for</span> result <span class="keyword">in</span> results:
+    <span class="keyword">print</span>(<span class="string">f"  - </span>{result.sop_instance_uid}<span class="string">"</span>)</code></pre>
+
+            <h3>Using Configuration</h3>
+            <pre><code><span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> CADPreprocessor
+
+<span class="comment"># Load from config file</span>
+processor = CADPreprocessor.from_config(<span class="string">"config.yaml"</span>)
+
+<span class="comment"># Or configure programmatically</span>
+processor = CADPreprocessor(
+    target_size=<span class="number">512</span>,
+    normalize=<span class="keyword">True</span>,
+    metadata_profile=<span class="string">"ml"</span>
+)
+
+results = processor.process_directory(<span class="string">"dicoms/"</span>, <span class="string">"output/"</span>)</code></pre>
+
+            <h3>Reproducibility with Config Hash</h3>
+            <pre><code><span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> CADPreprocessor
+
+<span class="comment"># Training: save the config hash</span>
+processor = CADPreprocessor.from_config(<span class="string">"config.yaml"</span>)
+config_hash = processor.config_hash
+<span class="keyword">print</span>(<span class="string">f"Config hash: </span>{config_hash}<span class="string">"</span>)
+
+<span class="comment"># Inference: verify same configuration</span>
+inference_processor = CADPreprocessor.from_config(<span class="string">"config.yaml"</span>)
+<span class="keyword">assert</span> inference_processor.config_hash == config_hash</code></pre>
+
+            <h3>Access Processing Statistics</h3>
+            <pre><code><span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> CADPreprocessor
+
+processor = CADPreprocessor()
+results = processor.process_directory(<span class="string">"dicoms/"</span>, <span class="string">"output/"</span>)
+
+<span class="comment"># Get statistics</span>
+stats = processor.stats
+<span class="keyword">print</span>(<span class="string">f"Processed: </span>{stats.processed}<span class="string">"</span>)
+<span class="keyword">print</span>(<span class="string">f"Failed: </span>{stats.failed}<span class="string">"</span>)
+<span class="keyword">print</span>(<span class="string">f"Skipped: </span>{stats.skipped}<span class="string">"</span>)</code></pre>
+
+            <h2 id="output">Understanding Output</h2>
+
+            <p>After processing, the output directory contains:</p>
+
+            <pre><code>output/
+├── images/                    <span class="comment"># Preprocessed images</span>
+│   ├── 1.2.840...123.png
+│   └── 1.2.840...456.png
+├── metadata/                  <span class="comment"># Extracted metadata</span>
+│   ├── 1.2.840...123.json
+│   └── 1.2.840...456.json
+├── logs/                      <span class="comment"># Processing logs</span>
+│   └── processing_log_20260110.json
+└── manifest.json              <span class="comment"># Processing manifest</span></code></pre>
+
+            <h3>Manifest File</h3>
+            <p>The <code>manifest.json</code> contains processing information:</p>
+            <pre><code>{
+    <span class="string">"timestamp"</span>: <span class="string">"2026-01-10T14:30:00"</span>,
+    <span class="string">"config_hash"</span>: <span class="string">"a1b2c3d4..."</span>,
+    <span class="string">"total_processed"</span>: <span class="number">150</span>,
+    <span class="string">"failed"</span>: <span class="number">2</span>,
+    <span class="string">"files"</span>: [...]
+}</code></pre>
+
+            <h3>Metadata Files</h3>
+            <p>Each processed image has a corresponding JSON metadata file:</p>
+            <pre><code>{
+    <span class="string">"sop_instance_uid"</span>: <span class="string">"1.2.840.113619.2.55.3"</span>,
+    <span class="string">"modality"</span>: <span class="string">"CT"</span>,
+    <span class="string">"rows"</span>: <span class="number">512</span>,
+    <span class="string">"columns"</span>: <span class="number">512</span>,
+    <span class="string">"pixel_spacing"</span>: [<span class="number">0.5</span>, <span class="number">0.5</span>],
+    ...
+}</code></pre>
+
+            <h2 id="next-steps">Next Steps</h2>
+
+            <ul>
+                <li><a href="guides/cli.html">CLI Usage Guide</a> - Complete CLI reference</li>
+                <li><a href="guides/python-api.html">Python API Guide</a> - Advanced Python usage</li>
+                <li><a href="guides/configuration.html">Configuration Guide</a> - YAML configuration options</li>
+                <li><a href="guides/metadata-profiles.html">Metadata Profiles</a> - Understanding metadata extraction</li>
+                <li><a href="api/index.html">API Reference</a> - Full API documentation</li>
+            </ul>
+
+            <div class="info-box tip">
+                <div class="info-box-title">💡 Pro Tip</div>
+                Use <code>--dry-run</code> to preview what will be processed before committing to a full batch operation.
+            </div>
+        </main>
+    </div>
+
+    <footer class="footer">
+        <p>CAD Preprocess Documentation · <a href="https://github.com/Harshil-Anuwadia/cad-preprocess">GitHub</a> · MIT License</p>
+    </footer>
+</body>
+</html>

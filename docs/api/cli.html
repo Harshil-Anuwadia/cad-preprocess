@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CLI Module - CAD Preprocess API</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="../../index.html" class="logo">
+                <div class="logo-icon">CP</div>
+                <div class="logo-text">CAD Preprocess <span>v0.1.0</span></div>
+            </a>
+            <nav class="header-nav">
+                <a href="../../index.html">Home</a>
+                <a href="../installation.html">Installation</a>
+                <a href="../quickstart.html">Quick Start</a>
+                <a href="index.html">API Reference</a>
+                <a href="https://github.com/Harshil-Anuwadia/cad-preprocess" target="_blank">GitHub</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-title">Getting Started</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../../index.html">Overview</a></li>
+                    <li><a href="../installation.html">Installation</a></li>
+                    <li><a href="../quickstart.html">Quick Start</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">User Guide</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../guides/cli.html">CLI Usage</a></li>
+                    <li><a href="../guides/python-api.html">Python API</a></li>
+                    <li><a href="../guides/configuration.html">Configuration</a></li>
+                    <li><a href="../guides/metadata-profiles.html">Metadata Profiles</a></li>
+                    <li><a href="../guides/preprocessing.html">Preprocessing Pipeline</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">API Reference</div>
+                <ul class="sidebar-nav">
+                    <li><a href="index.html">Overview</a></li>
+                    <li><a href="integration.html">Integration</a></li>
+                    <li><a href="input_handler.html">Input Handler</a></li>
+                    <li><a href="preprocessing_engine.html">Preprocessing Engine</a></li>
+                    <li><a href="metadata_extractor.html">Metadata Extractor</a></li>
+                    <li><a href="output_writer.html">Output Writer</a></li>
+                    <li><a href="config.html">Configuration</a></li>
+                    <li><a href="logging_utils.html">Logging Utilities</a></li>
+                    <li><a href="cli.html" class="active">CLI Module</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">Resources</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../examples.html">Examples</a></li>
+                    <li><a href="../changelog.html">Changelog</a></li>
+                    <li><a href="../contributing.html">Contributing</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="content">
+            <nav class="breadcrumb">
+                <a href="../../index.html">Home</a> &gt; <a href="index.html">API Reference</a> &gt; CLI Module
+            </nav>
+
+            <h1>cad_preprocess.cli</h1>
+
+            <p>Command-line interface implementation.</p>
+
+            <div class="toc">
+                <div class="toc-title">Contents</div>
+                <ul>
+                    <li><a href="#functions">Functions</a></li>
+                    <li><a href="#programmatic">Programmatic Usage</a></li>
+                </ul>
+            </div>
+
+            <h2 id="functions">Functions</h2>
+
+            <h4>main()</h4>
+            <div class="api-signature">
+                main(args=None) → int
+            </div>
+            <p>Main entry point for the CLI.</p>
+            <div class="api-params">
+                <div class="api-param">
+                    <span class="api-param-name">args</span>
+                    <span class="api-param-type">List[str] | None</span>
+                    <div class="api-param-desc">Command line arguments (None = use sys.argv)</div>
+                </div>
+            </div>
+            <div class="api-returns">
+                <code>int</code> - Exit code (0 = success)
+            </div>
+
+            <h4>parse_args()</h4>
+            <div class="api-signature">
+                parse_args(args=None) → argparse.Namespace
+            </div>
+            <p>Parse command line arguments.</p>
+            <div class="api-returns">
+                <code>argparse.Namespace</code> - Parsed arguments
+            </div>
+
+            <h4>create_parser()</h4>
+            <div class="api-signature">
+                create_parser() → argparse.ArgumentParser
+            </div>
+            <p>Create the argument parser with all options.</p>
+
+            <hr>
+
+            <h2 id="programmatic">Programmatic Usage</h2>
+
+            <p>The CLI module can be used programmatically:</p>
+
+            <h4>Run CLI from Python</h4>
+            <pre><code><span class="keyword">from</span> cad_preprocess.cli <span class="keyword">import</span> main
+
+<span class="comment"># Run with arguments</span>
+exit_code = main([<span class="string">"-i"</span>, <span class="string">"./dicoms"</span>, <span class="string">"-o"</span>, <span class="string">"./output"</span>])
+
+<span class="comment"># With config file</span>
+exit_code = main([
+    <span class="string">"-i"</span>, <span class="string">"./dicoms"</span>,
+    <span class="string">"-o"</span>, <span class="string">"./output"</span>,
+    <span class="string">"-c"</span>, <span class="string">"config.yaml"</span>
+])</code></pre>
+
+            <h4>Parse Arguments Only</h4>
+            <pre><code><span class="keyword">from</span> cad_preprocess.cli <span class="keyword">import</span> parse_args
+
+args = parse_args([<span class="string">"-i"</span>, <span class="string">"./dicoms"</span>, <span class="string">"-o"</span>, <span class="string">"./output"</span>])
+<span class="keyword">print</span>(args.input)   <span class="comment"># ./dicoms</span>
+<span class="keyword">print</span>(args.output)  <span class="comment"># ./output</span></code></pre>
+
+            <h4>Get Help Text</h4>
+            <pre><code><span class="keyword">from</span> cad_preprocess.cli <span class="keyword">import</span> create_parser
+
+parser = create_parser()
+help_text = parser.format_help()
+<span class="keyword">print</span>(help_text)</code></pre>
+
+            <h3>Exit Codes</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Constant</th>
+                        <th>Meaning</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>0</td>
+                        <td><code>EXIT_SUCCESS</code></td>
+                        <td>Success</td>
+                    </tr>
+                    <tr>
+                        <td>1</td>
+                        <td><code>EXIT_ERROR</code></td>
+                        <td>General error</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td><code>EXIT_INVALID_ARGS</code></td>
+                        <td>Invalid arguments</td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td><code>EXIT_INPUT_NOT_FOUND</code></td>
+                        <td>Input path not found</td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td><code>EXIT_NO_FILES</code></td>
+                        <td>No DICOM files found</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <pre><code><span class="keyword">from</span> cad_preprocess.cli <span class="keyword">import</span> main, EXIT_SUCCESS
+
+exit_code = main([<span class="string">"-i"</span>, <span class="string">"./dicoms"</span>, <span class="string">"-o"</span>, <span class="string">"./output"</span>])
+<span class="keyword">if</span> exit_code == EXIT_SUCCESS:
+    <span class="keyword">print</span>(<span class="string">"Processing completed successfully"</span>)</code></pre>
+        </main>
+    </div>
+
+    <footer class="footer">
+        <p>CAD Preprocess Documentation · <a href="https://github.com/Harshil-Anuwadia/cad-preprocess">GitHub</a> · MIT License</p>
+    </footer>
+</body>
+</html>
