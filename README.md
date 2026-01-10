@@ -1,13 +1,13 @@
 # CAD Preprocess
 
-**Reusable DICOM preprocessing software for CAD (Computer-Aided Detection/Diagnosis) systems.**
+**A Python library for DICOM preprocessing in CAD (Computer-Aided Detection/Diagnosis) systems.**
 
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Overview
 
-CAD Preprocess standardizes DICOM image preprocessing so it doesn't need to be rewritten across training, inference, and UI workflows. Write your preprocessing logic once, use it everywhere.
+CAD Preprocess is a Python library that standardizes DICOM image preprocessing so it doesn't need to be rewritten across training, inference, and UI workflows. Write your preprocessing logic once, use it everywhere.
 
 ### Key Features
 
@@ -15,29 +15,19 @@ CAD Preprocess standardizes DICOM image preprocessing so it doesn't need to be r
 - 🖼️ **Deterministic Preprocessing** - Identical results for train & inference
 - 📊 **Metadata Extraction** - Profile-based (minimal, patient, geometry, ML, acquisition)
 - ⚙️ **Configurable** - YAML configuration with CLI overrides
-- 📦 **Self-contained** - Single `.deb` package with all dependencies
+- 🐍 **Easy Integration** - Use as a library or CLI tool
 
 ## Installation
 
-### Option 1: Download .deb Package (Recommended for Linux)
+### From Source
 
 ```bash
-# Download the .deb file from releases, then:
-sudo dpkg -i cad-preprocess_0.1.0_amd64.deb
-
-# Done! Use it:
-cad-preprocess --help
-```
-
-### Option 2: Install from Source
-
-```bash
-git clone https://github.com/YOUR_USERNAME/cad-preprocess.git
+git clone https://github.com/Harshil-Anuwadia/cad-preprocess.git
 cd cad-preprocess
 pip install -e .
 ```
 
-### Option 3: pip install
+### Using pip (with dependencies)
 
 ```bash
 pip install pydicom numpy Pillow PyYAML scikit-image
