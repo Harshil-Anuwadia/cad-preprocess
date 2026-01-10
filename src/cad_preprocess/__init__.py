@@ -22,13 +22,16 @@ from cad_preprocess.config import (
     load_config,
 )
 from cad_preprocess.input_handler import InputHandler, discover_dicom_files, validate_dicom_file
+from cad_preprocess.api import (
+    PreprocessingResult,
+    preprocess,
+)
 from cad_preprocess.integration import (
     BatchResult,
     CADPreprocessor,
     PreprocessResult,
     ProcessingManifest,
     get_config_hash,
-    preprocess,
     verify_preprocessing_consistency,
 )
 from cad_preprocess.logging_utils import (
@@ -104,6 +107,7 @@ __all__ = [
     "timed_operation",
     # Integration (high-level API)
     "preprocess",
+    "PreprocessingResult",
     "CADPreprocessor",
     "PreprocessResult",
     "BatchResult",

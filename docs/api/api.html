@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Module - CAD Preprocess</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="../../index.html" class="logo">
+                <div class="logo-text">CAD Preprocess <span>v0.1.0</span></div>
+            </a>
+            <nav class="header-nav">
+                <a href="../../index.html">Home</a>
+                <a href="../installation.html">Installation</a>
+                <a href="../quickstart.html">Quick Start</a>
+                <a href="index.html">API Reference</a>
+                <a href="https://github.com/Harshil-Anuwadia/cad-preprocess" target="_blank">GitHub</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-title">Getting Started</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../../index.html">Overview</a></li>
+                    <li><a href="../installation.html">Installation</a></li>
+                    <li><a href="../quickstart.html">Quick Start</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">User Guide</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../guides/cli.html">CLI Usage</a></li>
+                    <li><a href="../guides/python-api.html">Python API</a></li>
+                    <li><a href="../guides/configuration.html">Configuration</a></li>
+                    <li><a href="../guides/metadata-profiles.html">Metadata Profiles</a></li>
+                    <li><a href="../guides/preprocessing.html">Preprocessing Pipeline</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">API Reference</div>
+                <ul class="sidebar-nav">
+                    <li><a href="index.html">Overview</a></li>
+                    <li><a href="api.html" class="active">API Interface</a></li>
+                    <li><a href="integration.html">Integration</a></li>
+                    <li><a href="input_handler.html">Input Handler</a></li>
+                    <li><a href="preprocessing_engine.html">Preprocessing Engine</a></li>
+                    <li><a href="metadata_extractor.html">Metadata Extractor</a></li>
+                    <li><a href="output_writer.html">Output Writer</a></li>
+                    <li><a href="config.html">Configuration</a></li>
+                    <li><a href="logging_utils.html">Logging Utilities</a></li>
+                    <li><a href="cli.html">CLI Module</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">Resources</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../examples.html">Examples</a></li>
+                    <li><a href="../changelog.html">Changelog</a></li>
+                    <li><a href="../contributing.html">Contributing</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="content">
+            <nav class="breadcrumb">
+                <a href="../../index.html">Home</a> &gt; <a href="index.html">API Reference</a> &gt; API Interface
+            </nav>
+
+            <h1>API Interface Module</h1>
+
+            <p class="module-path"><code>cad_preprocess.api</code></p>
+
+            <p>This module provides a clean, simple API for other Python programs to reuse the preprocessing logic. It is the primary entry point for programmatic usage.</p>
+
+            <div class="info-box">
+                <strong>Design Goals:</strong>
+                <ul>
+                    <li>Simple function signature that covers 90% of use cases</li>
+                    <li>Returns structured results with counts and error summaries</li>
+                    <li>Accepts configuration as dict or YAML file path</li>
+                    <li>Consistent behavior for single files and directories</li>
+                </ul>
+            </div>
+
+            <h2 id="preprocess">preprocess()</h2>
+
+            <p>The main entry point for preprocessing DICOM files.</p>
+
+            <pre><code><span class="keyword">def</span> <span class="function">preprocess</span>(
+    input_path: Union[str, Path],
+    output_path: Union[str, Path],
+    config: Optional[Union[str, Path, Dict[str, Any]]] = <span class="keyword">None</span>,
+) -> PreprocessingResult:</code></pre>
+
+            <h3>Parameters</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>input_path</code></td>
+                        <td><code>str | Path</code></td>
+                        <td>Path to a DICOM file or directory containing DICOM files.</td>
+                    </tr>
+                    <tr>
+                        <td><code>output_path</code></td>
+                        <td><code>str | Path</code></td>
+                        <td>Path to the output directory for processed files.</td>
+                    </tr>
+                    <tr>
+                        <td><code>config</code></td>
+                        <td><code>str | Path | dict | None</code></td>
+                        <td>Configuration as YAML file path, dictionary, or None for defaults.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Returns</h3>
+
+            <p><code>PreprocessingResult</code> containing:</p>
+            <ul>
+                <li><code>processed_count</code> - Number of successfully processed files</li>
+                <li><code>skipped_count</code> - Number of skipped files</li>
+                <li><code>error_summary</code> - List of error details for failed files</li>
+            </ul>
+
+            <h3>Examples</h3>
+
+            <pre><code><span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> preprocess
+
+<span class="comment"># Basic usage</span>
+result = preprocess(<span class="string">"./dicoms"</span>, <span class="string">"./output"</span>)
+<span class="keyword">print</span>(<span class="string">f"Processed {result.processed_count} files"</span>)
+
+<span class="comment"># With YAML config file</span>
+result = preprocess(<span class="string">"./dicoms"</span>, <span class="string">"./output"</span>, config=<span class="string">"config.yaml"</span>)
+
+<span class="comment"># With configuration dict</span>
+result = preprocess(<span class="string">"./dicoms"</span>, <span class="string">"./output"</span>, config={
+    <span class="string">"preprocessing"</span>: {
+        <span class="string">"windowing"</span>: {
+            <span class="string">"strategy"</span>: <span class="string">"fixed_window"</span>,
+            <span class="string">"window_center"</span>: <span class="number">40</span>,
+            <span class="string">"window_width"</span>: <span class="number">400</span>
+        },
+        <span class="string">"normalization"</span>: <span class="string">"min_max"</span>,
+        <span class="string">"resizing"</span>: {
+            <span class="string">"target_height"</span>: <span class="number">512</span>,
+            <span class="string">"target_width"</span>: <span class="number">512</span>
+        }
+    },
+    <span class="string">"metadata"</span>: {
+        <span class="string">"profiles"</span>: [<span class="string">"minimal"</span>, <span class="string">"ml"</span>]
+    },
+    <span class="string">"output"</span>: {
+        <span class="string">"naming_policy"</span>: <span class="string">"sop_instance_uid"</span>,
+        <span class="string">"format"</span>: <span class="string">"png"</span>
+    }
+})
+
+<span class="comment"># Check for errors</span>
+<span class="keyword">if</span> result.errors:
+    <span class="keyword">print</span>(<span class="string">"Some files failed:"</span>)
+    <span class="keyword">for</span> err <span class="keyword">in</span> result.error_summary:
+        <span class="keyword">print</span>(<span class="string">f"  {err['file']}: {err['message']}"</span>)
+
+<span class="comment"># Get summary</span>
+<span class="keyword">print</span>(result.summary())</code></pre>
+
+            <h2 id="preprocessing-result">PreprocessingResult</h2>
+
+            <p>Result dataclass returned by the <code>preprocess()</code> function.</p>
+
+            <h3>Attributes</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Attribute</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>processed_count</code></td>
+                        <td><code>int</code></td>
+                        <td>Number of files successfully processed.</td>
+                    </tr>
+                    <tr>
+                        <td><code>skipped_count</code></td>
+                        <td><code>int</code></td>
+                        <td>Number of files skipped (invalid DICOM, already exists, etc.).</td>
+                    </tr>
+                    <tr>
+                        <td><code>error_count</code></td>
+                        <td><code>int</code></td>
+                        <td>Number of files that failed with errors.</td>
+                    </tr>
+                    <tr>
+                        <td><code>error_summary</code></td>
+                        <td><code>List[Dict]</code></td>
+                        <td>List of error details for failed files.</td>
+                    </tr>
+                    <tr>
+                        <td><code>processed_files</code></td>
+                        <td><code>List[str]</code></td>
+                        <td>List of successfully processed file paths.</td>
+                    </tr>
+                    <tr>
+                        <td><code>skipped_files</code></td>
+                        <td><code>List[Dict]</code></td>
+                        <td>List of skipped file paths with reasons.</td>
+                    </tr>
+                    <tr>
+                        <td><code>config_hash</code></td>
+                        <td><code>str</code></td>
+                        <td>Hash of the configuration used (for reproducibility).</td>
+                    </tr>
+                    <tr>
+                        <td><code>output_dir</code></td>
+                        <td><code>str | None</code></td>
+                        <td>Path to the output directory.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Properties</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Property</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>total_files</code></td>
+                        <td><code>int</code></td>
+                        <td>Total number of files encountered.</td>
+                    </tr>
+                    <tr>
+                        <td><code>success_rate</code></td>
+                        <td><code>float</code></td>
+                        <td>Percentage of files successfully processed.</td>
+                    </tr>
+                    <tr>
+                        <td><code>errors</code></td>
+                        <td><code>bool</code></td>
+                        <td>Whether any errors occurred.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Methods</h3>
+
+            <h4>summary()</h4>
+            <p>Generate a human-readable summary string.</p>
+            <pre><code>result = preprocess(<span class="string">"./dicoms"</span>, <span class="string">"./output"</span>)
+<span class="keyword">print</span>(result.summary())
+
+<span class="comment"># Output:</span>
+<span class="comment"># ==================================================</span>
+<span class="comment"># PREPROCESSING SUMMARY</span>
+<span class="comment"># ==================================================</span>
+<span class="comment"># Total files:      100</span>
+<span class="comment"># Processed:        95</span>
+<span class="comment"># Skipped:          3</span>
+<span class="comment"># Errors:           2</span>
+<span class="comment"># Success rate:     95.0%</span>
+<span class="comment"># Config hash:      a1b2c3d4e5f6...</span>
+<span class="comment"># Output:           ./output</span>
+<span class="comment"># ==================================================</span></code></pre>
+
+            <h4>to_dict()</h4>
+            <p>Convert result to dictionary for serialization.</p>
+            <pre><code>result = preprocess(<span class="string">"./dicoms"</span>, <span class="string">"./output"</span>)
+data = result.to_dict()
+<span class="keyword">import</span> json
+json.dump(data, open(<span class="string">"result.json"</span>, <span class="string">"w"</span>))</code></pre>
+
+            <h2 id="configuration">Configuration Dictionary</h2>
+
+            <p>When passing a configuration dictionary to <code>preprocess()</code>, use this structure:</p>
+
+            <pre><code>config = {
+    <span class="comment"># Preprocessing settings</span>
+    <span class="string">"preprocessing"</span>: {
+        <span class="string">"windowing"</span>: {
+            <span class="string">"strategy"</span>: <span class="string">"fixed_window"</span>,  <span class="comment"># or "from_dicom", "auto"</span>
+            <span class="string">"window_center"</span>: <span class="number">40</span>,
+            <span class="string">"window_width"</span>: <span class="number">400</span>
+        },
+        <span class="string">"normalization"</span>: <span class="string">"min_max"</span>,  <span class="comment"># or "zscore", "none"</span>
+        <span class="string">"resizing"</span>: {
+            <span class="string">"target_height"</span>: <span class="number">512</span>,
+            <span class="string">"target_width"</span>: <span class="number">512</span>,
+            <span class="string">"preserve_aspect_ratio"</span>: <span class="keyword">True</span>,
+            <span class="string">"interpolation"</span>: <span class="string">"bilinear"</span>
+        },
+        <span class="string">"output_dtype"</span>: <span class="string">"float32"</span>
+    },
+
+    <span class="comment"># Metadata extraction settings</span>
+    <span class="string">"metadata"</span>: {
+        <span class="string">"profiles"</span>: [<span class="string">"minimal"</span>, <span class="string">"ml"</span>],
+        <span class="string">"additional_fields"</span>: [<span class="string">"Modality"</span>, <span class="string">"StudyDescription"</span>]
+    },
+
+    <span class="comment"># Output settings</span>
+    <span class="string">"output"</span>: {
+        <span class="string">"naming_policy"</span>: <span class="string">"sop_instance_uid"</span>,
+        <span class="string">"format"</span>: <span class="string">"png"</span>,  <span class="comment"># or "jpeg", "npy"</span>
+        <span class="string">"overwrite_policy"</span>: <span class="string">"skip"</span>  <span class="comment"># or "overwrite", "error"</span>
+    },
+
+    <span class="comment"># Input settings</span>
+    <span class="string">"input"</span>: {
+        <span class="string">"validate"</span>: <span class="keyword">True</span>,
+        <span class="string">"recursive"</span>: <span class="keyword">True</span>
+    }
+}</code></pre>
+
+            <h2 id="usage-patterns">Common Usage Patterns</h2>
+
+            <h3>ML Training Pipeline</h3>
+
+            <pre><code><span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> preprocess
+
+<span class="comment"># Preprocess training data</span>
+result = preprocess(
+    <span class="string">"./raw_dicoms/train"</span>,
+    <span class="string">"./processed/train"</span>,
+    config={
+        <span class="string">"preprocessing"</span>: {
+            <span class="string">"resizing"</span>: {<span class="string">"target_height"</span>: <span class="number">224</span>, <span class="string">"target_width"</span>: <span class="number">224</span>}
+        },
+        <span class="string">"metadata"</span>: {<span class="string">"profiles"</span>: [<span class="string">"ml"</span>]}
+    }
+)
+
+<span class="comment"># Save config hash for reproducibility</span>
+<span class="keyword">with</span> open(<span class="string">"model_config_hash.txt"</span>, <span class="string">"w"</span>) <span class="keyword">as</span> f:
+    f.write(result.config_hash)
+
+<span class="keyword">print</span>(<span class="string">f"Training data ready: {result.processed_count} images"</span>)</code></pre>
+
+            <h3>Batch Processing with Error Handling</h3>
+
+            <pre><code><span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> preprocess
+<span class="keyword">import</span> logging
+
+result = preprocess(<span class="string">"./dicoms"</span>, <span class="string">"./output"</span>, config=<span class="string">"config.yaml"</span>)
+
+<span class="keyword">if</span> result.errors:
+    logging.warning(<span class="string">f"{result.error_count} files failed"</span>)
+    <span class="keyword">for</span> err <span class="keyword">in</span> result.error_summary:
+        logging.error(<span class="string">f"{err['file']}: {err['message']}"</span>)
+
+<span class="keyword">if</span> result.success_rate < <span class="number">90</span>:
+    <span class="keyword">raise</span> RuntimeError(<span class="string">f"Too many failures: {result.success_rate:.1f}%"</span>)</code></pre>
+
+            <div class="nav-links">
+                <a href="index.html">&larr; API Overview</a>
+                <a href="integration.html">Integration &rarr;</a>
+            </div>
+        </main>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <p>CAD Preprocess Documentation &copy; 2025</p>
+            <p>Licensed under the MIT License</p>
+        </div>
+    </footer>
+</body>
+</html>
