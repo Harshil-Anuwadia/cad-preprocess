@@ -1,0 +1,80 @@
+# CAD Preprocess Configuration
+# =============================
+# This file configures the DICOM preprocessing pipeline.
+
+# Preprocessing Settings
+# ----------------------
+preprocessing:
+  # Windowing (VOI LUT) settings
+  windowing:
+    # Strategy: "use_dicom_window" or "fixed_window"
+    strategy: use_dicom_window
+    # Required if strategy is "fixed_window":
+    # window_center: 40
+    # window_width: 400
+
+  # Normalization method: "min_max" or "z_score"
+  normalization: min_max
+
+  # Image resizing settings
+  resizing:
+    enabled: true
+    target_height: 1024
+    target_width: 1024
+    keep_aspect_ratio: true
+    # Interpolation: "nearest", "bilinear", "bicubic", "lanczos"
+    interpolation: bilinear
+    padding_value: 0
+
+  # Output data type: "uint8" or "float32"
+  output_dtype: uint8
+
+# Metadata Extraction Settings
+# ----------------------------
+metadata:
+  # Profiles to extract: minimal, patient, geometry, ml, acquisition
+  profiles:
+    - minimal
+    - ml
+  # Additional DICOM fields to extract
+  additional_fields: []
+  # Set to true to extract all profiles
+  include_all_profiles: false
+
+# Output Settings
+# ---------------
+output:
+  # Naming policy: "sop_instance_uid", "original_filename", "sequential"
+  naming_policy: sop_instance_uid
+  # Overwrite policy: "skip", "overwrite", "rename", "error"
+  overwrite_policy: skip
+  # Output image format
+  image_format: png
+  # Output subdirectories
+  images_subdir: images
+  metadata_subdir: metadata
+  logs_subdir: logs
+
+# Input Settings
+# --------------
+input:
+  # Scan directories recursively
+  recursive: true
+  # Validate DICOM files before processing
+  validate: true
+  # Check for PixelData tag
+  check_pixel_data: true
+  # Check for Rows and Columns
+  check_dimensions: true
+
+# Logging Settings
+# ----------------
+logging:
+  # Log level: "debug", "info", "warning", "error", "critical"
+  level: info
+  # Write logs to file
+  log_to_file: true
+  # Write logs to console
+  log_to_console: true
+  # Log filename (in logs directory)
+  log_filename: processing.log
