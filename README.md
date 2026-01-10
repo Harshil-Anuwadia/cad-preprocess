@@ -1,5 +1,9 @@
 # CAD Preprocess
 
+<p align="center">
+  <img src="cad-preprocess.png" alt="CAD Preprocess Logo" width="150">
+</p>
+
 **A Python library for DICOM preprocessing in CAD (Computer-Aided Detection/Diagnosis) systems.**
 
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
