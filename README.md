@@ -1,7 +1,7 @@
 # CAD Preprocess
 
 <p align="center">
-  <img src="cad-preprocess.png" alt="CAD Preprocess Logo" width="300">
+  <img src="cad-preprocess-white.png" alt="CAD Preprocess Logo" width="300">
 </p>
 
 **A Python library for DICOM preprocessing in CAD (Computer-Aided Detection/Diagnosis) systems.**
