@@ -1,0 +1,9 @@
+cad-preprocess (0.1.0-1) unstable; urgency=medium
+
+  * Initial release.
+  * DICOM preprocessing for CAD systems
+  * CLI and Python API interfaces
+  * Configuration management with reproducibility hashing
+  * Metadata extraction with multiple profiles
+
+ -- CAD Preprocess Team <cad-preprocess@example.com>  Sat, 10 Jan 2026 21:35:25 +0530

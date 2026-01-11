@@ -1,0 +1,33 @@
+Source: cad-preprocess
+Section: python
+Priority: optional
+Maintainer: CAD Preprocess Team <cad-preprocess@example.com>
+Build-Depends: debhelper-compat (= 13),
+               dh-python,
+               python3-all,
+               python3-setuptools,
+               python3-pip,
+               python3-wheel
+Standards-Version: 4.6.0
+Homepage: https://github.com/Harshil-Anuwadia/cad-preprocess
+Rules-Requires-Root: no
+
+Package: cad-preprocess
+Architecture: all
+Depends: ${python3:Depends},
+         ${misc:Depends},
+         python3-numpy,
+         python3-pil,
+         python3-yaml
+Recommends: python3-pydicom,
+            python3-skimage
+Description: DICOM preprocessing library for CAD systems
+ CAD Preprocess is a Python library for standardized DICOM image
+ preprocessing in Computer-Aided Detection/Diagnosis systems.
+ .
+ Features:
+  - Reproducible preprocessing with configuration hashing
+  - DICOM file discovery and validation
+  - Windowing, normalization, and resizing operations
+  - Metadata extraction with multiple profiles
+  - CLI and Python API interfaces

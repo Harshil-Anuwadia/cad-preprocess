@@ -395,9 +395,9 @@ def _config_from_dict(config_dict: Dict[str, Any]) -> Config:
         if "resizing" in prep:
             r = prep["resizing"]
             cfg.preprocessing.resizing = ResizingSettings(
-                target_height=r.get("target_height"),
-                target_width=r.get("target_width"),
-                preserve_aspect_ratio=r.get("preserve_aspect_ratio", True),
+                target_height=r.get("target_height", 1024),
+                target_width=r.get("target_width", 1024),
+                keep_aspect_ratio=r.get("keep_aspect_ratio", r.get("preserve_aspect_ratio", True)),
                 interpolation=r.get("interpolation", "bilinear"),
             )
         
@@ -462,7 +462,7 @@ def _compute_config_hash(config: Config) -> str:
             "resizing": {
                 "target_height": config.preprocessing.resizing.target_height,
                 "target_width": config.preprocessing.resizing.target_width,
-                "preserve_aspect_ratio": config.preprocessing.resizing.preserve_aspect_ratio,
+                "keep_aspect_ratio": config.preprocessing.resizing.keep_aspect_ratio,
                 "interpolation": config.preprocessing.resizing.interpolation,
             },
             "output_dtype": config.preprocessing.output_dtype,

@@ -73,144 +73,248 @@ def create_parser() -> argparse.ArgumentParser:
     """Create the argument parser."""
     parser = argparse.ArgumentParser(
         prog="cad-preprocess",
-        description="Preprocess DICOM images for CAD systems",
+        description="""
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  CAD-PREPROCESS — Medical DICOM Image Preprocessing Pipeline
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  A production-ready preprocessing toolkit for Computer-Aided Detection and
+  Diagnosis (CAD) systems. Standardizes DICOM images for training, inference,
+  and clinical integration workflows.
+
+  CAPABILITIES
+  ─────────────────────────────────────────────────────────────────────────────
+  • Automatic decompression (JPEG Lossless, JPEG 2000, RLE)
+  • Intensity windowing with DICOM VOI LUT support
+  • Flexible normalization (min-max, z-score)
+  • Batch processing with parallel execution
+  • Structured metadata extraction (JSON/CSV output)
+  • Configurable via YAML or command-line arguments
+        """,
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-Examples:
-  # Process a single DICOM file
-  cad-preprocess --input image.dcm --output ./output
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  USAGE EXAMPLES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  # Process a directory of DICOM files
-  cad-preprocess --input ./dicoms --output ./output
+  BASIC OPERATIONS
+  ─────────────────────────────────────────────────────────────────────────────
+  Process a directory:
+    $ cad-preprocess -i /data/dicoms -o /data/processed
 
-  # Use a configuration file
-  cad-preprocess --input ./dicoms --output ./output --config config.yaml
+  Process a single file:
+    $ cad-preprocess -i scan.dcm -o ./output
 
-  # Specify metadata profile
-  cad-preprocess --input ./dicoms --output ./output --metadata-profile ml
+  Preview without processing:
+    $ cad-preprocess -i /data/dicoms -o ./output --dry-run
 
-  # Enable overwrite mode
-  cad-preprocess --input ./dicoms --output ./output --overwrite
+  CONFIGURATION
+  ─────────────────────────────────────────────────────────────────────────────
+  Use a configuration file:
+    $ cad-preprocess -i ./dicoms -o ./output --config pipeline.yaml
 
-  # Set log level
-  cad-preprocess --input ./dicoms --output ./output --log-level debug
+  Generate a configuration template:
+    $ cad-preprocess --create-config config.yaml
 
-For more information, see: https://github.com/cad-preprocess/cad-preprocess
+  METADATA EXTRACTION
+  ─────────────────────────────────────────────────────────────────────────────
+  Machine learning profile (recommended for training):
+    $ cad-preprocess -i ./dicoms -o ./output --metadata-profile ml
+
+  Full metadata extraction:
+    $ cad-preprocess -i ./dicoms -o ./output --metadata-profile all
+
+  IMAGE PROCESSING
+  ─────────────────────────────────────────────────────────────────────────────
+  Resize to standard dimensions:
+    $ cad-preprocess -i ./dicoms -o ./output --target-size 512 512
+
+  CT soft tissue windowing:
+    $ cad-preprocess -i ./dicoms -o ./output --window-center 40 --window-width 400
+
+  CT lung windowing:
+    $ cad-preprocess -i ./dicoms -o ./output --window-center -600 --window-width 1500
+
+  Min-max normalization:
+    $ cad-preprocess -i ./dicoms -o ./output --normalization min_max
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  RELATED TOOLS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  DICOM Explorer (Interactive GUI):
+    $ cad-preprocess-explorer
+
+  Python API:
+    >>> from cad_preprocess import preprocess, CADPreprocessor
+    >>> result = preprocess('input.dcm', 'output/')
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Documentation: https://github.com/Harshil-Anuwadia/cad-preprocess
+  License: MIT | Copyright (c) 2024-2026 Harshil Anuwadia
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         """,
     )
 
     # Version
     parser.add_argument(
-        "--version",
+        "--version", "-v",
         action="version",
         version=f"%(prog)s {__version__}",
     )
 
-    # Required arguments
-    parser.add_argument(
+    # =========================================================================
+    # REQUIRED ARGUMENTS
+    # =========================================================================
+    required_group = parser.add_argument_group(
+        'Required Arguments'
+    )
+
+    required_group.add_argument(
         "--input", "-i",
         type=str,
         required=True,
+        metavar="PATH",
         help="Input DICOM file or directory containing DICOM files",
     )
 
-    parser.add_argument(
+    required_group.add_argument(
         "--output", "-o",
         type=str,
         required=True,
+        metavar="PATH",
         help="Output directory for processed images and metadata",
     )
 
-    # Optional arguments
-    parser.add_argument(
+    # =========================================================================
+    # CONFIGURATION OPTIONS
+    # =========================================================================
+    config_group = parser.add_argument_group(
+        'Configuration'
+    )
+
+    config_group.add_argument(
         "--config", "-c",
         type=str,
         default=None,
-        help="Path to YAML configuration file",
+        metavar="FILE",
+        help="YAML configuration file for pipeline settings",
     )
 
-    parser.add_argument(
-        "--metadata-profile", "-m",
-        type=str,
-        choices=["minimal", "patient", "geometry", "ml", "acquisition", "all"],
-        default=None,
-        help="Metadata extraction profile (overrides config file)",
-    )
-
-    parser.add_argument(
-        "--overwrite",
-        action="store_true",
-        default=False,
-        help="Overwrite existing output files (default: skip existing)",
-    )
-
-    parser.add_argument(
-        "--log-level", "-l",
-        type=str,
-        choices=["debug", "info", "warning", "error", "critical"],
-        default=None,
-        help="Logging level (overrides config file)",
-    )
-
-    parser.add_argument(
-        "--no-recursive",
-        action="store_true",
-        default=False,
-        help="Do not scan input directory recursively",
-    )
-
-    parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        default=False,
-        help="Show what would be processed without actually processing",
-    )
-
-    parser.add_argument(
-        "--no-validate",
-        action="store_true",
-        default=False,
-        help="Skip DICOM validation (not recommended)",
-    )
-
-    # Advanced options
-    parser.add_argument(
-        "--window-center",
-        type=float,
-        default=None,
-        help="Fixed window center value (requires --window-width)",
-    )
-
-    parser.add_argument(
-        "--window-width",
-        type=float,
-        default=None,
-        help="Fixed window width value (requires --window-center)",
-    )
-
-    parser.add_argument(
-        "--target-size",
-        type=int,
-        nargs=2,
-        metavar=("HEIGHT", "WIDTH"),
-        default=None,
-        help="Target image size (height width), e.g., --target-size 512 512",
-    )
-
-    parser.add_argument(
-        "--normalization",
-        type=str,
-        choices=["min_max", "z_score"],
-        default=None,
-        help="Normalization method (overrides config file)",
-    )
-
-    parser.add_argument(
+    config_group.add_argument(
         "--create-config",
         type=str,
         metavar="PATH",
         default=None,
-        help="Create a default configuration file at the specified path and exit",
+        help="Generate a template configuration file and exit",
+    )
+
+    # =========================================================================
+    # METADATA OPTIONS
+    # =========================================================================
+    metadata_group = parser.add_argument_group(
+        'Metadata Extraction'
+    )
+
+    metadata_group.add_argument(
+        "--metadata-profile", "-m",
+        type=str,
+        choices=["minimal", "patient", "geometry", "ml", "acquisition", "all"],
+        default=None,
+        metavar="PROFILE",
+        help="Extraction profile: minimal, patient, geometry, ml, acquisition, all",
+    )
+
+    # =========================================================================
+    # IMAGE PROCESSING OPTIONS
+    # =========================================================================
+    processing_group = parser.add_argument_group(
+        'Image Processing'
+    )
+
+    processing_group.add_argument(
+        "--target-size",
+        type=int,
+        nargs=2,
+        metavar=("H", "W"),
+        default=None,
+        help="Resize images to HxW pixels (e.g., --target-size 512 512)",
+    )
+
+    processing_group.add_argument(
+        "--window-center",
+        type=float,
+        default=None,
+        metavar="WC",
+        help="Window center for intensity mapping (use with --window-width)",
+    )
+
+    processing_group.add_argument(
+        "--window-width",
+        type=float,
+        default=None,
+        metavar="WW",
+        help="Window width for intensity mapping (use with --window-center)",
+    )
+
+    processing_group.add_argument(
+        "--normalization",
+        type=str,
+        choices=["min_max", "z_score"],
+        default=None,
+        metavar="METHOD",
+        help="Normalization: min_max (0-1) or z_score (standardized)",
+    )
+
+    # =========================================================================
+    # PROCESSING OPTIONS
+    # =========================================================================
+    behavior_group = parser.add_argument_group(
+        'Processing Options'
+    )
+
+    behavior_group.add_argument(
+        "--overwrite",
+        action="store_true",
+        default=False,
+        help="Overwrite existing output files (default: skip)",
+    )
+
+    behavior_group.add_argument(
+        "--no-recursive",
+        action="store_true",
+        default=False,
+        help="Process only top-level directory (no subdirectories)",
+    )
+
+    behavior_group.add_argument(
+        "--no-validate",
+        action="store_true",
+        default=False,
+        help="Skip DICOM validation (not recommended for production)",
+    )
+
+    behavior_group.add_argument(
+        "--dry-run",
+        action="store_true",
+        default=False,
+        help="Show files to be processed without executing",
+    )
+
+    # =========================================================================
+    # LOGGING OPTIONS
+    # =========================================================================
+    logging_group = parser.add_argument_group(
+        'Logging'
+    )
+
+    logging_group.add_argument(
+        "--log-level", "-l",
+        type=str,
+        choices=["debug", "info", "warning", "error", "critical"],
+        default=None,
+        metavar="LEVEL",
+        help="Log verbosity: debug, info, warning, error, critical",
     )
 
     return parser

@@ -1,12 +1,15 @@
+<h1 align="center">CAD Preprocess</h1>
+
 <p align="center">
-  <img src="cad-preprocess-white.png" alt="CAD Preprocess" width="280">
+  <strong>Medical DICOM Image Preprocessing Pipeline for CAD Systems</strong>
 </p>
 
-<h3 align="center">CAD Preprocess</h3>
+<p align="center">
+  A production-ready Python library for standardized DICOM preprocessing in<br>
+  Computer-Aided Detection and Diagnosis (CAD) systems.
+</p>
 
 <p align="center">
-  A Python library for DICOM preprocessing in Computer-Aided Detection/Diagnosis systems.
-  <br>
   <a href="https://harshil-anuwadia.github.io/cad-preprocess/"><strong>Documentation</strong></a> ·
   <a href="https://harshil-anuwadia.github.io/cad-preprocess/docs/api/index.html">API Reference</a> ·
   <a href="https://harshil-anuwadia.github.io/cad-preprocess/docs/examples.html">Examples</a>
@@ -16,6 +19,7 @@
   <img src="https://img.shields.io/badge/python-3.9+-3776ab?style=flat-square&logo=python&logoColor=white" alt="Python">
   <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="License">
   <img src="https://img.shields.io/badge/pydicom-2.3+-orange?style=flat-square" alt="pydicom">
+  <img src="https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey?style=flat-square" alt="Platform">
 </p>
 
 ---
@@ -24,24 +28,43 @@
 
 CAD Preprocess standardizes DICOM image preprocessing for machine learning pipelines. Write your preprocessing logic once, use it identically across training, inference, and production environments.
 
-**Key capabilities:**
+### Key Features
 
-- **Reproducible preprocessing** — Configuration hashing ensures identical results between training and inference
-- **DICOM handling** — Automatic file discovery, validation, and metadata extraction  
-- **Flexible output** — PNG, JPEG, or NumPy arrays with configurable naming policies
-- **Profile-based metadata** — Extract minimal, patient, geometry, ML, or acquisition metadata
-- **Dual interface** — Use as a Python library or command-line tool
+| Feature | Description |
+|---------|-------------|
+| **Reproducible Processing** | Configuration hashing ensures identical results between training and inference |
+| **DICOM Support** | Automatic file discovery, validation, decompression (JPEG Lossless, JPEG 2000) |
+| **Flexible Output** | PNG, JPEG, or NumPy arrays with configurable naming policies |
+| **Metadata Extraction** | Profile-based extraction: minimal, patient, geometry, ML, acquisition |
+| **Dual Interface** | Python API and command-line tool |
+| **GUI Explorer** | Interactive DICOM browser with CSV filtering and bounding box overlay |
 
 ## Installation
 
+### From Source
+
 ```bash
-# Clone and install
 git clone https://github.com/Harshil-Anuwadia/cad-preprocess.git
 cd cad-preprocess
 pip install -e .
+```
 
-# Or install dependencies manually
-pip install pydicom numpy Pillow PyYAML scikit-image
+### Debian Package (Ubuntu/Debian)
+
+```bash
+# Build the self-contained .deb package
+./build_deb.sh
+
+# Install
+sudo dpkg -i cad-preprocess_0.1.0_all.deb
+```
+
+### Dependencies
+
+```bash
+pip install pydicom numpy Pillow PyYAML scikit-image pylibjpeg pylibjpeg-libjpeg pandas
+# For GUI
+pip install PyQt6
 ```
 
 ## Usage
@@ -63,7 +86,23 @@ cad-preprocess -i ./dicoms -o ./output --window-center 40 --window-width 400
 
 # Preview without processing
 cad-preprocess -i ./dicoms -o ./output --dry-run
+
+# See all options
+cad-preprocess --help
 ```
+
+### DICOM Explorer (GUI)
+
+```bash
+# Launch the interactive DICOM browser
+cad-preprocess-explorer
+```
+
+Features:
+- Browse and preview DICOM images
+- Filter by CSV annotations
+- Overlay bounding boxes from coordinate data
+- Double-click to open in external viewer
 
 ### Python API
 
@@ -155,25 +194,28 @@ output/
 cad-preprocess/
 ├── src/cad_preprocess/
 │   ├── cli.py                  # Command-line interface
+│   ├── explorer.py             # DICOM Explorer GUI
 │   ├── config.py               # Configuration management
 │   ├── input_handler.py        # DICOM discovery & validation
 │   ├── preprocessing_engine.py # Image processing pipeline
 │   ├── metadata_extractor.py   # Metadata extraction
 │   ├── output_writer.py        # File output handling
 │   ├── logging_utils.py        # Logging & statistics
-│   └── integration.py          # High-level API
+│   ├── integration.py          # High-level API
+│   └── api.py                  # Simple API functions
 ├── tests/                      # Unit tests
 ├── docs/                       # Documentation website
-└── pyproject.toml
+├── debian/                     # Debian packaging files
+├── build_deb.sh               # Self-contained .deb builder
+└── pyproject.toml             # Project configuration
 ```
 
 ## License
 
 This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
 
-## Links
+---
 
-- [Documentation](https://harshil-anuwadia.github.io/cad-preprocess/)
-- [API Reference](https://harshil-anuwadia.github.io/cad-preprocess/docs/api/index.html)
-- [Examples](https://harshil-anuwadia.github.io/cad-preprocess/docs/examples.html)
-- [Contributing](https://harshil-anuwadia.github.io/cad-preprocess/docs/contributing.html)
+<p align="center">
+  <strong>CAD Preprocess</strong> — Standardized DICOM preprocessing for medical imaging AI
+</p>
