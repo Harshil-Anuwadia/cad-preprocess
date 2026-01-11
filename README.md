@@ -41,30 +41,39 @@ CAD Preprocess standardizes DICOM image preprocessing for machine learning pipel
 
 ## Installation
 
-### From Source
+### Recommended: Debian Package (Ubuntu/Debian)
+
+The easiest way to install CAD Preprocess is via the pre-built `.deb` package. This includes all dependencies bundled — no additional installation required.
 
 ```bash
-git clone https://github.com/Harshil-Anuwadia/cad-preprocess.git
-cd cad-preprocess
-pip install -e .
-```
-
-### Debian Package (Ubuntu/Debian)
-
-```bash
-# Build the self-contained .deb package
-./build_deb.sh
+# Download from GitHub Releases
+wget https://github.com/Harshil-Anuwadia/cad-preprocess/releases/download/v0.1.0/cad-preprocess_0.1.0_all.deb
 
 # Install
 sudo dpkg -i cad-preprocess_0.1.0_all.deb
 ```
 
-### Dependencies
+Or build it yourself:
+```bash
+git clone https://github.com/Harshil-Anuwadia/cad-preprocess.git
+cd cad-preprocess
+./build_deb.sh
+sudo dpkg -i cad-preprocess_0.1.0_all.deb
+```
+
+After installation, you can use:
+- `cad-preprocess` — CLI preprocessing tool
+- `cad-preprocess-explorer` — Interactive DICOM browser GUI
+
+### Alternative: From Source (pip)
 
 ```bash
-pip install pydicom numpy Pillow PyYAML scikit-image pylibjpeg pylibjpeg-libjpeg pandas
-# For GUI
-pip install PyQt6
+git clone https://github.com/Harshil-Anuwadia/cad-preprocess.git
+cd cad-preprocess
+pip install -e .
+
+# Install optional dependencies for full functionality
+pip install pylibjpeg pylibjpeg-libjpeg pandas PyQt6
 ```
 
 ## Usage
