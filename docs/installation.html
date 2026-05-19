@@ -7,135 +7,133 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <header class="header">
-        <div class="header-content">
-            <a href="../index.html" class="logo">
-                <div class="logo-text">CAD Preprocess <span>v0.1.0</span></div>
-            </a>
-            <nav class="header-nav">
-                <a href="../index.html">Documentation</a>
-                <a href="installation.html">Installation</a>
-                <a href="quickstart.html">Quick Start</a>
-                <a href="https://github.com/Harshil-Anuwadia/cad-preprocess" target="_blank">GitHub</a>
-            </nav>
-        </div>
-    </header>
-
-    <div class="container">
-        <aside class="sidebar">
-            <div class="sidebar-section">
-                <div class="sidebar-title">Foundation</div>
-                <ul class="sidebar-nav">
-                    <li><a href="../index.html">Overview</a></li>
-                    <li><a href="installation.html" class="active">Installation</a></li>
-                    <li><a href="quickstart.html">Quick Start</a></li>
-                </ul>
+    <div class="page-wrapper">
+        <header class="header">
+            <div class="header-content">
+                <a href="../index.html" class="logo">
+                    <div class="logo-text">CAD Preprocess <span>v0.1.0</span></div>
+                </a>
+                <nav class="header-nav">
+                    <a href="../index.html">Documentation</a>
+                    <a href="installation.html">Installation</a>
+                    <a href="quickstart.html">Quick Start</a>
+                    <a href="https://github.com/Harshil-Anuwadia/cad-preprocess" target="_blank">GitHub</a>
+                </nav>
             </div>
-            <div class="sidebar-section">
-                <div class="sidebar-title">Architecture</div>
-                <ul class="sidebar-nav">
-                    <li><a href="guides/preprocessing.html">Preprocessing Pipeline</a></li>
-                    <li><a href="guides/metadata-profiles.html">Metadata Profiles</a></li>
-                    <li><a href="guides/configuration.html">Configuration Schema</a></li>
-                </ul>
-            </div>
-            <div class="sidebar-section">
-                <div class="sidebar-title">Reference</div>
-                <ul class="sidebar-nav">
-                    <li><a href="api/index.html">API Reference</a></li>
-                    <li><a href="api/cli.html">CLI Reference</a></li>
-                    <li><a href="examples.html">Code Examples</a></li>
-                </ul>
-            </div>
-            <div class="sidebar-section">
-                <div class="sidebar-title">Project</div>
-                <ul class="sidebar-nav">
-                    <li><a href="changelog.html">Changelog</a></li>
-                    <li><a href="contributing.html">Contributing</a></li>
-                </ul>
-            </div>
-        </aside>
+        </header>
 
-        <main class="content">
-            <nav class="breadcrumb">
-                <a href="../index.html">Foundation</a> / Installation
-            </nav>
+        <div class="main-container">
+            <aside class="sidebar">
+                <div class="sidebar-section">
+                    <div class="sidebar-title">Foundation</div>
+                    <ul class="sidebar-nav">
+                        <li><a href="../index.html">Overview</a></li>
+                        <li><a href="installation.html" class="active">Installation</a></li>
+                        <li><a href="quickstart.html">Quick Start</a></li>
+                    </ul>
+                </div>
+                <div class="sidebar-section">
+                    <div class="sidebar-title">Architecture</div>
+                    <ul class="sidebar-nav">
+                        <li><a href="guides/preprocessing.html">Preprocessing Pipeline</a></li>
+                        <li><a href="guides/metadata-profiles.html">Metadata Profiles</a></li>
+                        <li><a href="guides/configuration.html">Configuration Schema</a></li>
+                    </ul>
+                </div>
+                <div class="sidebar-section">
+                    <div class="sidebar-title">Reference</div>
+                    <ul class="sidebar-nav">
+                        <li><a href="api/index.html">API Reference</a></li>
+                        <li><a href="api/cli.html">CLI Reference</a></li>
+                        <li><a href="examples.html">Code Examples</a></li>
+                    </ul>
+                </div>
+            </aside>
 
-            <h1>Installation</h1>
+            <main class="content">
+                <div class="content-inner">
+                    <nav class="breadcrumb">
+                        <a href="../index.html">Foundation</a> / Installation
+                    </nav>
 
-            <p>CAD Preprocess can be installed as a native Linux package or via <code>pip</code> for development workflows.</p>
+                    <h1>Installation</h1>
 
-            <h2 id="linux-packages">Native Linux Packages</h2>
-            <p>Native packages include bundled DICOM decompression codecs (pylibjpeg, gdcm). This is the recommended method for production environments to ensure consistent behavior across different systems.</p>
+                    <p>CAD Preprocess can be installed as a native Linux package or via <code>pip</code> for development workflows.</p>
 
-            <h3>Arch Linux</h3>
-            <p>Build and install using the provided <code>PKGBUILD</code> or the bundled installer script:</p>
-            <pre><code><span class="comment"># Method A: Standard makepkg build</span>
+                    <h2 id="linux-packages">Native Linux Packages</h2>
+                    <p>Native packages include bundled DICOM decompression codecs (pylibjpeg, gdcm). This is the recommended method for production environments to ensure consistent behavior across different systems.</p>
+
+                    <h3>Arch Linux</h3>
+                    <p>Build and install using the provided <code>PKGBUILD</code> or the bundled installer script:</p>
+                    <pre><code><span class="comment"># Method A: Standard makepkg build</span>
 makepkg -si
 
 <span class="comment"># Method B: Bundled installer builder</span>
 ./build_arch.sh
 sudo pacman -U cad-preprocess-bundled-0.1.0-1-x86_64.pkg.tar.zst</code></pre>
 
-            <h3>Debian / Ubuntu</h3>
-            <p>Generate a self-contained <code>.deb</code> package that includes all dependencies:</p>
-            <pre><code><span class="comment"># Build and install the Debian package</span>
+                    <h3>Debian / Ubuntu</h3>
+                    <p>Generate a self-contained <code>.deb</code> package that includes all dependencies:</p>
+                    <pre><code><span class="comment"># Build and install the Debian package</span>
 ./build_deb.sh
 sudo dpkg -i cad-preprocess_0.1.0_all.deb</code></pre>
 
-            <h2 id="pip-install">Python Package (pip)</h2>
-            <p>Install the library directly into your Python environment. This is suitable for research and local script development.</p>
+                    <h2 id="pip-install">Python Package (pip)</h2>
+                    <p>Install the library directly into your Python environment. This is suitable for research and local script development.</p>
 
-            <pre><code><span class="comment"># Base installation</span>
+                    <pre><code><span class="comment"># Base installation</span>
 pip install cad-preprocess
 
 <span class="comment"># Optional: Medical imaging codecs</span>
 pip install pylibjpeg pylibjpeg-libjpeg pylibjpeg-openjpeg python-gdcm</code></pre>
 
-            <div class="info-box note">
-                <div class="info-box-title">Verification</div>
-                Verify the installation by running <code>cad-preprocess --version</code>. The output should be <code>cad-preprocess 0.1.0</code>.
-            </div>
+                    <div class="info-box note">
+                        <div class="info-box-title">Verification</div>
+                        Verify the installation by running <code>cad-preprocess --version</code>. The output should be <code>cad-preprocess 0.1.0</code>.
+                    </div>
 
-            <h2 id="requirements">Technical Requirements</h2>
+                    <h2 id="requirements">Technical Requirements</h2>
 
-            <table>
-                <thead>
-                    <tr>
-                        <th>Package</th>
-                        <th>Compatibility</th>
-                        <th>Function</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Python</td>
-                        <td>&gt;= 3.9</td>
-                        <td>Base Environment</td>
-                    </tr>
-                    <tr>
-                        <td>pydicom</td>
-                        <td>&gt;= 2.3.0</td>
-                        <td>DICOM Handling</td>
-                    </tr>
-                    <tr>
-                        <td>numpy</td>
-                        <td>&gt;= 1.21.0</td>
-                        <td>Numerical Arrays</td>
-                    </tr>
-                    <tr>
-                        <td>scikit-image</td>
-                        <td>&gt;= 0.19.0</td>
-                        <td>Image Processing</td>
-                    </tr>
-                </tbody>
-            </table>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Package</th>
+                                    <th>Compatibility</th>
+                                    <th>Function</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Python</td>
+                                    <td>&gt;= 3.9</td>
+                                    <td>Base Environment</td>
+                                </tr>
+                                <tr>
+                                    <td>pydicom</td>
+                                    <td>&gt;= 2.3.0</td>
+                                    <td>DICOM Handling</td>
+                                </tr>
+                                <tr>
+                                    <td>numpy</td>
+                                    <td>&gt;= 1.21.0</td>
+                                    <td>Numerical Arrays</td>
+                                </tr>
+                                <tr>
+                                    <td>scikit-image</td>
+                                    <td>&gt;= 0.19.0</td>
+                                    <td>Image Processing</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        </div>
 
-        </main>
+        <footer class="footer">
+            <p>CAD Preprocess Documentation · MIT License · <a href="https://github.com/Harshil-Anuwadia/cad-preprocess">GitHub Source</a></p>
+        </footer>
     </div>
-
-    <footer class="footer">
-        <p>CAD Preprocess Documentation · MIT License · <a href="https://github.com/Harshil-Anuwadia/cad-preprocess">GitHub</a></p>
-    </footer>
 </body>
 </html>

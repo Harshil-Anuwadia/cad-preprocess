@@ -7,90 +7,85 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <header class="header">
-        <div class="header-content">
-            <a href="../index.html" class="logo">
-                <div class="logo-text">CAD Preprocess <span>v0.1.0</span></div>
-            </a>
-            <nav class="header-nav">
-                <a href="../index.html">Documentation</a>
-                <a href="installation.html">Installation</a>
-                <a href="quickstart.html">Quick Start</a>
-                <a href="https://github.com/Harshil-Anuwadia/cad-preprocess" target="_blank">GitHub</a>
-            </nav>
-        </div>
-    </header>
-
-    <div class="container">
-        <aside class="sidebar">
-            <div class="sidebar-section">
-                <div class="sidebar-title">Foundation</div>
-                <ul class="sidebar-nav">
-                    <li><a href="../index.html">Overview</a></li>
-                    <li><a href="installation.html">Installation</a></li>
-                    <li><a href="quickstart.html" class="active">Quick Start</a></li>
-                </ul>
+    <div class="page-wrapper">
+        <header class="header">
+            <div class="header-content">
+                <a href="../index.html" class="logo">
+                    <div class="logo-text">CAD Preprocess <span>v0.1.0</span></div>
+                </a>
+                <nav class="header-nav">
+                    <a href="../index.html">Documentation</a>
+                    <a href="installation.html">Installation</a>
+                    <a href="quickstart.html">Quick Start</a>
+                    <a href="https://github.com/Harshil-Anuwadia/cad-preprocess" target="_blank">GitHub</a>
+                </nav>
             </div>
-            <div class="sidebar-section">
-                <div class="sidebar-title">Architecture</div>
-                <ul class="sidebar-nav">
-                    <li><a href="guides/preprocessing.html">Preprocessing Pipeline</a></li>
-                    <li><a href="guides/metadata-profiles.html">Metadata Profiles</a></li>
-                    <li><a href="guides/configuration.html">Configuration Schema</a></li>
-                </ul>
-            </div>
-            <div class="sidebar-section">
-                <div class="sidebar-title">Reference</div>
-                <ul class="sidebar-nav">
-                    <li><a href="api/index.html">API Reference</a></li>
-                    <li><a href="api/cli.html">CLI Reference</a></li>
-                    <li><a href="examples.html">Code Examples</a></li>
-                </ul>
-            </div>
-            <div class="sidebar-section">
-                <div class="sidebar-title">Project</div>
-                <ul class="sidebar-nav">
-                    <li><a href="changelog.html">Changelog</a></li>
-                    <li><a href="contributing.html">Contributing</a></li>
-                </ul>
-            </div>
-        </aside>
+        </header>
 
-        <main class="content">
-            <nav class="breadcrumb">
-                <a href="../index.html">Foundation</a> / Quick Start
-            </nav>
+        <div class="main-container">
+            <aside class="sidebar">
+                <div class="sidebar-section">
+                    <div class="sidebar-title">Foundation</div>
+                    <ul class="sidebar-nav">
+                        <li><a href="../index.html">Overview</a></li>
+                        <li><a href="installation.html">Installation</a></li>
+                        <li><a href="quickstart.html" class="active">Quick Start</a></li>
+                    </ul>
+                </div>
+                <div class="sidebar-section">
+                    <div class="sidebar-title">Architecture</div>
+                    <ul class="sidebar-nav">
+                        <li><a href="guides/preprocessing.html">Preprocessing Pipeline</a></li>
+                        <li><a href="guides/metadata-profiles.html">Metadata Profiles</a></li>
+                        <li><a href="guides/configuration.html">Configuration Schema</a></li>
+                    </ul>
+                </div>
+                <div class="sidebar-section">
+                    <div class="sidebar-title">Reference</div>
+                    <ul class="sidebar-nav">
+                        <li><a href="api/index.html">API Reference</a></li>
+                        <li><a href="api/cli.html">CLI Reference</a></li>
+                        <li><a href="examples.html">Code Examples</a></li>
+                    </ul>
+                </div>
+            </aside>
 
-            <h1>Quick Start</h1>
+            <main class="content">
+                <div class="content-inner">
+                    <nav class="breadcrumb">
+                        <a href="../index.html">Foundation</a> / Quick Start
+                    </nav>
 
-            <p>This guide demonstrates basic CLI operations and Python API integration for CAD Preprocess.</p>
+                    <h1>Quick Start</h1>
 
-            <h2 id="cli-examples">Command Line Interface</h2>
+                    <p>This guide demonstrates basic CLI operations and Python API integration for CAD Preprocess.</p>
 
-            <h3>Batch Directory Processing</h3>
-            <p>Process a directory of DICOM files and output standardized images and metadata:</p>
-            <pre><code>cad-preprocess -i /data/scans -o /data/processed</code></pre>
+                    <h2 id="cli-examples">Command Line Interface</h2>
 
-            <h3>Configured Processing</h3>
-            <p>Load specific pipeline settings from a YAML configuration file:</p>
-            <pre><code>cad-preprocess -i ./dicoms -o ./output -c config.yaml</code></pre>
+                    <h3>Batch Directory Processing</h3>
+                    <p>Process a directory of DICOM files and output standardized images and metadata:</p>
+                    <pre><code>cad-preprocess -i /data/scans -o /data/processed</code></pre>
 
-            <h3>Dry Run Simulation</h3>
-            <p>Verify file discovery and configuration mapping without writing output:</p>
-            <pre><code>cad-preprocess -i ./dicoms -o ./output --dry-run</code></pre>
+                    <h3>Configured Processing</h3>
+                    <p>Load specific pipeline settings from a YAML configuration file:</p>
+                    <pre><code>cad-preprocess -i ./dicoms -o ./output -c config.yaml</code></pre>
 
-            <h3>Windowing Presets</h3>
-            <pre><code><span class="comment"># Lung Window (-600, 1500)</span>
+                    <h3>Dry Run Simulation</h3>
+                    <p>Verify file discovery and configuration mapping without writing output:</p>
+                    <pre><code>cad-preprocess -i ./dicoms -o ./output --dry-run</code></pre>
+
+                    <h3>Windowing Presets</h3>
+                    <pre><code><span class="comment"># Lung Window (-600, 1500)</span>
 cad-preprocess -i ./dicoms -o ./output --window-center -600 --window-width 1500
 
 <span class="comment"># Soft Tissue Window (40, 400)</span>
 cad-preprocess -i ./dicoms -o ./output --window-center 40 --window-width 400</code></pre>
 
-            <h2 id="python-examples">Python API</h2>
+                    <h2 id="python-examples">Python API</h2>
 
-            <h3>Processing Utility</h3>
-            <p>Use the <code>preprocess</code> function for direct file transformations:</p>
-            <pre><code><span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> preprocess
+                    <h3>Processing Utility</h3>
+                    <p>Use the <code>preprocess</code> function for direct file transformations:</p>
+                    <pre><code><span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> preprocess
 
 <span class="comment"># Process single file</span>
 result = preprocess(<span class="string">"scan.dcm"</span>, <span class="string">"output/"</span>)
@@ -98,9 +93,9 @@ result = preprocess(<span class="string">"scan.dcm"</span>, <span class="string"
 <span class="keyword">print</span>(<span class="string">f"Shape: </span>{result.image.shape}<span class="string">"</span>)
 <span class="keyword">print</span>(<span class="string">f"UID: </span>{result.sop_instance_uid}<span class="string">"</span>)</code></pre>
 
-            <h3>Pipeline Consistency</h3>
-            <p>The <code>CADPreprocessor</code> class enables configuration-driven workflows:</p>
-            <pre><code><span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> CADPreprocessor
+                    <h3>Pipeline Consistency</h3>
+                    <p>The <code>CADPreprocessor</code> class enables configuration-driven workflows:</p>
+                    <pre><code><span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> CADPreprocessor
 
 <span class="comment"># Load settings</span>
 processor = CADPreprocessor.from_config(<span class="string">"stable_v1.yaml"</span>)
@@ -111,25 +106,27 @@ processor = CADPreprocessor.from_config(<span class="string">"stable_v1.yaml"</s
 <span class="comment"># Batch execution</span>
 results = processor.process_directory(<span class="string">"input_dicoms/"</span>, <span class="string">"output_data/"</span>)</code></pre>
 
-            <h2 id="output">Output Structure</h2>
+                    <h2 id="output">Output Structure</h2>
 
-            <p>CAD Preprocess generates a structured directory for processed data:</p>
+                    <p>CAD Preprocess generates a structured directory for processed data:</p>
 
-            <pre><code>output/
+                    <pre><code>output/
 ├── images/                    <span class="comment"># Processed images (PNG/NumPy)</span>
 ├── metadata/                  <span class="comment"># JSON/CSV metadata records</span>
 ├── logs/                      <span class="comment"># Execution logs</span>
 └── manifest.json              <span class="comment"># Pipeline manifest</span></code></pre>
 
-            <div class="info-box note">
-                <div class="info-box-title">Next Steps</div>
-                Refer to the <strong><a href="guides/configuration.html">Configuration Schema</a></strong> for detailed windowing and normalization parameters.
-            </div>
-        </main>
-    </div>
+                    <div class="info-box note">
+                        <div class="info-box-title">Next Steps</div>
+                        Refer to the <strong><a href="guides/configuration.html">Configuration Schema</a></strong> for detailed windowing and normalization parameters.
+                    </div>
+                </div>
+            </main>
+        </div>
 
-    <footer class="footer">
-        <p>CAD Preprocess Documentation · MIT License · <a href="https://github.com/Harshil-Anuwadia/cad-preprocess">GitHub</a></p>
-    </footer>
+        <footer class="footer">
+            <p>CAD Preprocess Documentation · MIT License · <a href="https://github.com/Harshil-Anuwadia/cad-preprocess">GitHub Source</a></p>
+        </footer>
+    </div>
 </body>
 </html>
