@@ -3,119 +3,177 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CAD Preprocess — Documentation</title>
+    <title>CAD Preprocess - Documentation</title>
     <link rel="stylesheet" href="docs/css/style.css">
 </head>
 <body>
-    <div class="page-wrapper">
-        <header class="header">
-            <div class="header-content">
-                <a href="index.html" class="logo">
-                    <div class="logo-text">CAD Preprocess <span>v0.1.0</span></div>
-                </a>
-                <nav class="header-nav">
-                    <a href="index.html">Documentation</a>
-                    <a href="docs/installation.html">Installation</a>
-                    <a href="docs/quickstart.html">Quick Start</a>
-                    <a href="https://github.com/Harshil-Anuwadia/cad-preprocess" target="_blank">GitHub</a>
-                </nav>
-            </div>
-        </header>
-
-        <div class="main-container">
-            <aside class="sidebar">
-                <div class="sidebar-section">
-                    <div class="sidebar-title">Foundation</div>
-                    <ul class="sidebar-nav">
-                        <li><a href="index.html" class="active">Overview</a></li>
-                        <li><a href="docs/installation.html">Installation</a></li>
-                        <li><a href="docs/quickstart.html">Quick Start</a></li>
-                    </ul>
-                </div>
-                <div class="sidebar-section">
-                    <div class="sidebar-title">Architecture</div>
-                    <ul class="sidebar-nav">
-                        <li><a href="docs/guides/preprocessing.html">Preprocessing Pipeline</a></li>
-                        <li><a href="docs/guides/metadata-profiles.html">Metadata Profiles</a></li>
-                        <li><a href="docs/guides/configuration.html">Configuration Schema</a></li>
-                    </ul>
-                </div>
-                <div class="sidebar-section">
-                    <div class="sidebar-title">Reference</div>
-                    <ul class="sidebar-nav">
-                        <li><a href="docs/api/index.html">API Reference</a></li>
-                        <li><a href="docs/api/cli.html">CLI Reference</a></li>
-                        <li><a href="docs/examples.html">Code Examples</a></li>
-                    </ul>
-                </div>
-            </aside>
-
-            <main class="content">
-                <div class="content-inner">
-                    <h1>Documentation Overview</h1>
-                    
-                    <p>CAD Preprocess is a technical utility for standardizing DICOM preprocessing in medical AI pipelines. It provides a reproducible interface for transforming raw DICOM data into standardized model inputs, ensuring consistency across training and inference environments.</p>
-
-                    <div class="info-box note">
-                        <div class="info-box-title">Core Philosophy</div>
-                        The pipeline is built on the principle of deterministic processing. Every transformation is mapped and verified via configuration hashing, providing a unique signature for your data state.
-                    </div>
-
-                    <h2>Pipeline Capabilities</h2>
-                    
-                    <div class="feature-list">
-                        <div class="feature-item">
-                            <div class="feature-title">Native Decompression</div>
-                            <div class="feature-desc">Bundled support for JPEG Lossless, JPEG 2000, and RLE codecs without external dependencies.</div>
-                        </div>
-                        <div class="feature-item">
-                            <div class="feature-title">Geometric Integrity</div>
-                            <div class="feature-desc">Aspect-ratio preservation and spatial context management during resizing and normalization.</div>
-                        </div>
-                        <div class="feature-item">
-                            <div class="feature-title">Metadata Profiling</div>
-                            <div class="feature-desc">Extraction of patient, acquisition, and geometry tags into structured JSON and CSV formats.</div>
-                        </div>
-                        <div class="feature-item">
-                            <div class="feature-title">Deterministic Execution</div>
-                            <div class="feature-desc">Configuration hashing ensures that processed outputs are fully auditable and reproducible.</div>
-                        </div>
-                    </div>
-
-                    <h2>Implementation Examples</h2>
-
-                    <h3>Command Line Interface</h3>
-                    <pre><code><span class="comment"># Batch process a local directory</span>
-cad-preprocess -i /data/raw -o /data/processed --config pipeline.yaml
-
-<span class="comment"># Apply windowing overrides</span>
-cad-preprocess -i ./input -o ./output --window-center 40 --window-width 400</code></pre>
-
-                    <h3>Python API</h3>
-                    <pre><code><span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> CADPreprocessor
-
-<span class="comment"># Initialize with versioned settings</span>
-processor = CADPreprocessor.from_config(<span class="string">"v1_stable.yaml"</span>)
-
-<span class="comment"># Process single scan</span>
-result = processor.process(<span class="string">"scan.dcm"</span>)
-image_array = result.image
-
-<span class="keyword">print</span>(<span class="string">f"Pipeline Signature: </span>{processor.config_hash}<span class="string">"</span>)</code></pre>
-
-                    <h2>Project Navigation</h2>
-                    <ul>
-                        <li><a href="docs/installation.html">Installation Guide</a> — Native Linux packages and environment setup.</li>
-                        <li><a href="docs/quickstart.html">Quick Start Guide</a> — Five-minute guide to processing your first dataset.</li>
-                        <li><a href="docs/guides/cli.html">CLI Usage Reference</a> — Full command reference and parameter mapping.</li>
-                    </ul>
-                </div>
-            </main>
+    <header class="header">
+        <div class="header-content">
+            <a href="index.html" class="logo">
+                <div class="logo-text">CAD Preprocess <span>v0.1.0</span></div>
+            </a>
+            <nav class="header-nav">
+                <a href="index.html">Home</a>
+                <a href="docs/installation.html">Installation</a>
+                <a href="docs/quickstart.html">Quick Start</a>
+                <a href="docs/api/index.html">API Reference</a>
+                <a href="https://github.com/Harshil-Anuwadia/cad-preprocess" target="_blank">GitHub</a>
+            </nav>
         </div>
+    </header>
 
-        <footer class="footer">
-            <p>CAD Preprocess Documentation · MIT License · <a href="https://github.com/Harshil-Anuwadia/cad-preprocess">GitHub Source</a></p>
-        </footer>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-title">Getting Started</div>
+                <ul class="sidebar-nav">
+                    <li><a href="index.html" class="active">Overview</a></li>
+                    <li><a href="docs/installation.html">Installation</a></li>
+                    <li><a href="docs/quickstart.html">Quick Start</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">User Guide</div>
+                <ul class="sidebar-nav">
+                    <li><a href="docs/guides/cli.html">CLI Usage</a></li>
+                    <li><a href="docs/guides/python-api.html">Python API</a></li>
+                    <li><a href="docs/guides/configuration.html">Configuration</a></li>
+                    <li><a href="docs/guides/metadata-profiles.html">Metadata Profiles</a></li>
+                    <li><a href="docs/guides/preprocessing.html">Preprocessing Pipeline</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">API Reference</div>
+                <ul class="sidebar-nav">
+                    <li><a href="docs/api/index.html">Overview</a></li>
+                    <li><a href="docs/api/integration.html">Integration</a></li>
+                    <li><a href="docs/api/input_handler.html">Input Handler</a></li>
+                    <li><a href="docs/api/preprocessing_engine.html">Preprocessing Engine</a></li>
+                    <li><a href="docs/api/metadata_extractor.html">Metadata Extractor</a></li>
+                    <li><a href="docs/api/output_writer.html">Output Writer</a></li>
+                    <li><a href="docs/api/config.html">Configuration</a></li>
+                    <li><a href="docs/api/logging_utils.html">Logging Utilities</a></li>
+                    <li><a href="docs/api/cli.html">CLI Module</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">Resources</div>
+                <ul class="sidebar-nav">
+                    <li><a href="docs/examples.html">Examples</a></li>
+                    <li><a href="docs/changelog.html">Changelog</a></li>
+                    <li><a href="docs/contributing.html">Contributing</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="content">
+            <h1>CAD Preprocess Documentation</h1>
+            
+            <p><strong>CAD Preprocess</strong> is a Python library for DICOM preprocessing in CAD (Computer-Aided Detection/Diagnosis) systems. It standardizes medical image preprocessing so it doesn't need to be rewritten across training, inference, and UI workflows.</p>
+
+            <div class="info-box note">
+                <div class="info-box-title">📚 About This Library</div>
+                Write your preprocessing logic once, use it everywhere. CAD Preprocess ensures identical preprocessing for training and inference pipelines.
+            </div>
+
+            <h2>Key Features</h2>
+            
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🔍</div>
+                    <div class="feature-title">DICOM Discovery</div>
+                    <div class="feature-desc">Recursive file scanning with automatic DICOM validation and filtering.</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🖼️</div>
+                    <div class="feature-title">Deterministic Preprocessing</div>
+                    <div class="feature-desc">Identical results for train and inference with reproducible pipeline.</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <div class="feature-title">Metadata Extraction</div>
+                    <div class="feature-desc">Profile-based extraction: minimal, patient, geometry, ML, acquisition.</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚙️</div>
+                    <div class="feature-title">Configurable</div>
+                    <div class="feature-desc">YAML configuration with CLI overrides and environment variable support.</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🐍</div>
+                    <div class="feature-title">Easy Integration</div>
+                    <div class="feature-desc">Use as a Python library or command-line tool.</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📋</div>
+                    <div class="feature-title">Comprehensive Logging</div>
+                    <div class="feature-desc">Structured logging with processing statistics and error tracking.</div>
+                </div>
+            </div>
+
+            <h2>Quick Example</h2>
+
+            <h3>Command Line</h3>
+            <pre><code><span class="comment"># Process a DICOM directory</span>
+cad-preprocess -i ./dicoms -o ./output
+
+<span class="comment"># With configuration file</span>
+cad-preprocess -i ./dicoms -o ./output -c config.yaml
+
+<span class="comment"># Extract ML-focused metadata</span>
+cad-preprocess -i ./dicoms -o ./output --metadata-profile ml</code></pre>
+
+            <h3>Python API</h3>
+            <pre><code><span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> preprocess, CADPreprocessor
+
+<span class="comment"># Simple one-liner</span>
+result = preprocess(<span class="string">"image.dcm"</span>, <span class="string">"output/"</span>)
+<span class="keyword">print</span>(<span class="string">f"Shape: </span>{result.image.shape}<span class="string">"</span>)
+
+<span class="comment"># Batch processing with configuration</span>
+processor = CADPreprocessor.from_config(<span class="string">"config.yaml"</span>)
+batch = processor.process_directory(<span class="string">"dicoms/"</span>, <span class="string">"output/"</span>)
+
+<span class="comment"># Store config hash for reproducibility</span>
+config_hash = processor.config_hash</code></pre>
+
+            <h2>Output Structure</h2>
+            <pre><code>output/
+├── images/
+│   ├── 1.2.840.113619.2.55.3.png
+│   └── ...
+├── metadata/
+│   ├── 1.2.840.113619.2.55.3.json
+│   └── ...
+├── logs/
+│   └── processing_log_20260110.json
+└── manifest.json</code></pre>
+
+            <h2>Requirements</h2>
+            <ul>
+                <li>Python 3.9 or higher</li>
+                <li>pydicom &gt;= 2.3.0</li>
+                <li>numpy &gt;= 1.21.0</li>
+                <li>Pillow &gt;= 9.0.0</li>
+                <li>PyYAML &gt;= 6.0</li>
+                <li>scikit-image &gt;= 0.19.0</li>
+            </ul>
+
+            <h2>Next Steps</h2>
+            <ul>
+                <li><a href="docs/installation.html">Installation Guide</a> - Install via <strong>Arch (PKGBUILD)</strong>, <strong>Debian (.deb)</strong>, or pip</li>
+                <li><a href="docs/quickstart.html">Quick Start</a> - Get started in 5 minutes</li>
+                <li><a href="docs/guides/cli.html">CLI Usage</a> - Command-line reference</li>
+                <li><a href="docs/api/index.html">API Reference</a> - Full API documentation</li>
+            </ul>
+
+            <h2>License</h2>
+            <p>CAD Preprocess is released under the <a href="https://opensource.org/licenses/MIT">MIT License</a>.</p>
+        </main>
     </div>
+
+    <footer class="footer">
+        <p>CAD Preprocess Documentation · <a href="https://github.com/Harshil-Anuwadia/cad-preprocess">GitHub</a> · MIT License</p>
+    </footer>
 </body>
 </html>
