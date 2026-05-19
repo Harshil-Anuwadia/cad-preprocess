@@ -76,7 +76,7 @@
             <div class="toc">
                 <div class="toc-title">Contents</div>
                 <ul>
-                    <li><a href="#requirements">Requirements</a></li>
+                    <li><a href="#linux-packages">Linux Packages (Recommended)</a></li>
                     <li><a href="#from-source">Install from Source</a></li>
                     <li><a href="#pip-install">Install with pip</a></li>
                     <li><a href="#virtual-env">Virtual Environment</a></li>
@@ -84,6 +84,33 @@
                     <li><a href="#troubleshooting">Troubleshooting</a></li>
                 </ul>
             </div>
+
+            <h2 id="linux-packages">Linux Packages (Recommended)</h2>
+            <p>For the best experience on Linux, we provide native packages that include all necessary dependencies (including DICOM decompression codecs) bundled.</p>
+
+            <h3>Arch Linux</h3>
+            <p>Arch Linux users can build and install the package using the provided <code>PKGBUILD</code>:</p>
+            <pre><code><span class="comment"># Clone and build</span>
+git clone https://github.com/Harshil-Anuwadia/cad-preprocess.git
+cd cad-preprocess
+makepkg -si</code></pre>
+
+            <p>Alternatively, build a fully self-contained package with all dependencies bundled:</p>
+            <pre><code><span class="comment"># Build bundled package</span>
+./build_arch.sh
+
+<span class="comment"># Install the resulting package</span>
+sudo pacman -U cad-preprocess-bundled-0.1.0-1-x86_64.pkg.tar.zst</code></pre>
+
+            <h3>Debian / Ubuntu</h3>
+            <p>For Debian-based systems, you can build a self-contained <code>.deb</code> package:</p>
+            <pre><code><span class="comment"># Clone and build</span>
+git clone https://github.com/Harshil-Anuwadia/cad-preprocess.git
+cd cad-preprocess
+./build_deb.sh
+
+<span class="comment"># Install the package</span>
+sudo dpkg -i cad-preprocess_0.1.0_all.deb</code></pre>
 
             <h2 id="requirements">Requirements</h2>
 
