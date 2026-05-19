@@ -9,6 +9,18 @@
   training, inference, and clinical integration workflows.
 </p>
 
+<p align="center">
+  <a href="https://harshil-anuwadia.github.io/cad-preprocess/"><strong>Documentation</strong></a> ·
+  <a href="https://harshil-anuwadia.github.io/cad-preprocess/docs/api/index.html">API Reference</a> ·
+  <a href="https://harshil-anuwadia.github.io/cad-preprocess/docs/examples.html">Examples</a>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/python-3.9+-3776ab?style=flat-square&logo=python&logoColor=white" alt="Python">
+  <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="License">
+  <img src="https://img.shields.io/badge/platform-Linux%20%7C%20macOS-lightgrey?style=flat-square" alt="Platform">
+</p>
+
 ---
 
 ## Why this exists
