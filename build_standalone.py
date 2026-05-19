@@ -29,6 +29,15 @@ def main():
     system = platform.system().lower()
     print(f"Building for: {system}")
 
+    # Check if PyInstaller is installed
+    try:
+        import PyInstaller
+    except ImportError:
+        print("Error: PyInstaller not found.")
+        print("Please install build dependencies using:")
+        print("  pip install -e \".[build]\"")
+        sys.exit(1)
+
     # Build directory
     dist_dir = Path("dist_standalone")
     if dist_dir.exists():
@@ -36,25 +45,9 @@ def main():
     dist_dir.mkdir()
 
     # Base PyInstaller command
-    # We build the Explorer (GUI) as the main entry point for the standalone app
-    # but the CLI is also included in the package.
-    
-    # Common hidden imports for pydicom handlers
-    hidden_imports = [
-        "pydicom.encoders.native",
-        "pydicom.encoders.pylibjpeg",
-        "pydicom.encoders.gdcm",
-        "pylibjpeg",
-        "pylibjpeg_libjpeg",
-        "openjpeg",
-        "pandas",
-        "PyQt6.QtCore",
-        "PyQt6.QtGui",
-        "PyQt6.QtWidgets",
-    ]
-
+    # We use sys.executable -m PyInstaller for better compatibility with venvs
     cmd = [
-        "pyinstaller",
+        sys.executable, "-m", "PyInstaller",
         "--noconfirm",
         "--clean",
         "--name", f"cad-preprocess-{system}",
@@ -70,6 +63,20 @@ def main():
     # On Windows, we might want to hide the console for the explorer
     if system == "windows":
         cmd.append("--windowed")
+    
+    # Common hidden imports for pydicom handlers
+    hidden_imports = [
+        "pydicom.encoders.native",
+        "pydicom.encoders.pylibjpeg",
+        "pydicom.encoders.gdcm",
+        "pylibjpeg",
+        "pylibjpeg_libjpeg",
+        "openjpeg",
+        "pandas",
+        "PyQt6.QtCore",
+        "PyQt6.QtGui",
+        "PyQt6.QtWidgets",
+    ]
     
     # Add hidden imports
     for imp in hidden_imports:
