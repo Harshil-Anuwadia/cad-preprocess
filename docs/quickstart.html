@@ -5,9 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quick Start - CAD Preprocess</title>
     <link rel="stylesheet" href="css/style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
     <header class="header">
@@ -66,69 +63,67 @@
 
             <h1>Quick Start</h1>
 
-            <p>Get up and running with CAD Preprocess in 5 minutes. This guide covers basic CLI operations and Python API integration.</p>
+            <p>This guide demonstrates basic CLI operations and Python API integration for CAD Preprocess.</p>
 
             <h2 id="cli-examples">Command Line Interface</h2>
 
             <h3>Batch Directory Processing</h3>
-            <p>Process an entire local directory and write the standardized output to a new folder:</p>
+            <p>Process a directory of DICOM files and output standardized images and metadata:</p>
             <pre><code>cad-preprocess -i /data/scans -o /data/processed</code></pre>
 
-            <h3>Configured Pipeline</h3>
-            <p>Apply specific windowing, normalization, and resizing settings defined in a YAML file:</p>
+            <h3>Configured Processing</h3>
+            <p>Load specific pipeline settings from a YAML configuration file:</p>
             <pre><code>cad-preprocess -i ./dicoms -o ./output -c config.yaml</code></pre>
 
-            <h3>Simulated Execution (Dry Run)</h3>
-            <p>Verify file discovery and configuration mapping without writing any data to disk:</p>
+            <h3>Dry Run Simulation</h3>
+            <p>Verify file discovery and configuration mapping without writing output:</p>
             <pre><code>cad-preprocess -i ./dicoms -o ./output --dry-run</code></pre>
 
-            <h3>CT Windowing Presets</h3>
-            <pre><code><span class="comment"># Lung windowing (-600, 1500)</span>
+            <h3>Windowing Presets</h3>
+            <pre><code><span class="comment"># Lung Window (-600, 1500)</span>
 cad-preprocess -i ./dicoms -o ./output --window-center -600 --window-width 1500
 
-<span class="comment"># Soft tissue windowing (40, 400)</span>
+<span class="comment"># Soft Tissue Window (40, 400)</span>
 cad-preprocess -i ./dicoms -o ./output --window-center 40 --window-width 400</code></pre>
 
             <h2 id="python-examples">Python API</h2>
 
-            <h3>Single-Scan Inference Bridge</h3>
-            <p>Use the <code>preprocess</code> utility for lightweight single-file transformations:</p>
+            <h3>Processing Utility</h3>
+            <p>Use the <code>preprocess</code> function for direct file transformations:</p>
             <pre><code><span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> preprocess
 
-<span class="comment"># Returns a ProcessingResult object containing the image array and metadata</span>
+<span class="comment"># Process single file</span>
 result = preprocess(<span class="string">"scan.dcm"</span>, <span class="string">"output/"</span>)
 
-<span class="keyword">print</span>(<span class="string">f"Matrix Size: </span>{result.image.shape}<span class="string">"</span>)
-<span class="keyword">print</span>(<span class="string">f"SOP UID: </span>{result.sop_instance_uid}<span class="string">"</span>)</code></pre>
+<span class="keyword">print</span>(<span class="string">f"Shape: </span>{result.image.shape}<span class="string">"</span>)
+<span class="keyword">print</span>(<span class="string">f"UID: </span>{result.sop_instance_uid}<span class="string">"</span>)</code></pre>
 
-            <h3>Pipeline Reproducibility</h3>
-            <p>Ensuring that training and inference environments use identical configurations:</p>
+            <h3>Pipeline Consistency</h3>
+            <p>The <code>CADPreprocessor</code> class enables configuration-driven workflows:</p>
             <pre><code><span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> CADPreprocessor
 
-<span class="comment"># Load the versioned configuration</span>
+<span class="comment"># Load settings</span>
 processor = CADPreprocessor.from_config(<span class="string">"stable_v1.yaml"</span>)
 
-<span class="comment"># The config_hash serves as a unique fingerprint for the pipeline</span>
-<span class="keyword">print</span>(<span class="string">f"Pipeline Signature: </span>{processor.config_hash}<span class="string">"</span>)
+<span class="comment"># Signature tracking for reproducibility</span>
+<span class="keyword">print</span>(<span class="string">f"Hash: </span>{processor.config_hash}<span class="string">"</span>)
 
-<span class="comment"># Execute batch process</span>
+<span class="comment"># Batch execution</span>
 results = processor.process_directory(<span class="string">"input_dicoms/"</span>, <span class="string">"output_data/"</span>)</code></pre>
 
-            <h2 id="output">Output Architecture</h2>
+            <h2 id="output">Output Structure</h2>
 
-            <p>CAD Preprocess generates a structured, auditable output directory:</p>
+            <p>CAD Preprocess generates a structured directory for processed data:</p>
 
             <pre><code>output/
-├── images/                    <span class="comment"># Standardized images (PNG/NumPy)</span>
-├── metadata/                  <span class="comment"># Profile-based JSON/CSV data</span>
-├── logs/                      <span class="comment"># Detailed processing statistics</span>
-└── manifest.json              <span class="comment"># Verifiable pipeline manifest</span></code></pre>
+├── images/                    <span class="comment"># Processed images (PNG/NumPy)</span>
+├── metadata/                  <span class="comment"># JSON/CSV metadata records</span>
+├── logs/                      <span class="comment"># Execution logs</span>
+└── manifest.json              <span class="comment"># Pipeline manifest</span></code></pre>
 
-            <div class="info-box tip">
-                <div class="info-box-title">
-                    <span>💡</span> Next Steps
-                </div>
-                Deep dive into the <strong><a href="guides/configuration.html">Configuration Schema</a></strong> to customize your windowing and normalization strategies.
+            <div class="info-box note">
+                <div class="info-box-title">Next Steps</div>
+                Refer to the <strong><a href="guides/configuration.html">Configuration Schema</a></strong> for detailed windowing and normalization parameters.
             </div>
         </main>
     </div>

@@ -5,9 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Installation - CAD Preprocess</title>
     <link rel="stylesheet" href="css/style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
     <header class="header">
@@ -66,72 +63,70 @@
 
             <h1>Installation</h1>
 
-            <p>CAD Preprocess can be installed as a native Linux package for production stability or via <code>pip</code> for development workflows.</p>
+            <p>CAD Preprocess can be installed as a native Linux package or via <code>pip</code> for development workflows.</p>
 
-            <h2 id="linux-packages">Native Linux Packages (Recommended)</h2>
-            <p>Native packages include all required DICOM decompression codecs (pylibjpeg, gdcm) pre-configured. This is the most reliable way to ensure consistency across environments.</p>
+            <h2 id="linux-packages">Native Linux Packages</h2>
+            <p>Native packages include bundled DICOM decompression codecs (pylibjpeg, gdcm). This is the recommended method for production environments to ensure consistent behavior across different systems.</p>
 
             <h3>Arch Linux</h3>
-            <p>Build and install using the standard <code>PKGBUILD</code> or the bundled installer:</p>
-            <pre><code><span class="comment"># Method A: Standard build</span>
+            <p>Build and install using the provided <code>PKGBUILD</code> or the bundled installer script:</p>
+            <pre><code><span class="comment"># Method A: Standard makepkg build</span>
 makepkg -si
 
-<span class="comment"># Method B: Self-contained bundle builder</span>
+<span class="comment"># Method B: Bundled installer builder</span>
 ./build_arch.sh
 sudo pacman -U cad-preprocess-bundled-0.1.0-1-x86_64.pkg.tar.zst</code></pre>
 
             <h3>Debian / Ubuntu</h3>
-            <p>Build a fully self-contained <code>.deb</code> package that bundles its own dependencies:</p>
-            <pre><code><span class="comment"># Generate and install the .deb package</span>
+            <p>Generate a self-contained <code>.deb</code> package that includes all dependencies:</p>
+            <pre><code><span class="comment"># Build and install the Debian package</span>
 ./build_deb.sh
 sudo dpkg -i cad-preprocess_0.1.0_all.deb</code></pre>
 
             <h2 id="pip-install">Python Package (pip)</h2>
-            <p>For research and local development, install the library directly into your virtual environment:</p>
+            <p>Install the library directly into your Python environment. This is suitable for research and local script development.</p>
 
-            <pre><code><span class="comment"># Core installation</span>
+            <pre><code><span class="comment"># Base installation</span>
 pip install cad-preprocess
 
-<span class="comment"># Optional: Add decompression support for medical codecs</span>
+<span class="comment"># Optional: Medical imaging codecs</span>
 pip install pylibjpeg pylibjpeg-libjpeg pylibjpeg-openjpeg python-gdcm</code></pre>
 
-            <div class="info-box tip">
-                <div class="info-box-title">
-                    <span>💡</span> Verification
-                </div>
-                Run <code>cad-preprocess --version</code> to verify the installation. You should see <code>cad-preprocess 0.1.0</code>.
+            <div class="info-box note">
+                <div class="info-box-title">Verification</div>
+                Verify the installation by running <code>cad-preprocess --version</code>. The output should be <code>cad-preprocess 0.1.0</code>.
             </div>
 
-            <h2 id="requirements">System Requirements</h2>
+            <h2 id="requirements">Technical Requirements</h2>
 
             <table>
                 <thead>
                     <tr>
-                        <th>Requirement</th>
+                        <th>Package</th>
                         <th>Compatibility</th>
-                        <th>Role</th>
+                        <th>Function</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
                         <td>Python</td>
                         <td>&gt;= 3.9</td>
-                        <td>Runtime Environment</td>
+                        <td>Base Environment</td>
                     </tr>
                     <tr>
                         <td>pydicom</td>
                         <td>&gt;= 2.3.0</td>
-                        <td>DICOM I/O</td>
+                        <td>DICOM Handling</td>
                     </tr>
                     <tr>
                         <td>numpy</td>
                         <td>&gt;= 1.21.0</td>
-                        <td>Array Processing</td>
+                        <td>Numerical Arrays</td>
                     </tr>
                     <tr>
                         <td>scikit-image</td>
                         <td>&gt;= 0.19.0</td>
-                        <td>Advanced Filters</td>
+                        <td>Image Processing</td>
                     </tr>
                 </tbody>
             </table>

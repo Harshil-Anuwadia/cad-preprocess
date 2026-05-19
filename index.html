@@ -3,11 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CAD Preprocess — Standardizing DICOM Preprocessing</title>
+    <title>CAD Preprocess — Documentation</title>
     <link rel="stylesheet" href="docs/css/style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
     <header class="header">
@@ -62,73 +59,67 @@
         <main class="content">
             <h1>Documentation</h1>
             
-            <p><strong>CAD Preprocess</strong> is a high-performance Python utility designed to eliminate "preprocessing drift" in medical imaging AI. By providing a unified bridge between raw DICOM data and standardized model inputs, it ensures that training, inference, and clinical integration environments yield identical results.</p>
+            <p>CAD Preprocess is a technical utility for standardizing DICOM preprocessing in medical AI pipelines. It provides a reproducible interface for transforming raw DICOM data into standardized model inputs, ensuring consistency across training and inference environments.</p>
 
             <div class="info-box note">
-                <div class="info-box-title">
-                    <span>💡</span> Unified Preprocessing
-                </div>
-                The core philosophy is reproducibility. Every transformation is tracked via configuration hashing, providing a verifiable signature for your data pipeline.
+                <div class="info-box-title">Core Philosophy</div>
+                The pipeline is built on the principle of deterministic processing. Every transformation is mapped and verified via configuration hashing, providing a unique signature for your data state.
             </div>
 
             <h2>Pipeline Capabilities</h2>
             
             <div class="feature-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">🛡️</div>
+                <div class="feature-item">
                     <div class="feature-title">Native Decompression</div>
-                    <div class="feature-desc">Integrated support for JPEG Lossless, JPEG 2000, and RLE without external system dependencies.</div>
+                    <div class="feature-desc">Bundled support for JPEG Lossless, JPEG 2000, and RLE codecs without external dependencies.</div>
                 </div>
-                <div class="feature-card">
-                    <div class="feature-icon">📐</div>
+                <div class="feature-item">
                     <div class="feature-title">Geometric Integrity</div>
-                    <div class="feature-desc">Preserves aspect ratios and spatial context during resizing and normalization.</div>
+                    <div class="feature-desc">Aspect-ratio preservation and spatial context management during resizing and normalization.</div>
                 </div>
-                <div class="feature-card">
-                    <div class="feature-icon">📊</div>
+                <div class="feature-item">
                     <div class="feature-title">Metadata Profiling</div>
-                    <div class="feature-desc">Structured extraction of patient, acquisition, and geometry tags into JSON/CSV formats.</div>
+                    <div class="feature-desc">Extraction of patient, acquisition, and geometry tags into structured JSON and CSV formats.</div>
                 </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🧪</div>
-                    <div class="feature-title">Deterministic Output</div>
-                    <div class="feature-desc">Configuration hashing ensures that every processed image is reproducible and auditable.</div>
+                <div class="feature-item">
+                    <div class="feature-title">Deterministic Execution</div>
+                    <div class="feature-desc">Configuration hashing ensures that processed outputs are fully auditable and reproducible.</div>
                 </div>
             </div>
 
             <h2>Implementation Examples</h2>
 
-            <h3>Terminal (Batch Processing)</h3>
-            <pre><code><span class="comment"># Process an entire local directory with a YAML configuration</span>
+            <h3>Command Line Interface</h3>
+            <pre><code><span class="comment"># Batch process a local directory</span>
 cad-preprocess -i /data/raw -o /data/processed --config pipeline.yaml
 
-<span class="comment"># Apply CT windowing overrides via CLI</span>
+<span class="comment"># Apply windowing overrides</span>
 cad-preprocess -i ./input -o ./output --window-center 40 --window-width 400</code></pre>
 
-            <h3>Python (API Integration)</h3>
+            <h3>Python API</h3>
             <pre><code><span class="keyword">from</span> cad_preprocess <span class="keyword">import</span> CADPreprocessor
 
-<span class="comment"># Initialize with a versioned configuration</span>
+<span class="comment"># Initialize with versioned settings</span>
 processor = CADPreprocessor.from_config(<span class="string">"v1_stable.yaml"</span>)
 
-<span class="comment"># Process single scan for inference</span>
+<span class="comment"># Process single scan</span>
 result = processor.process(<span class="string">"scan.dcm"</span>)
-image_array = result.image  <span class="comment"># Ready for model forward pass</span>
+image_array = result.image
 
 <span class="keyword">print</span>(<span class="string">f"Pipeline Signature: </span>{processor.config_hash}<span class="string">"</span>)</code></pre>
 
-            <h2>Next Steps</h2>
+            <h2>Project Navigation</h2>
             <ul>
-                <li><strong><a href="docs/installation.html">Installation Guide</a></strong> — Native Linux packages (Arch/Debian) and pip instructions.</li>
-                <li><strong><a href="docs/quickstart.html">Quick Start</a></strong> — Go from zero to a processed dataset in 5 minutes.</li>
-                <li><strong><a href="docs/guides/cli.html">CLI Usage</a></strong> — Full command-line reference and parameter documentation.</li>
+                <li><strong><a href="docs/installation.html">Installation</a></strong> — Native Linux packages and environment setup.</li>
+                <li><strong><a href="docs/quickstart.html">Quick Start</a></strong> — Five-minute guide to processing your first dataset.</li>
+                <li><strong><a href="docs/guides/cli.html">CLI Usage</a></strong> — Full command reference and parameter mapping.</li>
             </ul>
 
         </main>
     </div>
 
     <footer class="footer">
-        <p>CAD Preprocess · Developed for Medical AI Pipelines · <a href="https://github.com/Harshil-Anuwadia/cad-preprocess">Source Code</a></p>
+        <p>CAD Preprocess · Standardized Medical Imaging Preprocessing · <a href="https://github.com/Harshil-Anuwadia/cad-preprocess">GitHub</a></p>
     </footer>
 </body>
 </html>
