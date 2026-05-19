@@ -1,8 +1,15 @@
-# cad-preprocess
+<h1 align="center">CAD Preprocess</h1>
 
-A Python utility for standardizing DICOM image preprocessing in medical AI pipelines.
+<p align="center">
+  <strong>Medical DICOM Image Preprocessing Pipeline for CAD Systems</strong>
+</p>
 
-Medical imaging pipelines often suffer from "preprocessing drift"—where training, inference, and clinical review environments handle DICOM raw data differently. `cad-preprocess` provides a single, reproducible bridge from raw DICOM to standardized input for CAD (Computer-Aided Detection) systems.
+<p align="center">
+  A production-ready Python utility for standardizing DICOM preprocessing across<br>
+  training, inference, and clinical integration workflows.
+</p>
+
+---
 
 ## Why this exists
 
