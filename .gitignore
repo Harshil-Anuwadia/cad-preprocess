@@ -116,3 +116,7 @@ Thumbs.db
 *.dcm
 output/
 logs/
+build_arch/
+dist_standalone/
+standalone_wrapper.py
+*.pkg.tar.zst
