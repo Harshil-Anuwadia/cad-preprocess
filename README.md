@@ -1,247 +1,79 @@
-<h1 align="center">CAD Preprocess</h1>
+# CAD Preprocess
 
-<p align="center">
-  <strong>Medical DICOM Image Preprocessing Pipeline for CAD Systems</strong>
-</p>
+A Python toolkit for standardized DICOM preprocessing. Built to ensure medical imaging models receive consistent, high-quality input during both training and inference.
 
-<p align="center">
-  A production-ready Python library for standardized DICOM preprocessing in<br>
-  Computer-Aided Detection and Diagnosis (CAD) systems.
-</p>
+## Why this exists?
 
-<p align="center">
-  <a href="https://harshil-anuwadia.github.io/cad-preprocess/"><strong>Documentation</strong></a> ·
-  <a href="https://harshil-anuwadia.github.io/cad-preprocess/docs/api/index.html">API Reference</a> ·
-  <a href="https://harshil-anuwadia.github.io/cad-preprocess/docs/examples.html">Examples</a>
-</p>
+Medical AI models are notoriously sensitive to how DICOM pixels are handled. Subtle differences in windowing, normalization, or resizing between your training script and your production inference server can lead to catastrophic performance drift. 
 
-<p align="center">
-  <img src="https://img.shields.io/badge/python-3.9+-3776ab?style=flat-square&logo=python&logoColor=white" alt="Python">
-  <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="License">
-  <img src="https://img.shields.io/badge/pydicom-2.3+-orange?style=flat-square" alt="pydicom">
-  <img src="https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey?style=flat-square" alt="Platform">
-</p>
+`cad-preprocess` solves this by providing a deterministic, configuration-driven pipeline that handles the "boring but critical" parts of medical imaging: decompression, Hounsfield Unit scaling, VOI LUT application, and standardized resizing.
 
----
+## Key Capabilities
 
-## Overview
-
-CAD Preprocess standardizes DICOM image preprocessing for machine learning pipelines. Write your preprocessing logic once, use it identically across training, inference, and production environments.
-
-### Key Features
-
-| Feature | Description |
-|---------|-------------|
-| **Reproducible Processing** | Configuration hashing ensures identical results between training and inference |
-| **DICOM Support** | Automatic file discovery, validation, decompression (JPEG Lossless, JPEG 2000) |
-| **Flexible Output** | PNG, JPEG, or NumPy arrays with configurable naming policies |
-| **Metadata Extraction** | Profile-based extraction: minimal, patient, geometry, ML, acquisition |
-| **Dual Interface** | Python API and command-line tool |
-| **GUI Explorer** | Interactive DICOM browser with CSV filtering and bounding box overlay |
+*   **Deterministic Pipeline:** Hashing-based configuration checks ensure training/inference parity.
+*   **Decompression:** Built-in support for JPEG Lossless, JPEG 2000, and RLE via `pydicom` handlers.
+*   **Windowing:** Proper application of DICOM VOI LUTs or custom fixed windowing (e.g., Lung/Soft Tissue/Bone).
+*   **Metadata:** Profile-based extraction into JSON/CSV (Patient, Geometry, Acquisition, or ML-specific fields).
+*   **Dual-Interface:** Use as a Python library or a standalone CLI for batch processing.
+*   **Visual Validation:** Includes `cad-preprocess-explorer` for interactive DICOM browsing and annotation matching.
 
 ## Installation
 
-### Recommended: Standalone Executables (Windows & Linux)
+### For Users (CLI/GUI)
 
-For users who don't want to manage Python environments, we provide standalone executables that bundle all dependencies.
-
-1.  Go to the [Latest Release](https://github.com/Harshil-Anuwadia/cad-preprocess/releases/latest).
-2.  Download the executable for your platform:
-    *   **Windows**: `cad-preprocess-windows.zip` (extract and run `.exe`)
-    *   **Linux**: `cad-preprocess-linux` (standalone binary)
-3.  No installation required!
-
-### Recommended: Python Package (pipx)
-
-The best way to install CAD Preprocess as a CLI tool is using `pipx`, which installs the package in an isolated environment.
+The easiest way to get the tools without messing with your system Python:
 
 ```bash
-# Install the core CLI
+# Core CLI tools
 pipx install cad-preprocess
 
-# Install with GUI support (Explorer)
+# With GUI (Explorer) support
 pipx install "cad-preprocess[gui]"
 ```
 
-After installation, the commands `cad-preprocess` and `cad-preprocess-explorer` will be available in your terminal.
-
-### Native Linux Packages
-
-#### Arch Linux (AUR/PKGBUILD)
+### For Developers (Library)
 
 ```bash
-git clone https://github.com/Harshil-Anuwadia/cad-preprocess.git
-cd cad-preprocess
-makepkg -si
+pip install cad-preprocess
 ```
 
-#### Debian/Ubuntu (.deb)
+*Note: For image decompression support, ensure you have `gdcm` or `pylibjpeg` handlers installed.*
 
-```bash
-# Download from GitHub Releases
-wget https://github.com/Harshil-Anuwadia/cad-preprocess/releases/download/v0.1.0/cad-preprocess_0.1.0_all.deb
-sudo dpkg -i cad-preprocess_0.1.0_all.deb
+### Standalone Binaries
+If you don't use Python, grab the pre-compiled binaries for Windows or Linux from the [Releases](https://github.com/Harshil-Anuwadia/cad-preprocess/releases) page.
+
+## Quick Start
+
+### Python API
+Standardize a DICOM file in three lines:
+
+```python
+from cad_preprocess import preprocess
+
+result = preprocess("input.dcm", "output_dir/")
+print(f"Processed SOP: {result.processed_files[0]}")
 ```
-
-### From Source (pip)
-
-```bash
-git clone https://github.com/Harshil-Anuwadia/cad-preprocess.git
-cd cad-preprocess
-pip install -e ".[gui]"
-```
-
-## Usage
 
 ### Command Line
+Batch process a directory with a specific metadata profile:
 
 ```bash
-# Basic usage
-cad-preprocess -i ./dicoms -o ./output
-
-# With configuration file
-cad-preprocess -i ./dicoms -o ./output -c config.yaml
-
-# ML-focused metadata extraction
-cad-preprocess -i ./dicoms -o ./output --metadata-profile ml
-
-# Custom CT windowing
-cad-preprocess -i ./dicoms -o ./output --window-center 40 --window-width 400
-
-# Preview without processing
-cad-preprocess -i ./dicoms -o ./output --dry-run
-
-# See all options
-cad-preprocess --help
+cad-preprocess -i ./raw_data -o ./clean_data --metadata-profile ml --target-size 512 512
 ```
 
-### DICOM Explorer (GUI)
+### Interactive Explorer
+Launch the GUI to browse images and match them with CSV labels:
 
 ```bash
-# Launch the interactive DICOM browser
 cad-preprocess-explorer
 ```
 
-Features:
-- Browse and preview DICOM images
-- Filter by CSV annotations
-- Overlay bounding boxes from coordinate data
-- Double-click to open in external viewer
-
-### Python API
-
-```python
-from cad_preprocess import preprocess, CADPreprocessor
-
-# Quick single-file processing
-result = preprocess("scan.dcm", "output/")
-print(f"Processed: {result.sop_instance_uid}")
-print(f"Shape: {result.image.shape}")
-
-# Batch processing with configuration
-processor = CADPreprocessor.from_config("config.yaml")
-results = processor.process_directory("dicoms/", "output/")
-
-# Get config hash for reproducibility tracking
-print(f"Config hash: {processor.config_hash}")
-```
-
-### Configuration
-
-```yaml
-# config.yaml
-preprocessing:
-  windowing:
-    strategy: fixed_window
-    window_center: 40
-    window_width: 400
-  normalization: min_max
-  resizing:
-    target_height: 512
-    target_width: 512
-    preserve_aspect_ratio: true
-
-metadata:
-  profiles:
-    - minimal
-    - ml
-
-output:
-  naming_policy: sop_instance_uid
-  format: png
-```
-
-## Output Structure
-
-```
-output/
-├── images/
-│   ├── 1.2.840.113619.2.55.3.png
-│   └── ...
-├── metadata/
-│   ├── 1.2.840.113619.2.55.3.json
-│   └── ...
-├── logs/
-│   └── processing_log.json
-└── manifest.json
-```
-
-## CLI Reference
-
-| Option | Description |
-|--------|-------------|
-| `-i, --input` | Input DICOM file or directory |
-| `-o, --output` | Output directory |
-| `-c, --config` | YAML configuration file |
-| `-m, --metadata-profile` | Metadata profile: minimal, patient, geometry, ml, acquisition, all |
-| `--window-center` | CT window center value |
-| `--window-width` | CT window width value |
-| `--target-size` | Output image dimensions |
-| `--overwrite` | Overwrite existing output files |
-| `--dry-run` | Preview files without processing |
-| `-l, --log-level` | Logging verbosity: debug, info, warning, error |
-
-## Requirements
-
-| Package | Version |
-|---------|---------|
-| Python | >= 3.9 |
-| pydicom | >= 2.3.0 |
-| numpy | >= 1.21.0 |
-| Pillow | >= 9.0.0 |
-| PyYAML | >= 6.0 |
-| scikit-image | >= 0.19.0 |
-
 ## Project Structure
 
-```
-cad-preprocess/
-├── src/cad_preprocess/
-│   ├── cli.py                  # Command-line interface
-│   ├── explorer.py             # DICOM Explorer GUI
-│   ├── config.py               # Configuration management
-│   ├── input_handler.py        # DICOM discovery & validation
-│   ├── preprocessing_engine.py # Image processing pipeline
-│   ├── metadata_extractor.py   # Metadata extraction
-│   ├── output_writer.py        # File output handling
-│   ├── logging_utils.py        # Logging & statistics
-│   ├── integration.py          # High-level API
-│   └── api.py                  # Simple API functions
-├── tests/                      # Unit tests
-├── docs/                       # Documentation website
-├── debian/                     # Debian packaging files
-├── build_deb.sh               # Self-contained .deb builder
-├── PKGBUILD                   # Arch Linux package build file
-├── build_arch.sh              # Self-contained Arch package builder
-└── pyproject.toml             # Project configuration
-```
+*   `src/cad_preprocess/`: Core logic (engine, metadata, IO).
+*   `tests/`: Unit tests and integration checks.
+*   `build_standalone.py`: PyInstaller bundling script for cross-platform binaries.
 
 ## License
 
-This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
-
----
-
-<p align="center">
-  <strong>CAD Preprocess</strong> — Standardized DICOM preprocessing for medical imaging AI
-</p>
+MIT - See [LICENSE](LICENSE) for details.
