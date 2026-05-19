@@ -43,8 +43,8 @@ from PyQt6.QtWidgets import (
     QListWidget, QListWidgetItem, QTableWidget, QTableWidgetItem,
     QHeaderView, QAbstractItemView, QTreeWidget, QTreeWidgetItem
 )
-from PyQt6.QtCore import Qt, QThread, pyqtSignal, QSize, QTimer
-from PyQt6.QtGui import QFont, QIcon, QAction, QPalette, QColor, QPixmap, QImage, QPainter, QPen
+from PyQt6.QtCore import Qt, QThread, pyqtSignal, QSize, QTimer, QUrl
+from PyQt6.QtGui import QFont, QIcon, QAction, QPalette, QColor, QPixmap, QImage, QPainter, QPen, QDesktopServices
 
 
 # Custom widgets that always ignore scroll wheel events
@@ -1502,8 +1502,7 @@ class DicomExplorerGUI(QMainWindow):
                     print(f"DEBUG: Saved to {temp_path}")
                     
                     # Open with default image viewer
-                    subprocess.Popen(['xdg-open', str(temp_path)],
-                                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    QDesktopServices.openUrl(QUrl.fromLocalFile(str(temp_path)))
                     self.statusBar().showMessage(f"Opened {dicom_file.filename} in image viewer")
                     return
                     
@@ -1512,8 +1511,7 @@ class DicomExplorerGUI(QMainWindow):
                     pass
             
             # Fallback: try to open the DICOM file directly
-            subprocess.Popen(['xdg-open', str(dicom_file.path)],
-                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            QDesktopServices.openUrl(QUrl.fromLocalFile(str(dicom_file.path)))
             self.statusBar().showMessage(f"Opened {dicom_file.filename}")
             
         except Exception as e:

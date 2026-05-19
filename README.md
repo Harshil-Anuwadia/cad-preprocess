@@ -41,9 +41,33 @@ CAD Preprocess standardizes DICOM image preprocessing for machine learning pipel
 
 ## Installation
 
-### Recommended: Arch Linux Package (PKGBUILD)
+### Recommended: Standalone Executables (Windows & Linux)
 
-For Arch Linux users, you can build and install the package using the provided `PKGBUILD`.
+For users who don't want to manage Python environments, we provide standalone executables that bundle all dependencies.
+
+1.  Go to the [Latest Release](https://github.com/Harshil-Anuwadia/cad-preprocess/releases/latest).
+2.  Download the executable for your platform:
+    *   **Windows**: `cad-preprocess-windows.zip` (extract and run `.exe`)
+    *   **Linux**: `cad-preprocess-linux` (standalone binary)
+3.  No installation required!
+
+### Recommended: Python Package (pipx)
+
+The best way to install CAD Preprocess as a CLI tool is using `pipx`, which installs the package in an isolated environment.
+
+```bash
+# Install the core CLI
+pipx install cad-preprocess
+
+# Install with GUI support (Explorer)
+pipx install "cad-preprocess[gui]"
+```
+
+After installation, the commands `cad-preprocess` and `cad-preprocess-explorer` will be available in your terminal.
+
+### Native Linux Packages
+
+#### Arch Linux (AUR/PKGBUILD)
 
 ```bash
 git clone https://github.com/Harshil-Anuwadia/cad-preprocess.git
@@ -51,47 +75,20 @@ cd cad-preprocess
 makepkg -si
 ```
 
-#### Bundled Version (Self-contained)
-If you prefer a fully self-contained package with all dependencies bundled, use the bundled build script:
-
-```bash
-./build_arch.sh
-sudo pacman -U cad-preprocess-bundled-0.1.0-1-x86_64.pkg.tar.zst
-```
-
-### Recommended: Debian Package (Ubuntu/Debian)
-
-The easiest way to install CAD Preprocess is via the pre-built `.deb` package. This includes all dependencies bundled — no additional installation required.
+#### Debian/Ubuntu (.deb)
 
 ```bash
 # Download from GitHub Releases
 wget https://github.com/Harshil-Anuwadia/cad-preprocess/releases/download/v0.1.0/cad-preprocess_0.1.0_all.deb
-
-# Install
 sudo dpkg -i cad-preprocess_0.1.0_all.deb
 ```
 
-Or build it yourself:
-```bash
-git clone https://github.com/Harshil-Anuwadia/cad-preprocess.git
-cd cad-preprocess
-./build_deb.sh
-sudo dpkg -i cad-preprocess_0.1.0_all.deb
-```
-
-After installation, you can use:
-- `cad-preprocess` — CLI preprocessing tool
-- `cad-preprocess-explorer` — Interactive DICOM browser GUI
-
-### Alternative: From Source (pip)
+### From Source (pip)
 
 ```bash
 git clone https://github.com/Harshil-Anuwadia/cad-preprocess.git
 cd cad-preprocess
-pip install -e .
-
-# Install optional dependencies for full functionality
-pip install pylibjpeg pylibjpeg-libjpeg pandas PyQt6
+pip install -e ".[gui]"
 ```
 
 ## Usage
