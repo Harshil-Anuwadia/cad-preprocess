@@ -41,6 +41,24 @@ CAD Preprocess standardizes DICOM image preprocessing for machine learning pipel
 
 ## Installation
 
+### Recommended: Arch Linux Package (PKGBUILD)
+
+For Arch Linux users, you can build and install the package using the provided `PKGBUILD`.
+
+```bash
+git clone https://github.com/Harshil-Anuwadia/cad-preprocess.git
+cd cad-preprocess
+makepkg -si
+```
+
+#### Bundled Version (Self-contained)
+If you prefer a fully self-contained package with all dependencies bundled (similar to the `.deb` package), use the bundled build script:
+
+```bash
+./build_arch.sh
+sudo pacman -U cad-preprocess-bundled-0.1.0-1-x86_64.pkg.tar.zst
+```
+
 ### Recommended: Debian Package (Ubuntu/Debian)
 
 The easiest way to install CAD Preprocess is via the pre-built `.deb` package. This includes all dependencies bundled — no additional installation required.
@@ -216,6 +234,8 @@ cad-preprocess/
 ├── docs/                       # Documentation website
 ├── debian/                     # Debian packaging files
 ├── build_deb.sh               # Self-contained .deb builder
+├── PKGBUILD                   # Arch Linux package build file
+├── build_arch.sh              # Self-contained Arch package builder
 └── pyproject.toml             # Project configuration
 ```
 
