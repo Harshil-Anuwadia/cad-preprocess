@@ -73,23 +73,36 @@ Create-Wrapper "cad-preprocess-explorer" "cad_preprocess.explorer"
 
 # Create uninstaller wrapper
 Print-Step "Configuring uninstaller"
-# Only copy if we are not already in the target directory (to avoid "overwrite itself" error)
-if (!(Test-Path "$INSTALL_DIR\uninstall.ps1") -or ($PWD.Path -ne $INSTALL_DIR)) {
+try {
+    # Check if the source uninstall.ps1 exists in the current directory (from git clone)
     if (Test-Path "uninstall.ps1") {
-        Copy-Item "uninstall.ps1" "$INSTALL_DIR\uninstall.ps1" -Force
+        # Only copy if source and destination are different
+        $DestPath = "$INSTALL_DIR\uninstall.ps1"
+        if ((Get-Item "uninstall.ps1").FullName -ne (Get-Item $DestPath -ErrorAction SilentlyContinue).FullName) {
+            Copy-Item "uninstall.ps1" $DestPath -Force -ErrorAction SilentlyContinue
+        }
     }
+} catch {
+    # Non-critical failure, continue to PATH update
 }
+
 $UninstallPath = "$BIN_DIR\cad-preprocess-uninstall.bat"
 "@echo off`npowershell -ExecutionPolicy Bypass -File `"$INSTALL_DIR\uninstall.ps1`"" | Out-File -FilePath $UninstallPath -Encoding ascii
 
 # 8. Update PATH
-$CurrentPath = [Environment]::GetEnvironmentVariable("Path", "User")
-if ($CurrentPath -notlike "*$BIN_DIR*") {
+$UserPath = [Environment]::GetEnvironmentVariable("Path", "User")
+$PathUpdated = $false
+
+if ($UserPath -split ';' -notcontains $BIN_DIR) {
     Print-Step "Adding $BIN_DIR to User PATH"
-    $NewPath = "$CurrentPath;$BIN_DIR"
+    $NewPath = "$UserPath;$BIN_DIR"
     [Environment]::SetEnvironmentVariable("Path", $NewPath, "User")
     $env:Path = "$env:Path;$BIN_DIR" # Update current session
-    Print-Success "PATH updated. You may need to restart your terminal."
+    $PathUpdated = $true
+    Print-Success "Global PATH updated."
+} else {
+    $env:Path = "$env:Path;$BIN_DIR" # Ensure current session is always updated
+    Print-Success "Binary directory already in PATH."
 }
 
 Write-Host "`n================================================================================" -ForegroundColor Green
@@ -100,5 +113,9 @@ Write-Host "    - cad-preprocess"
 Write-Host "    - cad-preprocess-benchmark"
 Write-Host "    - cad-preprocess-explorer"
 Write-Host ""
-Write-Host "  Try: cad-preprocess --help"
+if ($PathUpdated) {
+    Write-Host "  NOTE: Please RESTART your terminal (close and open again) to use the commands." -ForegroundColor Yellow
+}
+Write-Host "  Or run this to use them immediately in this window:"
+Write-Host "  `$env:Path += ';$BIN_DIR'" -ForegroundColor Cyan
 Write-Host "================================================================================" -ForegroundColor Green
