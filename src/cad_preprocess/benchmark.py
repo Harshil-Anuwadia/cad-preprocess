@@ -68,13 +68,22 @@ def get_cpu_info():
                     info["model"] = line.split(":")[1].strip()
         except:
             pass
+    elif platform.system() == "Windows":
+        try:
+            cmd = "wmic cpu get name"
+            res = subprocess.check_output(cmd, shell=True).decode()
+            lines = [l.strip() for l in res.split('\n') if l.strip()]
+            if len(lines) > 1:
+                info["model"] = lines[1]
+        except:
+            pass
     return info
 
 def get_gpu_info():
     """Detect GPU availability without heavy dependencies."""
     gpus = []
     try:
-        # Check for NVIDIA GPUs
+        # Check for NVIDIA GPUs (works on both Linux and Windows if drivers installed)
         res = subprocess.check_output("nvidia-smi -L", shell=True).decode()
         for line in res.strip().split("\n"):
             gpus.append(line)
@@ -175,15 +184,26 @@ class BenchmarkRunner:
         if self.output_dir.exists():
             shutil.rmtree(self.output_dir)
         
-        # Start memory tracking (rough)
-        import resource
-        mem_start = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        # Start memory tracking
+        def get_mem():
+            try:
+                if platform.system() == "Windows":
+                    # Simple fallback for Windows if psutil not installed
+                    # resource module is POSIX only
+                    return 0
+                import resource
+                return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+            except:
+                return 0
+
+        mem_start = get_mem()
         
         start_time = time.perf_counter()
         batch_result = processor.process_directory(self.test_dir)
         end_time = time.perf_counter()
         
-        mem_end = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        mem_end = get_mem()
+        # ru_maxrss is in KB on Linux
         mem_used = (mem_end - mem_start) / 1024 # MB
         
         duration = end_time - start_time
