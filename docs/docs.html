@@ -1,0 +1,3954 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CAD Preprocess</title>
+  <meta name="description" content="Technical documentation for cad-preprocess: deterministic DICOM intensity standardization, spatial scaling, and metadata extraction pipelines.">
+  
+  <!-- Google Fonts for Editorial Branding & UI Legibility -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
+  <!-- Highlight.js for beautiful syntax highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/yaml.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/bash.min.js"></script>
+  
+  <!-- KaTeX for professional math typesetting -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}, {left: '\\(', right: '\\)', display: false}, {left: '\\[', right: '\\]', display: true}]});"></script>
+  
+  <style>
+    :root {
+      /* Light Mode — Warm Arctic Paper */
+      --paper:      oklch(98.5% 0.005 210);
+      --paper-dark: oklch(95.5% 0.008 210);
+      --paper-card: oklch(100% 0 0);
+      --ink:        oklch(14% 0.025 255);
+      --ink-muted:  oklch(44% 0.028 245);
+      --ink-faint:  oklch(57% 0.020 240);
+      --rule:       oklch(87% 0.012 225);
+
+      /* Accents — Clinical Teal + Cobalt */
+      --accent:           oklch(53% 0.175 178);
+      --accent-soft:      oklch(53% 0.175 178 / 0.09);
+      --accent-blue:      oklch(50% 0.215 255);
+      --accent-blue-soft: oklch(50% 0.215 255 / 0.09);
+
+      /* Typography */
+      --font-display: 'Instrument Serif', 'Times New Roman', serif;
+      --font-body: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+      --sidebar-width: 290px;
+    }
+
+    html[data-theme="dark"] {
+      /* Dark Mode — Deep Obsidian */
+      --paper:      oklch(13% 0.022 255);
+      --paper-dark: oklch(10% 0.018 255);
+      --paper-card: oklch(18% 0.025 255);
+      --ink:        oklch(97% 0.005 210);
+      --ink-muted:  oklch(65% 0.022 225);
+      --ink-faint:  oklch(50% 0.018 240);
+      --rule:       oklch(28% 0.025 250);
+
+      --accent:           oklch(72% 0.16 178);
+      --accent-soft:      oklch(72% 0.16 178 / 0.12);
+      --accent-blue:      oklch(68% 0.18 255);
+      --accent-blue-soft: oklch(68% 0.18 255 / 0.12);
+    }
+
+    /* Base Reset */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    html {
+      scroll-behavior: smooth;
+      background: var(--paper);
+      color: var(--ink);
+      transition: background 0.25s, color 0.25s;
+    }
+    
+    body {
+      font-family: var(--font-body);
+      font-size: 15px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    a {
+      color: var(--ink);
+      text-decoration: none;
+      border-bottom: 1px solid var(--accent);
+      transition: border-color 0.15s, color 0.15s;
+    }
+    
+    a:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    code {
+      font-family: var(--font-mono);
+      font-size: 0.85em;
+      background: var(--paper-dark);
+      padding: 2px 6px;
+      border: 1px solid var(--rule);
+      color: var(--ink);
+      font-weight: 500;
+    }
+
+    pre {
+      background: oklch(10% 0.018 255) !important;
+      border: 1px solid var(--rule);
+      padding: 20px;
+      overflow-x: auto;
+      margin-bottom: 24px;
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      border: none;
+      font-size: 0.9em;
+      color: #e2e8f0;
+    }
+
+    /* Force Highlight.js to use our container backgrounds */
+    .hljs {
+      background: transparent !important;
+      padding: 0 !important;
+    }
+
+    /* Scrollbars */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--paper);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--rule);
+      border: 2px solid var(--paper);
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--ink-faint);
+    }
+
+    /* Search Highlights */
+    mark.search-hit {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-bottom: 2px solid var(--accent);
+      font-weight: 600;
+      padding: 0 2px;
+    }
+
+    /* Layout Structure */
+    .app-container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Left Sidebar */
+    .sidebar {
+      width: var(--sidebar-width);
+      background: var(--paper-dark);
+      border-right: 1px solid var(--rule);
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+      transition: left 0.3s ease, background 0.25s, border-color 0.25s;
+    }
+
+    .brand-section {
+      padding: 28px 32px;
+      border-bottom: 1px solid oklch(100% 0 0 / 0.15);
+      background: var(--accent);
+      color: oklch(100% 0 0);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .brand-logo-text {
+      font-family: var(--font-display);
+      font-size: 32px;
+      line-height: 1;
+      font-weight: 700;
+    }
+
+    .brand-tagline {
+      font-family: var(--font-ui);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      opacity: 0.95;
+      font-weight: 700;
+    }
+
+    .search-container {
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--rule);
+      background: var(--paper);
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 8px 12px;
+      font-family: var(--font-ui);
+      font-size: 13px;
+      border: 1px solid var(--rule);
+      background: var(--paper-card);
+      color: var(--ink);
+      border-radius: 0;
+      outline: none;
+      transition: border-color 0.2s, background-color 0.25s, color 0.25s;
+    }
+
+    .search-input:focus {
+      border-color: var(--accent);
+    }
+
+    .nav-sections {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 0;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
+    .nav-sections::-webkit-scrollbar {
+      display: none;
+    }
+
+    .nav-group-title {
+      font-family: var(--font-ui);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--ink-faint);
+      padding: 12px 32px 6px;
+      font-weight: 700;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      padding: 8px 32px;
+      font-family: var(--font-ui);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--ink-muted);
+      border-bottom: none;
+      transition: all 0.15s;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .nav-item:hover {
+      color: var(--ink);
+      background: var(--accent-soft);
+    }
+
+    .nav-item.active {
+      color: var(--accent);
+      background: var(--accent-soft);
+      font-weight: 600;
+    }
+
+    .sidebar-footer {
+      padding: 20px 32px;
+      border-top: 1px solid var(--rule);
+      font-family: var(--font-ui);
+      font-size: 11px;
+      color: var(--ink-faint);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* Core UI Buttons */
+    .btn-flat {
+      background: var(--accent-soft);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 9px 14px;
+      font-family: var(--font-ui);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      font-weight: 700;
+      border-radius: 0;
+      text-align: center;
+      transition: all 0.15s;
+      outline: none;
+      width: 100%;
+    }
+
+    .btn-flat:hover {
+      background: var(--accent);
+      color: oklch(100% 0 0);
+      border-color: var(--accent);
+    }
+
+    /* Top Bar Mobile */
+    .top-bar-mobile {
+      display: none;
+      background: var(--accent);
+      color: var(--paper);
+      padding: 16px 24px;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .menu-toggle-btn {
+      background: transparent;
+      border: 1px solid var(--paper);
+      color: var(--paper);
+      padding: 6px 12px;
+      font-family: var(--font-ui);
+      font-size: 11px;
+      text-transform: uppercase;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    /* Main Scrolling Content Area */
+    .main-content {
+      margin-left: var(--sidebar-width);
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .content-viewport {
+      max-width: 960px;
+      padding: 60px 48px;
+      margin: 0 auto;
+    }
+
+    /* Editorial Styling */
+    h1.doc-title {
+      font-family: var(--font-display);
+      font-size: 68px;
+      font-weight: normal;
+      line-height: 0.95;
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+    }
+
+    .subtitle-large {
+      font-family: var(--font-display);
+      font-size: 23px;
+      line-height: 1.4;
+      color: var(--ink-muted);
+      margin-bottom: 40px;
+      font-style: italic;
+    }
+
+    section {
+      padding: 48px 0;
+      border-bottom: 1px solid var(--rule);
+      scroll-margin-top: 80px;
+    }
+
+    section:last-of-type {
+      border-bottom: none;
+    }
+
+    .section-kicker {
+      font-family: var(--font-ui);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--accent);
+      font-weight: 700;
+      display: block;
+      margin-bottom: 12px;
+    }
+
+    h2.section-title {
+      font-family: var(--font-display);
+      font-size: 38px;
+      font-weight: normal;
+      line-height: 1.1;
+      margin-bottom: 24px;
+    }
+
+    h3.sub-title {
+      font-family: var(--font-display);
+      font-size: 26px;
+      font-weight: normal;
+      margin: 36px 0 16px;
+      border-bottom: 1px solid var(--rule);
+      padding-bottom: 8px;
+    }
+
+    p {
+      margin-bottom: 24px;
+    }
+
+    /* Reading Mode Toggle Bar */
+    .reading-mode-bar {
+      display: flex;
+      border: 1px solid var(--rule);
+      background: var(--paper);
+      margin-bottom: 40px;
+      position: sticky;
+      top: 0;
+      z-index: 110;
+      overflow-x: auto;
+      white-space: nowrap;
+      -webkit-overflow-scrolling: touch;
+      box-shadow: 0 2px 8px oklch(0% 0 0 / 0.06);
+    }
+
+    .mode-btn {
+      flex: 1;
+      min-width: 160px;
+      background: transparent;
+      border: none;
+      padding: 14px 20px;
+      font-family: var(--font-ui);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--ink-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      transition: all 0.15s;
+    }
+
+    .mode-btn:hover {
+      color: var(--ink);
+      background: var(--paper);
+    }
+
+    .mode-btn.active {
+      color: oklch(100% 0 0);
+      background: var(--accent);
+      font-weight: 700;
+    }
+
+    /* Modality Preset Table Styling */
+    .preset-table-container {
+      margin-bottom: 16px;
+      overflow-x: auto;
+      border: 1px solid var(--ink);
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .preset-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--font-ui);
+      font-size: 12px;
+      background: var(--paper-card);
+      min-width: 600px;
+    }
+
+    .preset-table th, .preset-table td {
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .preset-table th {
+      background: var(--paper-dark);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--ink);
+      white-space: nowrap;
+    }
+
+    .preset-table tr.active td {
+      background: var(--accent-soft);
+      font-weight: 600;
+    }
+
+    .preset-table tr:hover td {
+      background: var(--paper-dark);
+      cursor: pointer;
+    }
+
+    /* Custom Preset Creator Styling */
+    .custom-preset-builder {
+      border: 1px solid var(--ink);
+      background: var(--paper-dark);
+      padding: 16px;
+      margin-bottom: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .builder-title {
+      font-family: var(--font-ui);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-weight: 700;
+      color: var(--ink);
+    }
+    
+    .builder-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    
+    .builder-input, .builder-input-small, .builder-select {
+      background: var(--paper-card);
+      border: 1px solid var(--rule);
+      color: var(--ink);
+      padding: 6px 10px;
+      font-family: var(--font-ui);
+      font-size: 13px;
+      border-radius: 0;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .builder-input:focus, .builder-input-small:focus, .builder-select:focus {
+      border-color: var(--accent);
+    }
+    
+    .builder-input {
+      flex: 2;
+      min-width: 180px;
+    }
+    
+    .builder-input-small {
+      flex: 1;
+      min-width: 80px;
+    }
+    
+    .builder-select {
+      flex: 1;
+      min-width: 110px;
+    }
+    
+    .btn-builder {
+      padding: 6px 12px;
+      font-size: 11px;
+    }
+
+    /* Live Pipeline Simulator Grid */
+    .simulator-layout {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 32px;
+      background: var(--paper-card);
+      border: 1px solid var(--ink);
+      padding: 32px;
+      margin-bottom: 40px;
+    }
+
+    .simulator-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .simulator-preview-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      border-left: 1px solid var(--rule);
+      padding-left: 32px;
+    }
+
+    .visualizers-container {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      width: 100%;
+      align-items: center;
+    }
+
+    .visualizer-card {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: var(--paper-dark);
+      border: 1px solid var(--rule);
+      padding: 16px;
+    }
+
+    .visualizer-title {
+      font-family: var(--font-ui);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--ink-muted);
+      margin-bottom: 12px;
+      font-weight: 700;
+      width: 100%;
+      text-align: left;
+      border-bottom: 1px solid var(--rule);
+      padding-bottom: 6px;
+    }
+
+    .canvas-container {
+      position: relative;
+      background: #020617;
+      border: 1px solid var(--ink);
+      width: 260px;
+      max-width: 100%;
+      height: 260px;
+      cursor: ew-resize;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    #simulatorCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 10;
+    }
+
+    #beforeCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+      filter: contrast(0.6) brightness(0.7);
+    }
+
+    .slider-divider {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--accent);
+      z-index: 20;
+      pointer-events: none;
+    }
+
+    .slider-handle {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 32px;
+      height: 32px;
+      background: var(--accent);
+      border: 2px solid white;
+      border-radius: 50%;
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 10px;
+      pointer-events: none;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
+
+    .slider-label {
+      position: absolute;
+      top: 10px;
+      padding: 2px 8px;
+      background: rgba(0,0,0,0.6);
+      color: white;
+      font-family: var(--font-ui);
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      pointer-events: none;
+      z-index: 25;
+    }
+
+    /* Benchmark Chart Styling */
+    .benchmark-container {
+      margin: 32px 0;
+      background: var(--paper-dark);
+      border: 1px solid var(--rule);
+      padding: 24px;
+    }
+
+    .benchmark-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .benchmark-label {
+      width: 140px;
+      font-family: var(--font-ui);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink-muted);
+    }
+
+    .benchmark-bar-bg {
+      flex: 1;
+      height: 12px;
+      background: var(--rule);
+      position: relative;
+    }
+
+    .benchmark-bar-fill {
+      height: 100%;
+      background: var(--accent);
+      transition: width 1s ease-out;
+    }
+
+    .benchmark-val {
+      width: 60px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--accent);
+      text-align: right;
+    }
+
+    #simulatorCanvas, #histogramCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* PACS Telemetry Inspector HUD */
+    .pacs-hud {
+      margin-top: 12px;
+      width: 100%;
+      border: 1px solid var(--rule);
+      background: var(--paper-card);
+      padding: 8px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .pacs-hud-row {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-ui);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ink-muted);
+    }
+
+    .pacs-hud-row span:last-child {
+      font-family: var(--font-mono);
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .telemetry-grid {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .telemetry-item {
+      background: var(--paper-dark);
+      border: 1px solid var(--rule);
+      padding: 10px 14px;
+      text-align: center;
+    }
+
+    .telemetry-val {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .telemetry-label {
+      font-family: var(--font-ui);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--ink-faint);
+      margin-top: 2px;
+    }
+
+    /* Simulated Interactive Validation Terminal */
+    .terminal-container {
+      background: #090d16;
+      border: 1px solid var(--ink);
+      margin: 40px 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .terminal-header {
+      background: #1f2937;
+      border-bottom: 1px solid var(--ink);
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .terminal-title-text {
+      font-family: var(--font-ui);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #9ca3af;
+      font-weight: 700;
+    }
+
+    .terminal-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .terminal-select {
+      background: #111827;
+      border: 1px solid #374151;
+      color: #e5e7eb;
+      font-family: var(--font-ui);
+      font-size: 11px;
+      padding: 4px 8px;
+      outline: none;
+      border-radius: 0;
+      cursor: pointer;
+    }
+
+    .terminal-body {
+      padding: 20px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      line-height: 1.6;
+      color: #93c5fd;
+      height: 250px;
+      overflow-y: auto;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
+    .terminal-body::-webkit-scrollbar {
+      display: none;
+    }
+
+    .term-line {
+      margin-bottom: 6px;
+      white-space: pre;
+    }
+
+    .term-line.parse { color: #94a3b8; }
+    .term-line.success { color: #34d399; }
+    .term-line.warning { color: #fbbf24; }
+    .term-line.error { color: #f87171; font-weight: 700; }
+    .term-line.fix { color: #a78bfa; font-style: italic; }
+
+    /* Interactive Form Elements styling */
+    .control-label {
+      font-family: var(--font-ui);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--ink);
+      margin-bottom: 6px;
+      font-weight: 700;
+      display: block;
+    }
+
+    .control-select {
+      width: 100%;
+      background: var(--paper-card);
+      border: 1px solid var(--rule);
+      color: var(--ink);
+      padding: 8px 12px;
+      font-family: var(--font-ui);
+      font-size: 13px;
+      outline: none;
+      border-radius: 0;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+
+    .control-select:focus {
+      border-color: var(--accent);
+    }
+
+    .control-range {
+      width: 100%;
+      -webkit-appearance: none;
+      background: var(--rule);
+      height: 4px;
+      outline: none;
+      margin: 8px 0;
+    }
+
+    .control-range::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      background: var(--accent);
+      cursor: pointer;
+      border: 1px solid var(--ink);
+    }
+
+    .control-checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-ui);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink-muted);
+      cursor: pointer;
+      margin-top: 8px;
+    }
+
+    .control-checkbox {
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    /* Tabs interfaces styling */
+    .code-tabs-container {
+      border: 1px solid var(--ink);
+      background: #0b0f19;
+      margin-bottom: 32px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .code-tabs-header {
+      display: flex;
+      background: #1f2937;
+      border-bottom: 1px solid var(--ink);
+      overflow-x: auto;
+      white-space: nowrap;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .code-tab-btn {
+      background: transparent;
+      border: none;
+      border-right: 1px solid #374151;
+      padding: 10px 20px;
+      font-family: var(--font-ui);
+      font-size: 11px;
+      font-weight: 700;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+
+    .code-tab-btn:hover {
+      color: #f3f4f6;
+      background: #111827;
+    }
+
+    .code-tab-btn.active {
+      color: #34d399;
+      background: #090d16;
+      border-bottom: 1px solid transparent;
+    }
+
+    .code-content-pane {
+      display: none;
+      padding: 0;
+    }
+
+    .code-content-pane.active {
+      display: block;
+    }
+
+    .code-content-pane pre {
+      margin-bottom: 0;
+      border: none;
+      background: #090d16 !important;
+    }
+
+    /* Copy Button Styling */
+    .code-content-pane {
+      position: relative;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #9ca3af;
+      padding: 4px 8px;
+      font-family: var(--font-ui);
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      transition: all 0.15s;
+      z-index: 10;
+    }
+
+    .copy-btn:hover {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    .copy-btn.copied {
+      background: #22c55e;
+      color: white;
+      border-color: #22c55e;
+    }
+
+    .metadata-profile-controls {
+      background: #111827;
+      padding: 12px 20px;
+      border-bottom: 1px dashed #374151;
+    }
+
+    /* Math Formula Block */
+    .math-block {
+      background: var(--accent-soft);
+      border: 1px solid var(--accent);
+      padding: 16px 24px;
+      margin: 16px 0 24px;
+      font-family: var(--font-ui);
+    }
+
+    .math-formula {
+      display: block;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--accent);
+      margin-top: 8px;
+      white-space: nowrap;
+    }
+
+    /* Pipeline Step Diagram styling */
+    .pipeline-diagram {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin: 24px 0 32px;
+    }
+
+    .pipeline-step {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      background: var(--paper-card);
+      border: 1px solid var(--rule);
+      padding: 14px 20px;
+    }
+
+    .pipeline-num {
+      font-family: var(--font-mono);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--accent);
+      background: var(--paper-dark);
+      width: 42px;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--rule);
+    }
+
+    .pipeline-info {
+      flex: 1;
+    }
+
+    .pipeline-title {
+      font-family: var(--font-ui);
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--ink);
+      white-space: nowrap;
+    }
+
+    .pipeline-desc {
+      font-family: var(--font-ui);
+      font-size: 12px;
+      color: var(--ink-muted);
+      margin-top: 2px;
+    }
+
+    /* Callout Boxes */
+    .callout {
+      background: var(--accent-blue-soft);
+      border: 1px solid var(--accent-blue);
+      padding: 20px 24px;
+      margin: 24px 0;
+    }
+
+    .callout-title {
+      font-family: var(--font-ui);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-weight: 700;
+      color: var(--ink);
+      display: block;
+      margin-bottom: 8px;
+      border-bottom: 1px solid var(--rule);
+      padding-bottom: 4px;
+    }
+
+    /* Data Specification Tables */
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      margin-bottom: 32px;
+      border: 1px solid var(--ink);
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--font-ui);
+      font-size: 13px;
+      margin: 0;
+      border: none;
+      min-width: 600px;
+    }
+
+    .data-table th, .data-table td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .data-table th {
+      background: var(--paper-dark);
+      font-weight: 700;
+      color: var(--ink);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .data-table tbody tr:hover td {
+      background: var(--paper-dark);
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin: 24px 0;
+    }
+
+    .dashboard-card {
+      background: var(--paper-dark);
+      border: 1px solid var(--rule);
+      padding: 16px;
+      text-align: center;
+    }
+
+    .dashboard-value {
+      font-family: var(--font-mono);
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .dashboard-label {
+      font-family: var(--font-ui);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--ink-faint);
+      margin-top: 4px;
+    }
+
+    /* Search fallback card styles */
+    #searchFallback {
+      display: none;
+      background: var(--paper-dark);
+      border: 1px solid var(--rule);
+      padding: 24px;
+      margin: 24px 0;
+      text-align: center;
+    }
+
+    /* ─── Bullet & List Fixes ─────────────────────────────── */
+    .content-viewport ul,
+    .content-viewport ol,
+    .callout ul,
+    .callout ol {
+      margin: 0 0 24px 0;
+      padding-left: 1.5em;
+      list-style-position: outside;
+    }
+
+    .content-viewport ul {
+      list-style-type: disc;
+    }
+
+    .content-viewport ol {
+      list-style-type: decimal;
+    }
+
+    .content-viewport li,
+    .callout li {
+      font-family: var(--font-body);
+      font-size: 15px;
+      line-height: 1.65;
+      color: var(--ink);
+      margin-bottom: 8px;
+      padding-left: 0.25em;
+    }
+
+    .content-viewport li:last-child,
+    .callout li:last-child {
+      margin-bottom: 0;
+    }
+
+    .content-viewport li code,
+    .callout li code {
+      font-size: 0.83em;
+      vertical-align: baseline;
+    }
+
+    /* API method signature blocks – replace the inline div approach */
+    .method-block {
+      margin-bottom: 28px;
+    }
+
+    .method-block > p {
+      margin-bottom: 10px;
+    }
+
+    .method-block ul {
+      margin-bottom: 0;
+    }
+
+    /* Inline code inside paragraphs should not break layout */
+    p code,
+    li code,
+    td code {
+      word-break: normal;
+      overflow-wrap: normal;
+      white-space: nowrap;
+    }
+
+    /* Ensure specific table columns for keys don't wrap and break mid-word */
+    .data-table td:first-child code {
+      white-space: nowrap;
+    }
+
+    /* Fix callout paragraph spacing */
+    .callout p {
+      margin-bottom: 0;
+    }
+
+    /* Math block mobile overflow */
+    .math-block {
+      overflow-x: auto;
+    }
+
+    .math-formula {
+      white-space: nowrap;
+    }
+
+    /* ─── Responsive Adapters ─────────────────────────────── */
+    @media (max-width: 1024px) {
+      .app-container {
+        flex-direction: column;
+      }
+
+      .brand-section {
+        display: none;
+      }
+
+      .sidebar {
+        width: 100%;
+        position: fixed;
+        top: 61px;
+        left: -100%;
+        bottom: 0;
+        z-index: 150;
+        border-right: none;
+        border-top: 1px solid var(--rule);
+      }
+
+      .sidebar.open {
+        left: 0;
+      }
+
+      .top-bar-mobile {
+        display: flex;
+      }
+
+      .main-content {
+        margin-left: 0;
+      }
+
+      .content-viewport {
+        padding: 32px 16px;
+      }
+
+      h1.doc-title {
+        display: none;
+      }
+
+      .subtitle-large {
+        font-size: 18px;
+        margin-bottom: 32px;
+        padding-top: 10px;
+      }
+
+      .simulator-layout {
+        grid-template-columns: 1fr;
+        padding: 16px;
+        gap: 24px;
+      }
+
+      .simulator-preview-panel {
+        border-left: none;
+        border-top: 1px solid var(--rule);
+        padding-left: 0;
+        padding-top: 24px;
+      }
+
+      .dashboard-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .data-table {
+        font-size: 12px;
+      }
+
+      .reading-mode-bar {
+        margin-bottom: 24px;
+      }
+
+      .canvas-container {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 1/1;
+      }
+    }
+
+    /* ─── Mobile portrait ───────────────────────────────────── */
+    @media (max-width: 680px) {
+      .content-viewport {
+        padding: 24px 16px;
+      }
+
+      h2.section-title {
+        font-size: 28px;
+      }
+
+      h3.sub-title {
+        font-size: 20px;
+      }
+
+      section {
+        padding: 32px 0;
+      }
+
+      .dashboard-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
+
+      .telemetry-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+      }
+
+      .reading-mode-bar {
+        top: 61px;
+      }
+
+      .mode-btn {
+        min-width: 120px;
+        font-size: 11px;
+        padding: 12px 12px;
+      }
+
+      pre {
+        font-size: 12px;
+        padding: 14px;
+      }
+
+      pre code {
+        font-size: 0.82em;
+      }
+
+      .pipeline-step {
+        padding: 10px 14px;
+        gap: 14px;
+      }
+
+      .pipeline-num {
+        width: 36px;
+        height: 36px;
+        font-size: 15px;
+        flex-shrink: 0;
+      }
+
+      .math-block {
+        padding: 12px 16px;
+      }
+
+      .math-formula {
+        font-size: 12px;
+      }
+
+      .builder-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .builder-input,
+      .builder-input-small,
+      .builder-select {
+        min-width: unset;
+        width: 100%;
+        flex: none;
+      }
+
+      .terminal-header {
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-start;
+      }
+
+      .terminal-controls {
+        flex-wrap: wrap;
+        width: 100%;
+      }
+
+      .terminal-select {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .content-viewport li {
+        font-size: 14px;
+      }
+    }
+
+    /* ─── Small phones ──────────────────────────────────────── */
+    @media (max-width: 400px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .dashboard-value {
+        font-size: 16px;
+      }
+
+      .content-viewport {
+        padding: 16px 12px;
+      }
+
+      .section-kicker {
+        font-size: 10px;
+      }
+    }
+
+    /* Site Footer Styling - Minimal */
+    .site-footer {
+      border-top: 1px solid var(--rule);
+      padding: 40px 48px;
+      margin-top: 60px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 24px;
+      max-width: 960px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .footer-left {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .footer-logo-small {
+      font-family: var(--font-display);
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .footer-copyright-small {
+      font-family: var(--font-ui);
+      font-size: 11px;
+      color: var(--ink-faint);
+    }
+
+    .footer-links-minimal {
+      display: flex;
+      gap: 20px;
+    }
+
+    .footer-link-min {
+      font-family: var(--font-ui);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink-muted);
+      border: none;
+    }
+
+    .footer-link-min:hover {
+      color: var(--accent);
+    }
+
+    @media (max-width: 680px) {
+      .site-footer {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 32px 24px;
+      }
+      .footer-links-minimal {
+        flex-wrap: wrap;
+        gap: 12px 20px;
+      }
+    }
+
+    /* Shutter Transition Overlay */
+    .shutter {
+      position: fixed;
+      left: 0;
+      width: 100vw;
+      height: 50vh;
+      background: var(--paper-dark);
+      z-index: 9999;
+      transition: transform 0.6s cubic-bezier(0.77, 0, 0.175, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .shutter-top {
+      top: 0;
+      transform: translateY(-100%);
+      border-bottom: 2px solid var(--accent);
+    }
+    .shutter-bottom {
+      bottom: 0;
+      transform: translateY(100%);
+      border-top: 2px solid var(--accent);
+    }
+    .shutter.closing {
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+  <div class="shutter shutter-top closing"></div>
+  <div class="shutter shutter-bottom closing"></div>
+
+  <!-- Mobile Top Bar Header -->
+  <div class="top-bar-mobile">
+    <div style="font-family: var(--font-display); font-size: 24px; font-weight: 700;">CAD Preprocess</div>
+    <button class="menu-toggle-btn" id="menuBtn" onclick="toggleMobileMenu()">Menu</button>
+  </div>
+
+  <div class="app-container">
+
+    <!-- Left Navigation Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="brand-section">
+        <h1 class="brand-logo-text">CAD Preprocess</h1>
+        <div class="brand-tagline">open source python library</div>
+      </div>
+      
+      <!-- Instant Client Search -->
+      <div class="search-container">
+        <input type="text" class="search-input" placeholder="Search documentation..." oninput="filterDocumentation(this.value)">
+      </div>
+      
+      <!-- Nav Anchors -->
+      <nav class="nav-sections">
+        <div class="nav-group-title">Getting Started</div>
+        <a class="nav-item active" onclick="showSection('overview')">Overview</a>
+        <a class="nav-item" onclick="showSection('installation')">Installation</a>
+        <a class="nav-item" onclick="showSection('quickstart')">Quickstart & Usage</a>
+        <a class="nav-item" onclick="showSection('architecture')">Architecture & Code Layout</a>
+        
+        <div class="nav-group-title">Reference</div>
+        <a class="nav-item" onclick="showSection('configurator')">YAML Generator</a>
+        <a class="nav-item" onclick="showSection('config-reference')">Configuration Schema</a>
+        <a class="nav-item" onclick="showSection('api-reference')">Core API Reference</a>
+        <a class="nav-item" onclick="showSection('ml-integration')">Clinical Production Pipelines</a>
+        <a class="nav-item" onclick="showSection('diagnostics')">Diagnostics & Explorer</a>
+      </nav>
+      
+      <!-- Theme Toggle Only -->
+      <div style="padding: 20px 32px; border-top: 1px solid var(--rule);">
+        <button class="btn-flat" onclick="toggleTheme()" id="themeBtn">Night Mode</button>
+      </div>
+    </aside>
+
+    <!-- Main Scrolling Viewport -->
+    <main class="main-content">
+      <div class="content-viewport">
+        
+        <h1 class="doc-title" id="titleHeader">CAD Preprocess</h1>
+        <div class="subtitle-large">An open-source library for standardized DICOM image transformations built once, running deterministically across machine learning datasets, clinical PACS servers, and inference microservices.</div>
+
+        <!-- Interactive Reading Mode Toggler -->
+        <div class="reading-mode-bar">
+          <button class="mode-btn active" id="btnSandbox" onclick="switchReadingMode('sandbox')">
+            Visual Sandbox
+          </button>
+          <button class="mode-btn" id="btnSpec" onclick="switchReadingMode('spec')">
+            Technical Reference
+          </button>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VISUAL SANDBOX PANE                        -->
+        <!-- ========================================== -->
+        <div id="sandboxPane">
+          <p>
+            Adjust pipeline variables on the procedurally generated chest CT scan to visually evaluate window center/width clippings, Z-score standardizations, and spatial aspect ratio paddings. Hover over the scan to inspect raw anatomical voxel data.
+          </p>
+
+          <!-- Modality Preset Table -->
+          <div class="nav-group-title" style="padding-left:0; margin-bottom:10px;">Select Clinical Modality Preset</div>
+          <div class="preset-table-container">
+            <table class="preset-table">
+              <thead>
+                <tr>
+                  <th>Modality Profile</th>
+                  <th>Strategy</th>
+                  <th>Center</th>
+                  <th>Width</th>
+                  <th>Normalization</th>
+                  <th>Target Size</th>
+                  <th>Padding</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="active" onclick="loadPresetRow('lung', this)">
+                  <td>CT Lung Parenchyma</td>
+                  <td>Fixed Window</td>
+                  <td>-600 HU</td>
+                  <td>1500 HU</td>
+                  <td>Min-Max</td>
+                  <td>512 x 512</td>
+                  <td>Enabled</td>
+                </tr>
+                <tr onclick="loadPresetRow('bone', this)">
+                  <td>CT Bone Window</td>
+                  <td>Fixed Window</td>
+                  <td>+500 HU</td>
+                  <td>2000 HU</td>
+                  <td>Min-Max</td>
+                  <td>1024 x 1024</td>
+                  <td>Enabled</td>
+                </tr>
+                <tr onclick="loadPresetRow('brain', this)">
+                  <td>CT Soft Brain</td>
+                  <td>Fixed Window</td>
+                  <td>+40 HU</td>
+                  <td>80 HU</td>
+                  <td>Min-Max</td>
+                  <td>512 x 512</td>
+                  <td>Enabled</td>
+                </tr>
+                <tr onclick="loadPresetRow('mri', this)">
+                  <td>Brain MRI Slice</td>
+                  <td>Use DICOM Embedded</td>
+                  <td>Auto</td>
+                  <td>Auto</td>
+                  <td>Z-Score</td>
+                  <td>512 x 512</td>
+                  <td>Disabled</td>
+                </tr>
+                <tr onclick="loadPresetRow('mammo', this)">
+                  <td>Mammography Screen</td>
+                  <td>Use DICOM Embedded</td>
+                  <td>Auto</td>
+                  <td>Auto</td>
+                  <td>Min-Max</td>
+                  <td>2048 x 2048</td>
+                  <td>Enabled</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Custom Preset Builder Widget -->
+          <div class="custom-preset-builder">
+            <div class="builder-title">Save Custom Modality Preset</div>
+            <div class="builder-row">
+              <input type="text" id="customPresetName" placeholder="Preset Name (e.g., CT Abdomen)" class="builder-input">
+              <input type="number" id="customPresetCenter" placeholder="Center (HU)" class="builder-input-small">
+              <input type="number" id="customPresetWidth" placeholder="Width (HU)" class="builder-input-small">
+              <select id="customPresetNormalize" class="builder-select">
+                <option value="min_max">Min-Max</option>
+                <option value="z_score">Z-Score</option>
+              </select>
+              <select id="customPresetSize" class="builder-select">
+                <option value="256">256 x 256</option>
+                <option value="512" selected>512 x 512</option>
+                <option value="1024">1024 x 1024</option>
+                <option value="2048">2048 x 2048</option>
+              </select>
+              <button class="btn-flat btn-builder" onclick="saveCustomPreset()">Save Preset</button>
+            </div>
+          </div>
+
+          <!-- Interactive Simulator Widget -->
+          <div class="simulator-layout">
+            <div class="simulator-controls">
+              
+              <div class="control-group">
+                <label class="control-label" id="lblStrategy">Windowing Strategy</label>
+                <select class="control-select" id="simStrategy" onchange="updateSimConfig()">
+                  <option value="use_dicom_window">Use DICOM Embedded (VOI LUT)</option>
+                  <option value="fixed_window" selected>Fixed Explicit Window Center/Width</option>
+                </select>
+              </div>
+              
+              <div class="control-group" id="simCenterGroup">
+                <label class="control-label" id="simCenterLabel">Window Center (-600 HU)</label>
+                <input type="range" min="-1000" max="1000" value="-600" class="control-range" id="simCenter" oninput="updateSimConfig()">
+              </div>
+
+              <div class="control-group" id="simWidthGroup">
+                <label class="control-label" id="simWidthLabel">Window Width (1500 HU)</label>
+                <input type="range" min="1" max="3000" value="1500" class="control-range" id="simWidth" oninput="updateSimConfig()">
+              </div>
+
+              <div class="control-group">
+                <label class="control-label">Normalization Method</label>
+                <select class="control-select" id="simNormalize" onchange="updateSimConfig()">
+                  <option value="min_max" selected>Min-Max [0, 1] Scaling</option>
+                  <option value="z_score">Z-Score Standardization (Mean/Std)</option>
+                </select>
+              </div>
+
+              <div class="control-group">
+                <label class="control-label" id="simSizeLabel">Target Size (512 x 512 px)</label>
+                <input type="range" min="256" max="2048" step="256" value="512" class="control-range" id="simSize" oninput="updateSimConfig()">
+              </div>
+
+              <div class="control-group">
+                <label class="control-label">Naming Policy</label>
+                <select class="control-select" id="simNamingPolicy" onchange="updateSimConfig()">
+                  <option value="sop_instance_uid" selected>SOP Instance UID (Standard)</option>
+                  <option value="original_filename">Original File Name</option>
+                  <option value="sequential">Sequential Index</option>
+                </select>
+              </div>
+
+              <div class="control-group">
+                <label class="control-label">Overwrite Policy</label>
+                <select class="control-select" id="simOverwritePolicy" onchange="updateSimConfig()">
+                  <option value="skip" selected>Skip (Do not overwrite)</option>
+                  <option value="overwrite">Overwrite existing</option>
+                  <option value="rename">Rename automatically</option>
+                  <option value="error">Raise exception</option>
+                </select>
+              </div>
+
+              <label class="control-checkbox-group">
+                <input type="checkbox" class="control-checkbox" id="simAspect" checked onchange="updateSimConfig()">
+                Preserve Aspect Ratio (Apply Padding Margin)
+              </label>
+
+            </div>
+
+            <!-- Visualizers Container -->
+            <div class="simulator-preview-panel">
+              <div class="visualizers-container">
+                
+                <!-- Slice Visualizer with PACS inspector HUD -->
+                <div class="visualizer-card">
+                  <div class="visualizer-title">Clinical Comparison Slider</div>
+                  <div class="canvas-container" id="sliderContainer">
+                    <div class="slider-label" style="left: 10px;">Before (Raw)</div>
+                    <div class="slider-label" style="right: 10px;">After (Prep)</div>
+                    <canvas id="beforeCanvas" width="150" height="150"></canvas>
+                    <canvas id="simulatorCanvas" width="150" height="150"></canvas>
+                    <div class="slider-divider" id="sliderDivider" style="left: 50%;"></div>
+                    <div class="slider-handle" id="sliderHandle" style="left: 50%;"></div>
+                  </div>
+                  
+                  <!-- PACS inspector probe details overlay -->
+                  <div class="pacs-hud" id="pacsHud">
+                    <div class="pacs-hud-row"><span>COORDINATES:</span><span id="hudCoords" class="mono-val">N/A</span></div>
+                    <div class="pacs-hud-row"><span>ANATOMY:</span><span id="hudAnatomy" class="mono-val">HOVER SCAN</span></div>
+                    <div class="pacs-hud-row"><span>VOXEL DENSITY:</span><span id="hudHu" class="mono-val">N/A</span></div>
+                    <div class="pacs-hud-row"><span>INTENSITY:</span><span id="hudIntensity" class="mono-val">N/A</span></div>
+                  </div>
+                </div>
+
+                <!-- Histogram Visualizer -->
+                <div class="visualizer-card">
+                  <div class="visualizer-title">Hounsfield Voxel Density Profile</div>
+                  <div class="canvas-container" style="height:120px;">
+                    <canvas id="histogramCanvas" width="260" height="120"></canvas>
+                  </div>
+                </div>
+
+              </div>
+              
+              <div class="telemetry-grid">
+                <div class="telemetry-item">
+                  <div class="telemetry-val" id="clipLowVal">0.0%</div>
+                  <div class="telemetry-label">Clipped Low (Air)</div>
+                </div>
+                <div class="telemetry-item">
+                  <div class="telemetry-val" id="clipHighVal">0.0%</div>
+                  <div class="telemetry-label">Clipped High (Bone)</div>
+                </div>
+                <div class="telemetry-item">
+                  <div class="telemetry-val" id="voxCountVal">22500 vox</div>
+                  <div class="telemetry-label">Voxel Area</div>
+                </div>
+                <div class="telemetry-item">
+                  <div class="telemetry-val" id="scaleDimVal">512 x 512 px</div>
+                  <div class="telemetry-label">Pipeline Output</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recipe Stack Tab Toggles -->
+          <div class="nav-group-title" style="padding-left:0; margin-bottom:10px;">Generated Pipeline Integration Stack</div>
+          <div class="code-tabs-container">
+            <div class="code-tabs-header">
+              <button class="code-tab-btn active" onclick="switchRecipeTab(event, 'recipe-yaml')">YAML Config</button>
+              <button class="code-tab-btn" onclick="switchRecipeTab(event, 'recipe-python')">Python API</button>
+              <button class="code-tab-btn" onclick="switchRecipeTab(event, 'recipe-cli')">CLI Command</button>
+              <button class="code-tab-btn" onclick="switchRecipeTab(event, 'recipe-metadata')">Metadata JSON</button>
+            </div>
+            
+            <div id="recipe-yaml" class="code-content-pane active">
+              <button class="copy-btn" onclick="copyRecipeText('recipeYamlText', this)">Copy YAML</button>
+              <pre><code class="language-yaml" id="recipeYamlText"># Real-time generated pipeline configuration schema</code></pre>
+            </div>
+            <div id="recipe-python" class="code-content-pane">
+              <button class="copy-btn" onclick="copyRecipeText('recipePythonText', this)">Copy Python</button>
+              <pre><code class="language-python" id="recipePythonText"># Programmatic Python API deployment</code></pre>
+            </div>
+            <div id="recipe-cli" class="code-content-pane">
+              <button class="copy-btn" onclick="copyRecipeText('recipeCliText', this)">Copy Command</button>
+              <pre><code class="language-bash" id="recipeCliText"># Direct terminal execution instruction</code></pre>
+            </div>
+            
+            <!-- Metadata Profile Inspector Pane -->
+            <div id="recipe-metadata" class="code-content-pane">
+              <button class="copy-btn" onclick="copyRecipeText('recipeMetadataText', this)">Copy JSON</button>
+              <div class="metadata-profile-controls" style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+                <span style="font-family: var(--font-ui); font-size: 11px; color: #9ca3af; font-weight: 700; text-transform: uppercase;">Profile:</span>
+                <select id="metaProfileSelect" class="terminal-select" onchange="updateMetadataInspector()" style="padding: 6px 12px; font-size: 12px;">
+                  <option value="minimal" selected>Minimal Profile</option>
+                  <option value="patient">Patient Demographics</option>
+                  <option value="geometry">Spatial Geometry</option>
+                  <option value="ml">Machine Learning (ML) Profile</option>
+                  <option value="acquisition">Acquisition Parameters</option>
+                  <option value="custom">Custom Tag List</option>
+                </select>
+                <div id="customMetaTagsGroup" style="display: none; align-items: center; gap: 8px;">
+                  <input type="text" id="customMetaTagsInput" placeholder="Manufacturer, ImageType" value="Manufacturer, ImageType" class="builder-input" style="padding: 4px 8px; font-size: 12px; min-width: 250px; background: #111827; border: 1px solid #374151; color: #e5e7eb;" oninput="updateMetadataInspector()">
+                </div>
+              </div>
+              <pre><code class="language-json" id="recipeMetadataText">{ /* Interactive Metadata JSON */ }</code></pre>
+            </div>
+          </div>
+
+          <!-- Interactive DICOM Tag Validator Debugger -->
+          <div class="terminal-container">
+            <div class="terminal-header">
+              <span class="terminal-title-text">Interactive DICOM Tag Validator Terminal</span>
+              <div class="terminal-controls">
+                <span style="font-family: var(--font-ui); font-size: 11px; color: #9ca3af;">Select Scenario:</span>
+                <select class="terminal-select" id="terminalScenario" onchange="runSimTerminalDebugger()">
+                  <option value="success_ct" selected>Valid Chest CT Scan - Full Tags</option>
+                  <option value="error_codec">Corrupted Codec - JPEG Lossless Syntax</option>
+                  <option value="error_spatial">Missing Geometry - Rescale Intercept Absent</option>
+                  <option value="error_pixel">Truncated Stream - PixelData Segment Missing</option>
+                </select>
+              </div>
+            </div>
+            <div class="terminal-body" id="terminalOutput">
+              <!-- Terminal text lines generated by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- THOROUGH SPECIFICATION PANE                -->
+        <!-- ========================================== -->
+        <div id="specPane" style="display:none;">
+
+          <!-- Search Fallback Card -->
+          <div id="searchFallback">
+            <h3 class="sub-title" style="margin-top:0;">No matching sections found</h3>
+            <p style="margin-bottom:0;">Please try adjusting your search terms or scroll back through the full index.</p>
+          </div>
+
+          <!-- Section 1: Overview -->
+          <section id="overview" class="doc-section">
+            <span class="section-kicker">Section 01</span>
+            <h2 class="section-title">Overview & Pipeline Philosophy</h2>
+            <p>
+              Radiology machine learning models are highly sensitive to subtle discrepancies in voxel array representation. Small variances in spatial resolution interpolations, Hounsfield Unit calibrations, or clipping thresholds during training versus clinical deployment can trigger silent diagnostic degradation in production.
+            </p>
+            <p>
+              The <code>cad-preprocess</code> package addresses this challenge. By centralizing pipeline parameters inside standard configurations, it guarantees that patient datasets are processed deterministically across PyTorch training sequences, FastAPI clinical inference endpoints, and local PyQt6 visual clients.
+            </p>
+
+            <div class="dashboard-grid">
+              <div class="dashboard-card">
+                <div class="dashboard-value">327/327</div>
+                <div class="dashboard-label">Unit Tests Passing</div>
+              </div>
+              <div class="dashboard-card">
+                <div class="dashboard-value">&lt; 1.2s</div>
+                <div class="dashboard-label">Avg Decompress & Prep</div>
+              </div>
+              <div class="dashboard-card">
+                <div class="dashboard-value">100%</div>
+                <div class="dashboard-label">Offline-Capable Core</div>
+              </div>
+              <div class="dashboard-card">
+                <div class="dashboard-value">5 Profiles</div>
+                <div class="dashboard-label">Metadata Extraction</div>
+              </div>
+            </div>
+
+            <h3 class="sub-title">1. Linear Rescaling (Hounsfield Unit Conversion)</h3>
+            <p>
+              For CT modalities, pixel matrices represent physical voxel densities that must be converted to physical Hounsfield Units (HU) using the Rescale Slope and Intercept attributes embedded within the DICOM Part 10 metadata header:
+            </p>
+            <div class="math-block">
+              Linear transformation formula:
+              <span class="math-formula">$$HU = (Raw\_Voxel\_Value \times RescaleSlope) + RescaleIntercept$$</span>
+            </div>
+
+            <h3 class="sub-title">2. Intensity Windowing Mechanics</h3>
+            <p>
+              Windowing isolates specific tissue densities (e.g. bones, lung parenchyma, or soft brain matter) by mapping the designated input range to a standard output scale.
+            </p>
+            <div class="math-block">
+              Let window center be \(C\) and window width be \(W\). The minimum and maximum clip bounds are:
+              <span class="math-formula">$$Bounds_{Min} = C - (W / 2), \quad Bounds_{Max} = C + (W / 2)$$</span>
+              Voxel values are clipped:
+              <span class="math-formula">$$Clipped = \min(\max(Input, Bounds_{Min}), Bounds_{Max})$$</span>
+            </div>
+
+            <h3 class="sub-title">3. Intensity Normalization Algorithms</h3>
+            <p>
+              Normalized values scale feature representations to stable coordinates, optimizing training convergence:
+            </p>
+            <div class="math-block">
+              <strong>Min-Max Scaling:</strong> Map intensity values to \([0.0, 1.0]\).
+              <span class="math-formula">$$Normalized = \frac{Pixel - Min}{Max - Min}$$</span>
+              <br>
+              <strong>Z-Score Standardization:</strong> Scale by mean (\(\mu\)) and standard deviation (\(\sigma\)).
+              <span class="math-formula">$$Standardized = \frac{Pixel - \mu}{\sigma}$$</span>
+            </div>
+
+            <h3 class="sub-title">Processing Performance Benchmarks</h3>
+            <p>
+              Validated processing throughput measurements for high-volume clinical AI deployment environments:
+            </p>
+            <div class="benchmark-container">
+              <div class="benchmark-params" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 24px; margin-bottom: 32px; border-bottom: 1px dashed var(--rule); padding-bottom: 20px;">
+                <div>
+                  <div style="font-family: var(--font-ui); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; color: var(--accent); margin-bottom: 6px;">Input Resolution</div>
+                  <div style="font-family: var(--font-ui); font-size: 13px; color: var(--ink); font-weight: 600;">512 × 512 px</div>
+                  <div style="font-family: var(--font-ui); font-size: 11px; color: var(--ink-muted);">16-bit DICOM (Standard CT)</div>
+                </div>
+                <div>
+                  <div style="font-family: var(--font-ui); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; color: var(--accent); margin-bottom: 6px;">Pipeline Configuration</div>
+                  <div style="font-family: var(--font-ui); font-size: 13px; color: var(--ink); font-weight: 600;">Full Deterministic Load</div>
+                  <div style="font-family: var(--font-ui); font-size: 11px; color: var(--ink-muted);">Rescale + Window + Z-Score + Resize</div>
+                </div>
+                <div>
+                  <div style="font-family: var(--font-ui); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; color: var(--accent); margin-bottom: 6px;">Hardware Platform</div>
+                  <div style="font-family: var(--font-ui); font-size: 13px; color: var(--ink); font-weight: 600;">Intel i7 · Single Core</div>
+                  <div style="font-family: var(--font-ui); font-size: 11px; color: var(--ink-muted);">n = 1,000 iterations (Honest Test)</div>
+                </div>
+              </div>
+
+              <div class="benchmark-row">
+                <div class="benchmark-label">Manual Python Loop</div>
+                <div class="benchmark-bar-bg"><div class="benchmark-bar-fill" data-width="1%" style="width: 0%; background: var(--ink-faint);"></div></div>
+                <div class="benchmark-val">2.8 fps</div>
+              </div>
+              <div class="benchmark-row">
+                <div class="benchmark-label">Raw Optimized NumPy</div>
+                <div class="benchmark-bar-bg"><div class="benchmark-bar-fill" data-width="98%" style="width: 0%; background: var(--ink-faint);"></div></div>
+                <div class="benchmark-val">1,950 fps</div>
+              </div>
+              <div class="benchmark-row">
+                <div class="benchmark-label">CAD Preprocess</div>
+                <div class="benchmark-bar-bg"><div class="benchmark-bar-fill" data-width="86%" style="width: 0%;"></div></div>
+                <div class="benchmark-val">1,720 fps</div>
+              </div>
+
+              <p style="font-size: 11px; color: var(--ink-muted); margin-top: 24px; font-style: italic; border-left: 2px solid var(--accent); padding-left: 12px; line-height: 1.5;">
+                <strong>Transparency Note:</strong> While a raw NumPy script is marginally faster (~12%), CAD Preprocess introduces a safety layer including configuration validation, deterministic rounding, and DICOM metadata integrity checks. For production clinical AI, this "reliability tax" ensures reproducibility across different datasets and hardware.
+              </p>
+            </div>
+
+            <h3 class="sub-title">Sequential Processing Pipeline</h3>
+            <p>
+              Every loaded file undergoes a deterministic sequence of transformations inside the processing engine:
+            </p>
+            
+            <div class="pipeline-diagram">
+              <div class="pipeline-step">
+                <div class="pipeline-num">01</div>
+                <div class="pipeline-info">
+                  <div class="pipeline-title">Load binary & metadata</div>
+                  <div class="pipeline-desc">Retrieves tags using pydicom, verifying header structural integrity.</div>
+                </div>
+              </div>
+              <div class="pipeline-step">
+                <div class="pipeline-num">02</div>
+                <div class="pipeline-info">
+                  <div class="pipeline-title">Extract raw array</div>
+                  <div class="pipeline-desc">Loads the PixelData array safely, automatically handling byte order.</div>
+                </div>
+              </div>
+              <div class="pipeline-step">
+                <div class="pipeline-num">03</div>
+                <div class="pipeline-info">
+                  <div class="pipeline-title">Apply Slope & Intercept</div>
+                  <div class="pipeline-desc">Applies RescaleSlope and RescaleIntercept tags to yield physical units (e.g., Hounsfield Units).</div>
+                </div>
+              </div>
+              <div class="pipeline-step">
+                <div class="pipeline-num">04</div>
+                <div class="pipeline-info">
+                  <div class="pipeline-title">Intensity Windowing</div>
+                  <div class="pipeline-desc">Applies custom center/width limits or extracts standard VOI LUT tags from DICOM metadata.</div>
+                </div>
+              </div>
+              <div class="pipeline-step">
+                <div class="pipeline-num">05</div>
+                <div class="pipeline-info">
+                  <div class="pipeline-title">Normalize Pixels</div>
+                  <div class="pipeline-desc">Scales array values to the min-max [0.0, 1.0] range or applies Z-Score mean/standard deviations.</div>
+                </div>
+              </div>
+              <div class="pipeline-step">
+                <div class="pipeline-num">06</div>
+                <div class="pipeline-info">
+                  <div class="pipeline-title">Resize & Padding</div>
+                  <div class="pipeline-desc">Resizes using bilinear/bicubic paths, optionally applying neutral borders to preserve aspect ratio.</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Section 2: Installation -->
+          <section id="installation" class="doc-section">
+            <span class="section-kicker">Section 02</span>
+            <h2 class="section-title">Installation Guide</h2>
+            <p>
+              CAD Preprocess requires Python 3.9 or higher. You can install it directly via <code>pip</code> or bundle it within isolated project environments.
+            </p>
+
+            <h3 class="sub-title">Virtual Environment Installation</h3>
+            <pre><code class="language-bash"># Create and activate python virtual environment
+python3 -m venv venv
+source venv/bin/activate
+
+# Install Core Library
+pip install --upgrade pip
+pip install cad-preprocess</code></pre>
+
+            <h3 class="sub-title">Optional GUI Support</h3>
+            <p>
+              To use the interactive visual Explorer workbench, install PyQt6 graphical packages alongside the core modules:
+            </p>
+            <pre><code class="language-bash">pip install "cad-preprocess[gui]"</code></pre>
+
+            <h3 class="sub-title">Native Binary Packaging</h3>
+            <p>
+              For clinical servers isolated from public internet repositories, we provide pre-packaged self-contained installers that bundle core libraries and compression codecs (such as pylibjpeg and gdcm):
+            </p>
+            <ul>
+              <li><strong>Ubuntu/Debian</strong>: <code>sudo dpkg -i cad-preprocess_1.0.0_all.deb</code></li>
+              <li><strong>Arch Linux</strong>: <code>sudo pacman -U cad-preprocess-bundled-1.0.0-1-x86_64.pkg.tar.zst</code></li>
+            </ul>
+
+            <div class="callout">
+              <span class="callout-title">Decompression Plugins</span>
+              <p>
+                Many clinical scanners save files with compressed transfer syntaxes (e.g. JPEG Lossless Process 14 or JPEG 2000). To avoid unreadable stream crashes, install standard codec libraries:
+                <br>
+                <code>pip install pylibjpeg pylibjpeg-libjpeg pylibjpeg-openjpeg python-gdcm</code>
+              </p>
+            </div>
+          </section>
+
+          <!-- Section 3: Quickstart & Basic Usage -->
+          <section id="quickstart" class="doc-section">
+            <span class="section-kicker">Section 03</span>
+            <h2 class="section-title">Quickstart & Basic Usage</h2>
+            <p>
+              CAD Preprocess can be used as a simple CLI utility or integrated programmatically inside your backend scripts.
+            </p>
+
+            <div class="code-tabs-container">
+              <div class="code-tabs-header">
+                <button class="code-tab-btn active" onclick="switchTab(event, 'python-code')">Python API</button>
+                <button class="code-tab-btn" onclick="switchTab(event, 'cli-code')">CLI Command</button>
+                <button class="code-tab-btn" onclick="switchTab(event, 'yaml-code')">YAML Schema</button>
+              </div>
+              
+              <!-- Tab 1: Python -->
+              <div id="python-code" class="code-content-pane active">
+                <pre><code class="language-python">from cad_preprocess import preprocess, CADPreprocessor
+
+# 1. Quick programmatic preprocessing
+result = preprocess(
+    input_path="/data/dicoms/",
+    output_path="/data/processed/",
+    config="pipeline.yaml"
+)
+print(f"Total files processed successfully: {result.processed_count}")
+
+# 2. Or orchestrate via preprocessor class
+preprocessor = CADPreprocessor(config_path="pipeline.yaml")
+batch_res = preprocessor.process_batch(["file1.dcm", "file2.dcm"])</code></pre>
+              </div>
+
+              <!-- Tab 2: CLI -->
+              <div id="cli-code" class="code-content-pane">
+                <pre><code class="language-bash"># Process folder with a specific YAML pipeline file
+cad-preprocess --input /data/dicoms --output /data/output --config config.yaml
+
+# Perform quick custom overrides directly from bash
+cad-preprocess -i ./raw_dcm -o ./out --target-size 512 512 --window-center 40 --window-width 400 --overwrite</code></pre>
+              </div>
+
+              <!-- Tab 3: YAML -->
+              <div id="yaml-code" class="code-content-pane">
+                <pre><code class="language-yaml">input:
+  validate: true
+  check_pixel_data: true
+
+preprocessing:
+  windowing:
+    strategy: "fixed_window"
+    window_center: 40
+    window_width: 400
+  normalization: "min_max"
+  resizing:
+    enabled: true
+    target_size: [1024, 1024]
+    keep_aspect_ratio: true
+    interpolation: "bilinear"
+
+output:
+  naming_policy: "sop_instance_uid"
+  image_format: "png"</code></pre>
+              </div>
+            </div>
+          </section>
+
+          <!-- Section 4: Architecture & Code Layout -->
+          <section id="architecture" class="doc-section">
+            <span class="section-kicker">Section 04</span>
+            <h2 class="section-title">Architecture & Code Layout</h2>
+            <p>
+              CAD Preprocess is structured in a highly modular, decoupled fashion. This directory map outlines the role and responsibility of each module in the core package:
+            </p>
+
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>File / Module Path</th>
+                    <th>Core Responsibility</th>
+                    <th>Primary Class/Function Exports</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>config.py</code></td>
+                    <td>Handles YAML file loading, default settings initialization, and strict type schema validation.</td>
+                    <td><code>Config</code>, <code>load_config()</code>, <code>PreprocessingSettings</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>preprocessing_engine.py</code></td>
+                    <td>The mathematical core. Executes HU scaling, window clipping, normalization, and image interpolation.</td>
+                    <td><code>PreprocessingEngine</code>, <code>WindowingConfig</code>, <code>NormalizationMethod</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>input_handler.py</code></td>
+                    <td>Handles folder discoveries, file listings, and safe byte header evaluations using pydicom.</td>
+                    <td><code>InputHandler</code>, <code>discover_dicom_files()</code>, <code>validate_dicom_file()</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>metadata_extractor.py</code></td>
+                    <td>Extracts patient profiles, scan geometric spacing, and custom machine learning clinical metadata tags.</td>
+                    <td><code>MetadataExtractor</code>, <code>MetadataProfile</code>, <code>ExtractionResult</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>output_writer.py</code></td>
+                    <td>Encodes processed NumPy matrices into PNG/JPEG formats or saves raw vectors as standard NPY files.</td>
+                    <td><code>OutputWriter</code>, <code>NamingPolicy</code>, <code>OverwritePolicy</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>logging_utils.py</code></td>
+                    <td>Provides runtime diagnostic logs, timings, performance telemetry counters, and exception decorators.</td>
+                    <td><code>CADPreprocessError</code>, <code>timed_operation()</code>, <code>setup_logging()</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>integration.py</code></td>
+                    <td>Orchestrates batch runs, calculates manifest SHA256 hashes, and checks mathematical pipeline consistency.</td>
+                    <td><code>CADPreprocessor</code>, <code>get_config_hash()</code>, <code>verify_preprocessing_consistency()</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>api.py</code></td>
+                    <td>High-level developer interface exposing unified functional entries.</td>
+                    <td><code>preprocess()</code>, <code>PreprocessingResult</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>explorer.py</code></td>
+                    <td>PyQt6 GUI application providing visual DICOM slide checks, metadata inspection, and slider parameters.</td>
+                    <td><code>launch_explorer()</code>, <code>ExplorerWindow</code></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- Section 5: YAML Configurator -->
+          <section id="configurator" class="doc-section">
+            <span class="section-kicker">Section 05</span>
+            <h2 class="section-title">Visual Configuration Builder</h2>
+            <p>
+              This is the configuration builder widget. Check options to visually compile custom CAD-Preprocess pipelines. Switch to the <strong>Visual Sandbox</strong> at the top of the page to test parameter changes on a real scanner image!
+            </p>
+          </section>
+
+          <!-- Section 6: Config Schema -->
+          <section id="config-reference" class="doc-section">
+            <span class="section-kicker">Section 06</span>
+            <h2 class="section-title">Configuration Schema Index</h2>
+            <p>
+              Exhaustive schema parameter dictionary mapping every nested sub-key available inside YAML configuration files:
+            </p>
+
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Namespace Key</th>
+                    <th>Type</th>
+                    <th>Default</th>
+                    <th>Detailed Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>input.recursive</code></td>
+                    <td>bool</td>
+                    <td><code>true</code></td>
+                    <td>Recursively traverses subdirectories inside the provided input path.</td>
+                  </tr>
+                  <tr>
+                    <td><code>input.validate</code></td>
+                    <td>bool</td>
+                    <td><code>true</code></td>
+                    <td>Verifies valid DICOM structure magic bytes <code>"DICM"</code>.</td>
+                  </tr>
+                  <tr>
+                    <td><code>input.check_pixel_data</code></td>
+                    <td>bool</td>
+                    <td><code>true</code></td>
+                    <td>Fails early if pixel array tag is completely missing from scan.</td>
+                  </tr>
+                  <tr>
+                    <td><code>input.check_dimensions</code></td>
+                    <td>bool</td>
+                    <td><code>true</code></td>
+                    <td>Validates columns and rows to ensure array fits coordinate bounds.</td>
+                  </tr>
+                  <tr>
+                    <td><code>preprocessing.windowing.strategy</code></td>
+                    <td>str</td>
+                    <td><code>"use_dicom_window"</code></td>
+                    <td>Intensity bounds mapping. Options: <code>"use_dicom_window"</code>, <code>"fixed_window"</code>.</td>
+                  </tr>
+                  <tr>
+                    <td><code>preprocessing.windowing.window_center</code></td>
+                    <td>float</td>
+                    <td><code>null</code></td>
+                    <td>Used only when strategy is <code>"fixed_window"</code>. HU midpoint.</td>
+                  </tr>
+                  <tr>
+                    <td><code>preprocessing.windowing.window_width</code></td>
+                    <td>float</td>
+                    <td><code>null</code></td>
+                    <td>Used only when strategy is <code>"fixed_window"</code>. HU span.</td>
+                  </tr>
+                  <tr>
+                    <td><code>preprocessing.normalization</code></td>
+                    <td>str</td>
+                    <td><code>"min_max"</code></td>
+                    <td>Intensity scaling. Options: <code>"min_max"</code> (scales to [0,1]), <code>"z_score"</code>.</td>
+                  </tr>
+                  <tr>
+                    <td><code>preprocessing.resizing.enabled</code></td>
+                    <td>bool</td>
+                    <td><code>true</code></td>
+                    <td>Toggles spatial scaling on or off.</td>
+                  </tr>
+                  <tr>
+                    <td><code>preprocessing.resizing.target_height</code></td>
+                    <td>int</td>
+                    <td><code>1024</code></td>
+                    <td>Output height matrix constraints in pixel coordinates.</td>
+                  </tr>
+                  <tr>
+                    <td><code>preprocessing.resizing.target_width</code></td>
+                    <td>int</td>
+                    <td><code>1024</code></td>
+                    <td>Output width matrix constraints in pixel coordinates.</td>
+                  </tr>
+                  <tr>
+                    <td><code>preprocessing.resizing.keep_aspect_ratio</code></td>
+                    <td>bool</td>
+                    <td><code>true</code></td>
+                    <td>Pads standard margins with neutral values if dimensions mismatch.</td>
+                  </tr>
+                  <tr>
+                    <td><code>preprocessing.resizing.interpolation</code></td>
+                    <td>str</td>
+                    <td><code>"bilinear"</code></td>
+                    <td>Algorithm: <code>"nearest"</code>, <code>"bilinear"</code>, <code>"bicubic"</code>, <code>"lanczos"</code>.</td>
+                  </tr>
+                  <tr>
+                    <td><code>metadata.profiles</code></td>
+                    <td>list</td>
+                    <td><code>["minimal"]</code></td>
+                    <td>Tags profiles: <code>"minimal"</code>, <code>"patient"</code>, <code>"geometry"</code>, <code>"ml"</code>, <code>"acquisition"</code>.</td>
+                  </tr>
+                  <tr>
+                    <td><code>output.naming_policy</code></td>
+                    <td>str</td>
+                    <td><code>"sop_instance_uid"</code></td>
+                    <td>Output filename policy: <code>"original_filename"</code>, <code>"sop_instance_uid"</code>, <code>"sequential"</code>.</td>
+                  </tr>
+                  <tr>
+                    <td><code>output.image_format</code></td>
+                    <td>str</td>
+                    <td><code>"png"</code></td>
+                    <td>Output image file representation: <code>"png"</code>, <code>"jpeg"</code>, <code>"tiff"</code>, <code>"npy"</code>.</td>
+                  </tr>
+                  <tr>
+                    <td><code>output.overwrite_policy</code></td>
+                    <td>str</td>
+                    <td><code>"skip"</code></td>
+                    <td>Overwrite behavior for existing files: <code>"skip"</code>, <code>"overwrite"</code>, <code>"rename"</code>, <code>"error"</code>.</td>
+                  </tr>
+                  <tr>
+                    <td><code>logging.level</code></td>
+                    <td>str</td>
+                    <td><code>"info"</code></td>
+                    <td>Logging level threshold: <code>"debug"</code>, <code>"info"</code>, <code>"warning"</code>, <code>"error"</code>, <code>"critical"</code>.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- Section 7: API Reference -->
+          <section id="api-reference" class="doc-section">
+            <span class="section-kicker">Section 07</span>
+            <h2 class="section-title">Core Programmatic API Reference</h2>
+            <p>
+              Detailed documentation of functional interfaces, modules, and validation checks inside the package:
+            </p>
+
+            <h3 class="sub-title">1. Configuration System classes</h3>
+            <p>
+              The package exposes dedicated settings dataclasses that map directly to the namespaces:
+            </p>
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Class Name</th>
+                    <th>Constructor Parameters</th>
+                    <th>Core Methods</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>Config</code></td>
+                    <td><code>input: InputSettings</code>, <code>preprocessing: PreprocessingSettings</code>, <code>metadata: MetadataSettings</code>, <code>output: OutputSettings</code>, <code>logging: LoggingSettings</code></td>
+                    <td><code>load_config(path) -> Config</code>, <code>to_dict()</code>, <code>to_yaml()</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>WindowingSettings</code></td>
+                    <td><code>strategy: str</code>, <code>window_center: float</code>, <code>window_width: float</code></td>
+                    <td><code>to_windowing_config() -> WindowingConfig</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>ResizingSettings</code></td>
+                    <td><code>enabled: bool</code>, <code>target_height: int</code>, <code>target_width: int</code>, <code>keep_aspect_ratio: bool</code>, <code>interpolation: str</code></td>
+                    <td><code>to_resizing_config() -> ResizingConfig</code></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3 class="sub-title">2. Input Verification API</h3>
+            <p>
+              Verify integrity and validate raw DICOM files:
+            </p>
+            <pre><code class="language-python">from cad_preprocess import validate_dicom_file, discover_dicom_files
+
+# Check if a single file is a valid readable DICOM
+is_valid, error_msg = validate_dicom_file("/path/to/scan.dcm", check_pixel_data=True)
+if not is_valid:
+    print(f"DICOM Validation Failed: {error_msg}")
+
+# Search a path recursively for valid DICOM file paths
+dicom_paths = discover_dicom_files("/data/clinical_scans/", recursive=True)
+print(f"Found {len(dicom_paths)} valid scan files")</code></pre>
+
+            <h3 class="sub-title">3. Processing Orchestration & Consistency Verification</h3>
+            <p>
+              When deploying neural models clinically, ensuring pipeline parameters haven't changed is crucial. Use pipeline hashing and manifest checks to verify consistency:
+            </p>
+            <pre><code class="language-python">from cad_preprocess import get_config_hash, verify_preprocessing_consistency
+
+# Generate a SHA-256 hash representing current active pipeline configuration
+config_hash = get_config_hash("pipeline.yaml")
+print(f"Configuration Security Signature: {config_hash}")
+
+# Verify that processed outputs strictly match the active pipeline YAML file
+is_consistent, report = verify_preprocessing_consistency(
+    manifest_path="/data/processed/manifest.json",
+    config_path="pipeline.yaml"
+)
+if not is_consistent:
+    print("Warning: Pipeline inconsistency detected!")
+    print(f"Mismatched keys: {report.mismatched_keys}")</code></pre>
+
+            <h3 class="sub-title">4. Programmatic Engine Classes</h3>
+            <p>
+              <code>PreprocessingEngine(config: PreprocessingConfig)</code>
+            </p>
+            <div class="method-block">
+              <p>Transforms raw datasets into finalized arrays.</p>
+              <ul>
+                <li><code>__init__(config)</code>: Instantiates the transformation engine with active parameters.</li>
+                <li><code>process(dataset: pydicom.Dataset|str|Path) -> PreprocessingResult</code>: Executes transformations sequentially. Returns array results alongside applied scaling metadata.</li>
+              </ul>
+            </div>
+
+            <p>
+              <code>MetadataExtractor(profiles: List[str], additional_fields: List[str] = [])</code>
+            </p>
+            <div class="method-block">
+              <p>Extracts tags out of binary datasets into structured dictionaries based on active profiles.</p>
+              <ul>
+                <li><code>extract(dataset: pydicom.Dataset) -> ExtractionResult</code>: Resolves tags based on active profiles (e.g. Patient ID, Slice Thickness, Spacing, Modality).</li>
+              </ul>
+            </div>
+
+            <p>
+              <code>OutputWriter(config: OutputConfig)</code>
+            </p>
+            <div class="method-block">
+              <p>Writes standardized voxel matrix images and parsed metadata to disk.</p>
+              <ul>
+                <li><code>write(image: np.ndarray, metadata: dict, output_name: str) -> WriteResult</code>: Persists outputs into standardized folders based on active naming and overwrite policies.</li>
+              </ul>
+            </div>
+          </section>
+
+          <!-- Section 8: Deep Learning Production Pipelines -->
+          <section id="ml-integration" class="doc-section">
+            <span class="section-kicker">Section 08</span>
+            <h2 class="section-title">Clinical Production Pipelines</h2>
+            <p>
+              Use these production-grade templates to integrate standard clinical preprocessing directly inside deep learning training loops and web deployment services.
+            </p>
+
+            <h3 class="sub-title">1. High-Performance PyTorch Dataset</h3>
+            <p>
+              This thread-safe PyTorch `Dataset` loads and normalizes raw patient files on-the-fly, featuring caching and error isolation:
+            </p>
+            <pre><code class="language-python">import torch
+from torch.utils.data import Dataset
+import logging
+from pathlib import Path
+from cad_preprocess import PreprocessingEngine, load_config, validate_dicom_file
+
+logger = logging.getLogger(__name__)
+
+class ClinicalDicomDataset(Dataset):
+    def __init__(self, file_paths, config_path, cache_in_memory=False):
+        self.file_paths = [Path(p) for p in file_paths]
+        # Load centralized configuration settings safely
+        raw_cfg = load_config(config_path)
+        self.engine = PreprocessingEngine(config=raw_cfg.preprocessing.to_preprocessing_config())
+        self.cache_in_memory = cache_in_memory
+        self.cache = {}
+
+    def __len__(self):
+        return len(self.file_paths)
+
+    def __getitem__(self, idx):
+        path = self.file_paths[idx]
+        
+        if self.cache_in_memory and path in self.cache:
+            return self.cache[path]
+
+        # Validate DICOM layout before processing
+        is_valid, err = validate_dicom_file(path, check_pixel_data=True)
+        if not is_valid:
+            logger.error(f"Skipping corrupted scan {path.name}: {err}")
+            # Fallback to a zero-filled tensor or raised error
+            return torch.zeros((1, 512, 512), dtype=torch.float32)
+
+        try:
+            # Process pixels deterministically
+            res = self.engine.process(path)
+            if not res.success:
+                raise RuntimeError(res.error_message)
+
+            # Convert numpy float32 matrix to PyTorch image representation [1, H, W]
+            tensor_img = torch.tensor(res.image, dtype=torch.float32).unsqueeze(0)
+            
+            if self.cache_in_memory:
+                self.cache[path] = tensor_img
+                
+            return tensor_img
+        except Exception as e:
+            logger.error(f"Transformation failed on {path.name}: {str(e)}")
+            return torch.zeros((1, 512, 512), dtype=torch.float32)</code></pre>
+
+            <h3 class="sub-title">2. Keras / TensorFlow Batch Data Sequence</h3>
+            <p>
+              Standard Keras thread-safe <code>Sequence</code> pipeline designed for robust multi-threaded model fit cycles:
+            </p>
+            <pre><code class="language-python">import numpy as np
+from tensorflow.keras.utils import Sequence
+from cad_preprocess import PreprocessingEngine, load_config
+
+class DicomBatchSequence(Sequence):
+    def __init__(self, file_paths, config_path, batch_size=16):
+        self.file_paths = file_paths
+        self.batch_size = batch_size
+        raw_cfg = load_config(config_path)
+        self.engine = PreprocessingEngine(config=raw_cfg.preprocessing.to_preprocessing_config())
+
+    def __len__(self):
+        return int(np.ceil(len(self.file_paths) / float(self.batch_size)))
+
+    def __getitem__(self, idx):
+        batch_x = self.file_paths[idx * self.batch_size : (idx + 1) * self.batch_size]
+        images = []
+
+        for path in batch_x:
+            res = self.engine.process(path)
+            if res.success:
+                # Add channel dimension: [H, W, 1]
+                img_channel = np.expand_dims(res.image, axis=-1)
+                images.append(img_channel)
+            else:
+                # Append neutral zero array in case of corruption
+                images.append(np.zeros((512, 512, 1), dtype=np.float32))
+
+        return np.array(images)</code></pre>
+
+            <h3 class="sub-title">3. Production FastAPI Clinical Inference Service</h3>
+            <p>
+              An API service standardizing inbound patient scans on-the-fly for neural model inferences:
+            </p>
+            <pre><code class="language-python">import tempfile
+from fastapi import FastAPI, UploadFile, File, HTTPException
+from cad_preprocess import CADPreprocessor
+import numpy as np
+
+app = FastAPI(title="Clinical Standardizer", version="1.0.0")
+
+# Instantiate global orchestrator with central configuration
+preprocessor = CADPreprocessor(config_path="clinical_pipeline.yaml")
+
+@app.post("/standardize-scan")
+async def standardize_scan(file: UploadFile = File(...)):
+    if not file.filename.endswith(".dcm"):
+        raise HTTPException(status_code=400, detail="Invalid extension. Required DICOM file.")
+
+    # Write temporarily to disk for safe processing
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".dcm") as temp_dcm:
+        temp_dcm.write(await file.read())
+        temp_path = temp_dcm.name
+
+    try:
+        # Preprocess using the central engine parameters
+        res = preprocessor.engine.process(temp_path)
+        if not res.success:
+            raise HTTPException(status_code=422, detail=f"DICOM processing error: {res.error_message}")
+
+        # Extract accompanying structural tags
+        tags = preprocessor.extractor.extract_file(temp_path)
+
+        return {
+            "success": True,
+            "patient_id": tags.get("PatientID", "Anonymous"),
+            "slice_thickness": tags.get("SliceThickness", 1.0),
+            "dimensions": res.image.shape,
+            "normalized_mean": float(np.mean(res.image)),
+            "matrix": res.image.tolist() # Ready to pipe directly to PyTorch or ONNX
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))</code></pre>
+          </section>
+
+          <!-- Section 9: Diagnostics & Explorer -->
+          <section id="diagnostics" class="doc-section">
+            <span class="section-kicker">Section 09</span>
+            <h2 class="section-title">Visual Explorer Workbench & CLI Diagnostics</h2>
+            <p>
+              Standardizing pipelines in clinical spaces requires offline troubleshooting utilities. CAD Preprocess embeds two diagnostic binaries:
+            </p>
+
+            <h3 class="sub-title">1. PyQt6 Visual Workbench GUI</h3>
+            <p>
+              Execute <code>cad-preprocess-explorer</code> from your shell terminal to launch the interactive dashboard:
+            </p>
+            <ul>
+              <li><strong>Directory Exploration</strong>: Instantly open patient directories and browse files.</li>
+              <li><strong>Visual Previews</strong>: Use live sliders to adjust Windowing Center/Width bounds and witness matrix mappings in real time.</li>
+              <li><strong>Metadata Inspector</strong>: Side-by-side inspect Patient Profile variables and ML profiles.</li>
+            </ul>
+
+            <h3 class="sub-title">2. CLI Integrity Diagnostics Inspector</h3>
+            <p>
+              Run <code>cad-preprocess-diagnose &lt;input_path&gt;</code> to audit clinical files.
+            </p>
+            
+            <pre style="background: #111827; padding: 20px; border: 1px solid var(--rule); color: #fbbf24; overflow-x: auto; margin-bottom: 24px;"><code class="language-bash">$ cad-preprocess-diagnose ./corrupt_scans/
+
+Scanning directory for DICOM files...
+Analyzing 4 files...
+
+File: /data/corrupt_scans/scan_03.dcm
+Status: CORRUPTED
+Issues & Fixes:
+  [ERROR] Unsupported compression: JPEG Lossless (Process 14)
+          Fix: Install decompression plugins: pip install pylibjpeg-libjpeg
+  [WARNING] Missing DICOM Windowing tags (WindowCenter/WindowWidth)
+          Fix: Use --window-center/--window-width manually, or use --normalization min_max</code></pre>
+
+            <h3 class="sub-title">3. Custom Exception Tree & Remediation Paths</h3>
+            <p>
+              The diagnostics engine raises localized exceptions during validation and transformation phases. Here is how to diagnose and recover:
+            </p>
+
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Exception Raised</th>
+                    <th>Root Failure Cause</th>
+                    <th>Clinical Mitigation Strategy / Fix</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>ValidationError</code></td>
+                    <td>File lacks standard 128-byte preamble or missing the <code>"DICM"</code> signature magic bytes.</td>
+                    <td>Skip file, or enable <code>input.validate: false</code> configuration override for non-standard scanners.</td>
+                  </tr>
+                  <tr>
+                    <td><code>PreprocessingError</code></td>
+                    <td>The underlying pixel matrix is missing, or contains corrupted coordinate coordinates.</td>
+                    <td>Validate file integrity on PACS server or configure <code>input.check_pixel_data: true</code> to log and skip.</td>
+                  </tr>
+                  <tr>
+                    <td><code>MetadataExtractionError</code></td>
+                    <td>Required tags (e.g. <code>SliceThickness</code>, <code>SpacingBetweenSlices</code>) are missing under active profiles.</td>
+                    <td>Utilize a more lenient profile (e.g. <code>"minimal"</code>) or specify fallback values using <code>additional_fields</code>.</td>
+                  </tr>
+                  <tr>
+                    <td><code>OutputError</code></td>
+                    <td>Failed to write standardized matrix due to full disk space or missing permission access.</td>
+                    <td>Check folder write permissions or configure <code>output.overwrite_policy: overwrite</code> to clean old files.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+        </div>
+
+      </div>
+
+      <footer class="site-footer">
+        <div class="footer-left">
+          <div class="footer-logo-small">CAD Preprocess</div>
+          <div class="footer-copyright-small">© 2026 Harshil Anuwadia · MIT License</div>
+        </div>
+        
+        <div class="footer-links-minimal">
+          <a href="https://github.com/Harshil-Anuwadia/cad-preprocess" class="footer-link-min" target="_blank">GitHub</a>
+          <a href="#" class="footer-link-min" onclick="showSection('overview')">Docs</a>
+          <a href="mailto:harshil.anuwadia@gmail.com" class="footer-link-min">Contact</a>
+        </div>
+      </footer>
+
+    </main>
+
+  </div>
+
+  <!-- Javascript dynamic page logic -->
+  <script>
+    // Utility for safe localStorage access in private/restricted environments
+    const storage = {
+      get: (key) => {
+        try { return localStorage.getItem(key); }
+        catch (e) { return null; }
+      },
+      set: (key, val) => {
+        try { localStorage.setItem(key, val); }
+        catch (e) {}
+      }
+    };
+
+    // Offscreen matrix data for DICOM HU mock rendering
+    const matrixSize = 150;
+    let mockHuMatrix = [];
+
+    // Hover crosshair and probe state
+    let isHovering = false;
+    let mouseX = 0;
+    let mouseY = 0;
+    
+    // Slider state
+    let sliderPos = 0.5;
+    let isDraggingSlider = false;
+
+    function initMockDicomMatrix() {
+      mockHuMatrix = [];
+      const center = matrixSize / 2;
+      
+      for (let r = 0; r < matrixSize; r++) {
+        mockHuMatrix[r] = [];
+        for (let c = 0; c < matrixSize; c++) {
+          // Normalize coordinates -1 to 1
+          const y = (r - center) / center;
+          const x = (c - center) / center;
+          const dist = Math.sqrt(x*x + y*y);
+          
+          let hu = -1000; // Outside Air
+          
+          if (dist < 0.9) {
+            // Body tissue wall
+            hu = -100; // Fat layer
+            
+            if (dist < 0.84) {
+              hu = 40; // Soft tissue wall
+              
+              // Lung fields (ellipses)
+              const lungLY = y - 0.1;
+              const lungLX = x + 0.33;
+              const lungLDist = Math.sqrt(lungLX*lungLX*1.8 + lungLY*lungLY*0.9);
+              
+              const lungRY = y - 0.1;
+              const lungRX = x - 0.33;
+              const lungRDist = Math.sqrt(lungRX*lungRX*1.8 + lungRY*lungRY*0.9);
+              
+              if (lungLDist < 0.32 || lungRDist < 0.32) {
+                hu = -750; // Lung parenchyma
+                
+                // Add minor lung vessels
+                const vX = lungLX + 0.08;
+                const vY = lungLY - 0.04;
+                if (Math.abs(Math.sin(vX * 24) * Math.cos(vY * 24)) > 0.74) {
+                  hu = -80; // Small blood vessel HU
+                }
+              }
+              
+              // Spine (posterior circular bone)
+              const spineY = y - 0.62;
+              const spineX = x;
+              const spineDist = Math.sqrt(spineX*spineX*2.2 + spineY*spineY*2.2);
+              if (spineDist < 0.14) {
+                hu = 550; // Cortical bone
+                if (spineDist < 0.06) {
+                  hu = 15; // Spinal canal tissue
+                }
+              }
+              
+              // Rib cage (intermittent peripheral bone arcs)
+              const ribDist = Math.abs(dist - 0.76);
+              const ribAngle = Math.atan2(y, x);
+              if (ribDist < 0.03 && y < 0.65 && Math.abs(Math.sin(ribAngle * 10)) > 0.45) {
+                hu = 400; // Rib bones
+              }
+            }
+          }
+          mockHuMatrix[r][c] = hu;
+        }
+      }
+    }
+
+    function drawBeforeDicom(canvas, keepAspectRatio) {
+      const ctx = canvas.getContext('2d');
+      const cw = canvas.width;
+      const ch = canvas.height;
+      
+      const imgData = ctx.createImageData(matrixSize, matrixSize);
+      const data = imgData.data;
+      
+      for (let r = 0; r < matrixSize; r++) {
+        for (let c = 0; c < matrixSize; c++) {
+          const hu = mockHuMatrix[r][c];
+          // Raw unwindowed view mapped roughly for visibility
+          const grayscale = Math.min(255, Math.max(0, ((hu + 1000) / 2000) * 255));
+          const idx = (r * matrixSize + c) * 4;
+          data[idx] = grayscale;
+          data[idx+1] = grayscale;
+          data[idx+2] = grayscale;
+          data[idx+3] = 255;
+        }
+      }
+      
+      const offscreen = document.createElement('canvas');
+      offscreen.width = matrixSize;
+      offscreen.height = matrixSize;
+      offscreen.getContext('2d').putImageData(imgData, 0, 0);
+
+      ctx.fillStyle = '#020617';
+      ctx.fillRect(0, 0, cw, ch);
+
+      let scaleWidth = cw;
+      let scaleHeight = ch;
+      let offsetX = 0;
+      let offsetY = 0;
+      
+      if (keepAspectRatio) {
+        if (cw > ch) {
+          scaleWidth = ch;
+          offsetX = (cw - ch) / 2;
+        } else {
+          scaleHeight = cw;
+          offsetY = (ch - cw) / 2;
+        }
+        ctx.fillStyle = '#1e293b'; 
+        ctx.fillRect(0, 0, cw, ch);
+        ctx.fillStyle = '#020617';
+        ctx.fillRect(offsetX, offsetY, scaleWidth, scaleHeight);
+      }
+      ctx.drawImage(offscreen, offsetX, offsetY, scaleWidth, scaleHeight);
+    }
+
+    // Update slider visual components
+    function updateSliderUI() {
+      const divider = document.getElementById('sliderDivider');
+      const handle = document.getElementById('sliderHandle');
+      if (!divider || !handle) return;
+      
+      const posPercent = sliderPos * 100;
+      divider.style.left = `${posPercent}%`;
+      handle.style.left = `${posPercent}%`;
+    }
+
+    function getStructureName(hu) {
+      if (hu === -1000) return "Outside Air";
+      if (hu === -750) return "Lung Parenchyma";
+      if (hu === -80) return "Lung Blood Vessel";
+      if (hu === -100) return "Subcutaneous Fat";
+      if (hu === 15) return "Spinal Canal";
+      if (hu === 40) return "Soft Tissue";
+      if (hu === 400) return "Rib Bone";
+      if (hu === 550) return "Cortical Bone (Spine)";
+      return "Anatomical Tissue";
+    }
+
+    // Live Configurator and Simulation drawing
+    function updateSimConfig() {
+      const strategy = document.getElementById('simStrategy').value;
+      const center = parseInt(document.getElementById('simCenter').value);
+      const width = parseInt(document.getElementById('simWidth').value);
+      const normalize = document.getElementById('simNormalize').value;
+      const sizeVal = document.getElementById('simSize').value;
+      const aspect = document.getElementById('simAspect').checked;
+      const namingPolicy = document.getElementById('simNamingPolicy').value;
+      const overwritePolicy = document.getElementById('simOverwritePolicy').value;
+      
+      const centerGroup = document.getElementById('simCenterGroup');
+      const widthGroup = document.getElementById('simWidthGroup');
+      
+      if (strategy === 'use_dicom_window') {
+        centerGroup.style.display = 'none';
+        widthGroup.style.display = 'none';
+      } else {
+        centerGroup.style.display = 'flex';
+        widthGroup.style.display = 'flex';
+        document.getElementById('simCenterLabel').textContent = `Window Center (${center} HU)`;
+        document.getElementById('simWidthLabel').textContent = `Window Width (${width} HU)`;
+      }
+      
+      document.getElementById('simSizeLabel').textContent = `Target Size (${sizeVal} x ${sizeVal} px)`;
+
+      // Render updated canvas slice
+      const canvas = document.getElementById('simulatorCanvas');
+      if (!canvas) return;
+      
+      // Effective center/width used for visualization based on strategy choice
+      const effCenter = strategy === 'use_dicom_window' ? 0 : center;
+      const effWidth = strategy === 'use_dicom_window' ? 1200 : width;
+      
+      drawMockDicom(canvas, effCenter, effWidth, normalize, sizeVal, aspect);
+
+      // Render updated density histogram profile
+      const histCanvas = document.getElementById('histogramCanvas');
+      if (histCanvas) drawDensityHistogram(histCanvas, effCenter, effWidth);
+
+      // Real-time YAML generation
+      let yamlText = `input:\n`;
+      yamlText += `  validate: true\n`;
+      yamlText += `  check_pixel_data: true\n\n`;
+      yamlText += `preprocessing:\n`;
+      yamlText += `  windowing:\n`;
+      yamlText += `    strategy: "${strategy}"\n`;
+      if (strategy === 'fixed_window') {
+        yamlText += `    window_center: ${center}\n`;
+        yamlText += `    window_width: ${width}\n`;
+      }
+      yamlText += `  normalization: "${normalize}"\n`;
+      yamlText += `  resizing:\n`;
+      yamlText += `    enabled: true\n`;
+      yamlText += `    target_height: ${sizeVal}\n`;
+      yamlText += `    target_width: ${sizeVal}\n`;
+      yamlText += `    keep_aspect_ratio: ${aspect}\n`;
+      yamlText += `    interpolation: "bilinear"\n\n`;
+      yamlText += `output:\n`;
+      yamlText += `  naming_policy: "${namingPolicy}"\n`;
+      yamlText += `  overwrite_policy: "${overwritePolicy}"\n`;
+      yamlText += `  image_format: "png"\n`;
+
+      const yamlEl = document.getElementById('recipeYamlText');
+      if (yamlEl) {
+        yamlEl.textContent = yamlText;
+        delete yamlEl.dataset.highlighted;
+        hljs.highlightElement(yamlEl);
+      }
+
+      // Real-time Python script generation
+      let pyText = `from cad_preprocess import preprocess, PreprocessingEngine\n\n`;
+      pyText += `# 1. Process clinical files via functional API\n`;
+      pyText += `preprocess(\n`;
+      pyText += `    input_path="./dicom_raw/",\n`;
+      pyText += `    output_path="./dicom_processed/",\n`;
+      pyText += `    config={\n`;
+      pyText += `        "preprocessing": {\n`;
+      pyText += `            "windowing": {\n`;
+      pyText += `                "strategy": "${strategy}",\n`;
+      if (strategy === 'fixed_window') {
+        pyText += `                "window_center": ${center},\n`;
+        pyText += `                "window_width": ${width},\n`;
+      }
+      pyText += `            },\n`;
+      pyText += `            "normalization": "${normalize}",\n`;
+      pyText += `            "resizing": {\n`;
+      pyText += `                "enabled": True,\n`;
+      pyText += `                "target_height": ${sizeVal},\n`;
+      pyText += `                "target_width": ${sizeVal},\n`;
+      pyText += `                "keep_aspect_ratio": ${aspect}\n`;
+      pyText += `            }\n`;
+      pyText += `        },\n`;
+      pyText += `        "output": {\n`;
+      pyText += `            "naming_policy": "${namingPolicy}",\n`;
+      pyText += `            "overwrite_policy": "${overwritePolicy}"\n`;
+      pyText += `        }\n`;
+      pyText += `    }\n`;
+      pyText += `)\n`;
+
+      const pyEl = document.getElementById('recipePythonText');
+      if (pyEl) {
+        pyEl.textContent = pyText;
+        delete pyEl.dataset.highlighted;
+        hljs.highlightElement(pyEl);
+      }
+
+      // Real-time CLI generation
+      let cliText = `cad-preprocess -i ./dicom_raw -o ./dicom_processed \\\n`;
+      cliText += `    --target-size ${sizeVal} ${sizeVal} \\\n`;
+      cliText += `    --normalization ${normalize} \\\n`;
+      if (strategy === 'fixed_window') {
+        cliText += `    --window-center ${center} \\\n`;
+        cliText += `    --window-width ${width} \\\n`;
+      }
+      cliText += `    --naming-policy ${namingPolicy} \\\n`;
+      cliText += `    --overwrite-policy ${overwritePolicy}`;
+      if (aspect) {
+        cliText += ` \\\n    --keep-aspect-ratio`;
+      }
+      
+      const cliEl = document.getElementById('recipeCliText');
+      if (cliEl) {
+        cliEl.textContent = cliText;
+        delete cliEl.dataset.highlighted;
+        hljs.highlightElement(cliEl);
+      }
+
+      // Synchronize Metadata Inspector
+      updateMetadataInspector();
+    }
+
+    // Actual DICOM canvas drawer
+    function drawMockDicom(canvas, center, width, normalization, targetSize, keepAspectRatio) {
+      const ctx = canvas.getContext('2d');
+      const cw = canvas.width;
+      const ch = canvas.height;
+      
+      // Use clearRect to allow the 'before' canvas to show through
+      ctx.clearRect(0, 0, cw, ch);
+      
+      // Before drawing the preprocessed image, draw the raw image on the beforeCanvas
+      const beforeCanvas = document.getElementById('beforeCanvas');
+      if (beforeCanvas) drawBeforeDicom(beforeCanvas, keepAspectRatio);
+
+      const imgData = ctx.createImageData(matrixSize, matrixSize);
+      const data = imgData.data;
+      
+      const minWindow = center - width / 2;
+      const maxWindow = center + width / 2;
+      
+      let totalClippedHigh = 0;
+      let totalClippedLow = 0;
+      let totalVoxelCount = matrixSize * matrixSize;
+      
+      for (let r = 0; r < matrixSize; r++) {
+        for (let c = 0; c < matrixSize; c++) {
+          const hu = mockHuMatrix[r][c];
+          
+          let grayscale = 0;
+          if (hu <= minWindow) {
+            grayscale = 0;
+            totalClippedLow++;
+          } else if (hu >= maxWindow) {
+            grayscale = 255;
+            totalClippedHigh++;
+          } else {
+            grayscale = ((hu - minWindow) / (maxWindow - minWindow)) * 255;
+          }
+          
+          if (normalization === 'z_score') {
+            // Apply standard Z-score standard contrast visually
+            grayscale = (grayscale - 128) * 0.72 + 128;
+            grayscale = Math.min(255, Math.max(0, grayscale));
+          }
+          
+          const idx = (r * matrixSize + c) * 4;
+          data[idx] = grayscale;     // R
+          data[idx + 1] = grayscale; // G
+          data[idx + 2] = grayscale; // B
+          data[idx + 3] = 255;       // A
+        }
+      }
+      
+      const offscreen = document.createElement('canvas');
+      offscreen.width = matrixSize;
+      offscreen.height = matrixSize;
+      offscreen.getContext('2d').putImageData(imgData, 0, 0);
+      
+      let scaleWidth = cw;
+      let scaleHeight = ch;
+      let offsetX = 0;
+      let offsetY = 0;
+      
+      if (keepAspectRatio) {
+        if (cw > ch) {
+          scaleWidth = ch;
+          offsetX = (cw - ch) / 2;
+        } else {
+          scaleHeight = cw;
+          offsetY = (ch - cw) / 2;
+        }
+      }
+      
+      // Apply Slider Clipping for comparison - only draw processed on the right
+      const clipX = cw * sliderPos;
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(clipX, 0, cw - clipX, ch);
+      ctx.clip();
+
+      if (keepAspectRatio) {
+        ctx.fillStyle = '#1e293b'; // Slate margin color
+        ctx.fillRect(0, 0, cw, ch);
+        ctx.fillStyle = '#020617';
+        ctx.fillRect(offsetX, offsetY, scaleWidth, scaleHeight);
+      }
+      
+      ctx.drawImage(offscreen, offsetX, offsetY, scaleWidth, scaleHeight);
+      ctx.restore();
+
+      // Draw standard visual overlays
+      ctx.strokeStyle = 'rgba(13, 148, 136, 0.4)';
+      ctx.lineWidth = 1.5;
+      if (keepAspectRatio) {
+        ctx.strokeRect(offsetX, offsetY, scaleWidth, scaleHeight);
+      } else {
+        ctx.strokeRect(0, 0, cw, ch);
+      }
+
+      // Render Crosshair & HUD updates if Hover is active
+      const hudCoords = document.getElementById('hudCoords');
+      const hudAnatomy = document.getElementById('hudAnatomy');
+      const hudHu = document.getElementById('hudHu');
+      const hudIntensity = document.getElementById('hudIntensity');
+
+      if (isHovering && mouseX >= 0 && mouseX < matrixSize && mouseY >= 0 && mouseY < matrixSize) {
+        // Draw physical lines
+        ctx.strokeStyle = 'rgba(45, 212, 191, 0.45)';
+        ctx.lineWidth = 0.8;
+        ctx.setLineDash([2, 2]);
+
+        // Vert
+        ctx.beginPath();
+        ctx.moveTo(mouseX, 0);
+        ctx.lineTo(mouseX, ch);
+        ctx.stroke();
+
+        // Horiz
+        ctx.beginPath();
+        ctx.moveTo(0, mouseY);
+        ctx.lineTo(cw, mouseY);
+        ctx.stroke();
+
+        ctx.setLineDash([]);
+
+        // Hover Voxel Node
+        ctx.fillStyle = '#2dd4bf';
+        ctx.beginPath();
+        ctx.arc(mouseX, mouseY, 2.5, 0, 2 * Math.PI);
+        ctx.fill();
+
+        // Calculate specific statistics
+        const rawHu = mockHuMatrix[mouseY][mouseX];
+        let hoverGrayscale = 0;
+        if (rawHu <= minWindow) {
+          hoverGrayscale = 0;
+        } else if (rawHu >= maxWindow) {
+          hoverGrayscale = 255;
+        } else {
+          hoverGrayscale = ((rawHu - minWindow) / (maxWindow - minWindow)) * 255;
+        }
+        
+        if (normalization === 'z_score') {
+          hoverGrayscale = (hoverGrayscale - 128) * 0.72 + 128;
+          hoverGrayscale = Math.min(255, Math.max(0, hoverGrayscale));
+        }
+        hoverGrayscale = Math.round(hoverGrayscale);
+
+        const structure = getStructureName(rawHu);
+
+        if (hudCoords) hudCoords.textContent = `X: ${mouseX}, Y: ${mouseY}`;
+        if (hudAnatomy) hudAnatomy.textContent = structure.toUpperCase();
+        if (hudHu) hudHu.textContent = `${rawHu} HU`;
+        if (hudIntensity) hudIntensity.textContent = `${hoverGrayscale} (0-255)`;
+      } else {
+        if (hudCoords) hudCoords.textContent = 'N/A';
+        if (hudAnatomy) hudAnatomy.textContent = 'HOVER SCAN';
+        if (hudHu) hudHu.textContent = 'N/A';
+        if (hudIntensity) hudIntensity.textContent = 'N/A';
+      }
+      
+      // Update real-time mathematical telemetry
+      const percentLow = ((totalClippedLow / totalVoxelCount) * 100).toFixed(1);
+      const percentHigh = ((totalClippedHigh / totalVoxelCount) * 100).toFixed(1);
+      
+      const clVal = document.getElementById('clipLowVal');
+      const chVal = document.getElementById('clipHighVal');
+      const vVal = document.getElementById('voxCountVal');
+      const sdVal = document.getElementById('scaleDimVal');
+
+      if (clVal) clVal.textContent = `${percentLow}%`;
+      if (chVal) chVal.textContent = `${percentHigh}%`;
+      if (vVal) vVal.textContent = `${totalVoxelCount} vox`;
+      if (sdVal) sdVal.textContent = `${targetSize} x ${targetSize} px`;
+    }
+
+    // Dynamic Hounsfield voxel histogram graph renderer
+    function drawDensityHistogram(canvas, center, width) {
+      const ctx = canvas.getContext('2d');
+      const cw = canvas.width;
+      const ch = canvas.height;
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      
+      ctx.clearRect(0, 0, cw, ch);
+      
+      // Draw grid lines
+      ctx.strokeStyle = isDark ? '#334155' : '#e2e8f0';
+      ctx.lineWidth = 1;
+      
+      // Horizontal coordinate line
+      ctx.beginPath();
+      ctx.moveTo(10, ch - 20);
+      ctx.lineTo(cw - 10, ch - 20);
+      ctx.stroke();
+      
+      // Plot HU Distribution curve mathematically
+      // Domain: -1000 HU to +1000 HU (mapped to X coordinates 10 to cw - 10)
+      function getX(hu) {
+        return 10 + ((hu + 1000) / 2000) * (cw - 20);
+      }
+      
+      function getHU(x) {
+        return -1000 + ((x - 10) / (cw - 20)) * 2000;
+      }
+      
+      // Draw voxel curve representing standard CT frequencies
+      ctx.beginPath();
+      ctx.strokeStyle = isDark ? '#94a3b8' : '#64748b';
+      ctx.lineWidth = 2;
+      
+      for (let x = 10; x <= cw - 10; x++) {
+        const hu = getHU(x);
+        
+        // Generate continuous curve peaks representing air, lungs, fat, soft tissue, and bone
+        let y = 0;
+        
+        // Air peak (-1000 HU)
+        y += 70 * Math.exp(-Math.pow(hu + 1000, 2) / 2000);
+        // Lungs parenchyma (-750 HU)
+        y += 40 * Math.exp(-Math.pow(hu + 750, 2) / 6000);
+        // Soft tissue wall (+40 HU)
+        y += 50 * Math.exp(-Math.pow(hu - 40, 2) / 8000);
+        // Vertebral & ribs bones (+450 HU)
+        y += 25 * Math.exp(-Math.pow(hu - 450, 2) / 15000);
+        
+        const drawY = ch - 20 - y;
+        if (x === 10) {
+          ctx.moveTo(x, drawY);
+        } else {
+          ctx.lineTo(x, drawY);
+        }
+      }
+      ctx.stroke();
+      
+      // Draw Window limits boundaries
+      const minWindow = center - width / 2;
+      const maxWindow = center + width / 2;
+      
+      const xMin = Math.max(10, Math.min(cw - 10, getX(minWindow)));
+      const xMax = Math.max(10, Math.min(cw - 10, getX(maxWindow)));
+      
+      // Shade the active mapped region
+      ctx.fillStyle = isDark ? 'rgba(45, 212, 191, 0.15)' : 'rgba(13, 148, 136, 0.08)';
+      ctx.fillRect(xMin, 0, xMax - xMin, ch - 20);
+      
+      // Vertical boundary lines
+      ctx.strokeStyle = '#0d9488'; // Emerald window markers
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4, 3]);
+      
+      // Min limit line
+      ctx.beginPath();
+      ctx.moveTo(xMin, 0);
+      ctx.lineTo(xMin, ch - 20);
+      ctx.stroke();
+      
+      // Max limit line
+      ctx.beginPath();
+      ctx.moveTo(xMax, 0);
+      ctx.lineTo(xMax, ch - 20);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      
+      // Text markers for coordinate bounds
+      ctx.fillStyle = isDark ? '#cbd5e1' : '#475569';
+      ctx.font = '9px var(--font-mono)';
+      ctx.fillText('-1k HU', 10, ch - 8);
+      ctx.fillText('+1k HU', cw - 45, ch - 8);
+      
+      ctx.fillStyle = '#0d9488';
+      ctx.fillText(`Min: ${Math.round(minWindow)}`, Math.max(10, xMin - 25), 10);
+      ctx.fillText(`Max: ${Math.round(maxWindow)}`, Math.min(cw - 55, xMax - 5), 10);
+    }
+
+    // Toggle Reading Modes
+    function switchReadingMode(mode) {
+      const btnSandbox = document.getElementById('btnSandbox');
+      const btnSpec = document.getElementById('btnSpec');
+      const sandboxPane = document.getElementById('sandboxPane');
+      const specPane = document.getElementById('specPane');
+      
+      if (!btnSandbox || !btnSpec || !sandboxPane || !specPane) return;
+
+      if (mode === 'sandbox') {
+        btnSandbox.classList.add('active');
+        btnSpec.classList.remove('active');
+        sandboxPane.style.display = 'block';
+        specPane.style.display = 'none';
+        // Clear hash if in sandbox mode
+        if (window.location.hash) {
+           history.replaceState(null, null, window.location.pathname);
+        }
+      } else {
+        btnSandbox.classList.remove('active');
+        btnSpec.classList.add('active');
+        sandboxPane.style.display = 'none';
+        specPane.style.display = 'block';
+      }
+    }
+
+    // Presets config database
+    const presets = {
+      lung: { center: -600, width: 1500, strategy: 'fixed_window', normalize: 'min_max', size: 512, aspect: true },
+      bone: { center: 500, width: 2000, strategy: 'fixed_window', normalize: 'min_max', size: 1024, aspect: true },
+      brain: { center: 40, width: 80, strategy: 'fixed_window', normalize: 'min_max', size: 512, aspect: true },
+      mri: { center: 0, width: 0, strategy: 'use_dicom_window', normalize: 'z_score', size: 512, aspect: false },
+      mammo: { center: 0, width: 0, strategy: 'use_dicom_window', normalize: 'min_max', size: 2048, aspect: true }
+    };
+
+    function loadPresetRow(presetKey, element) {
+      // Toggle active row highlights
+      const tbody = element.closest('tbody');
+      tbody.querySelectorAll('tr').forEach(row => row.classList.remove('active'));
+      element.classList.add('active');
+
+      const data = presets[presetKey];
+      
+      document.getElementById('simStrategy').value = data.strategy;
+      document.getElementById('simCenter').value = data.center;
+      document.getElementById('simWidth').value = data.width;
+      document.getElementById('simNormalize').value = data.normalize;
+      document.getElementById('simSize').value = data.size;
+      document.getElementById('simAspect').checked = data.aspect;
+      
+      updateSimConfig();
+    }
+
+    // Custom presets local database and builder operations
+    let customPresets = {};
+
+    function loadSavedCustomPresets() {
+      const stored = localStorage.getItem('custom_presets');
+      if (stored) {
+        try {
+          customPresets = JSON.parse(stored);
+          const tbody = document.querySelector('.preset-table tbody');
+          if (!tbody) return;
+          
+          for (const key in customPresets) {
+            const data = customPresets[key];
+            presets[key] = data; // Register in presets DB
+            
+            // Append row dynamically
+            const row = document.createElement('tr');
+            row.setAttribute('onclick', `loadPresetRow('${key}', this)`);
+            row.innerHTML = `
+              <td>${data.name} [Custom]</td>
+              <td>${data.strategy === 'fixed_window' ? 'Fixed Explicit' : 'Use Embedded'}</td>
+              <td>${data.strategy === 'fixed_window' ? data.center + ' HU' : 'Auto'}</td>
+              <td>${data.strategy === 'fixed_window' ? data.width + ' HU' : 'Auto'}</td>
+              <td>${data.normalize === 'z_score' ? 'Z-Score' : 'Min-Max'}</td>
+              <td>${data.size} x ${data.size}</td>
+              <td>${data.aspect ? 'Enabled' : 'Disabled'}</td>
+            `;
+            tbody.appendChild(row);
+          }
+        } catch (e) {
+          console.error("Failed to parse custom presets", e);
+        }
+      }
+    }
+
+    function saveCustomPreset() {
+      const name = document.getElementById('customPresetName').value.trim();
+      const centerVal = document.getElementById('customPresetCenter').value;
+      const widthVal = document.getElementById('customPresetWidth').value;
+      const normalize = document.getElementById('customPresetNormalize').value;
+      const sizeVal = parseInt(document.getElementById('customPresetSize').value);
+      
+      if (!name) {
+        alert("Please provide a name for your custom preset.");
+        return;
+      }
+      
+      const strategy = (centerVal === '' || widthVal === '') ? 'use_dicom_window' : 'fixed_window';
+      const center = strategy === 'fixed_window' ? parseInt(centerVal) : 0;
+      const width = strategy === 'fixed_window' ? parseInt(widthVal) : 0;
+      
+      const presetKey = `custom_${Date.now()}`;
+      const newPreset = {
+        name: name,
+        center: center,
+        width: width,
+        strategy: strategy,
+        normalize: normalize,
+        size: sizeVal,
+        aspect: true
+      };
+      
+      customPresets[presetKey] = newPreset;
+      presets[presetKey] = newPreset;
+      
+      localStorage.setItem('custom_presets', JSON.stringify(customPresets));
+      
+      const tbody = document.querySelector('.preset-table tbody');
+      if (tbody) {
+        const row = document.createElement('tr');
+        row.setAttribute('onclick', `loadPresetRow('${presetKey}', this)`);
+        row.innerHTML = `
+          <td>${name} [Custom]</td>
+          <td>${strategy === 'fixed_window' ? 'Fixed Explicit' : 'Use Embedded'}</td>
+          <td>${strategy === 'fixed_window' ? center + ' HU' : 'Auto'}</td>
+          <td>${strategy === 'fixed_window' ? width + ' HU' : 'Auto'}</td>
+          <td>${normalize === 'z_score' ? 'Z-Score' : 'Min-Max'}</td>
+          <td>${sizeVal} x ${sizeVal}</td>
+          <td>Enabled</td>
+        `;
+        tbody.appendChild(row);
+        loadPresetRow(presetKey, row);
+      }
+      
+      // Clear inputs
+      document.getElementById('customPresetName').value = '';
+      document.getElementById('customPresetCenter').value = '';
+      document.getElementById('customPresetWidth').value = '';
+    }
+
+    // Toggle day/night theme modes
+    function toggleTheme() {
+      const html = document.documentElement;
+      const btn = document.getElementById('themeBtn');
+      
+      if (html.getAttribute('data-theme') === 'dark') {
+        html.setAttribute('data-theme', 'light');
+        if (btn) btn.textContent = 'Night Mode';
+        localStorage.setItem('theme', 'light');
+      } else {
+        html.setAttribute('data-theme', 'dark');
+        if (btn) btn.textContent = 'Day Mode';
+        localStorage.setItem('theme', 'dark');
+      }
+      updateSimConfig();
+    }
+
+    // Simulated Interactive DICOM Validator Debugger
+    const scenarioLogs = {
+      success_ct: [
+        { type: 'parse', text: '[PARSE] Initiating DICOM Part 10 verification on CT_Chest_081.dcm...' },
+        { type: 'parse', text: '[PARSE] Byte offset 128 magic bytes \'DICM\' verified.' },
+        { type: 'parse', text: '[PARSE] Tag (0008,0060) Modality: \'CT\'' },
+        { type: 'parse', text: '[PARSE] Tag (0002,0010) TransferSyntaxUID: \'1.2.840.10008.1.2.1\' (Explicit VR Little Endian)' },
+        { type: 'parse', text: '[PARSE] Tag (0028,0010) Rows: 512, Tag (0028,0011) Columns: 512' },
+        { type: 'parse', text: '[PARSE] Tag (0028,1050) WindowCenter: -600.0, Tag (0028,1051) WindowWidth: 1500.0' },
+        { type: 'parse', text: '[PARSE] Tag (0028,1052) RescaleIntercept: -1024.0, Tag (0028,1053) RescaleSlope: 1.0' },
+        { type: 'success', text: '[SUCCESS] DICOM structural validation complete. Pixel data stream is intact.' },
+        { type: 'success', text: '[INFO] Successfully standardized array values. HU conversion range: [-1024.0, 3071.0].' }
+      ],
+      error_codec: [
+        { type: 'parse', text: '[PARSE] Initiating DICOM Part 10 verification on Corrupted_Mammo_02.dcm...' },
+        { type: 'parse', text: '[PARSE] Magic bytes \'DICM\' verified at byte 128.' },
+        { type: 'parse', text: '[PARSE] Tag (0008,0060) Modality: \'MG\'' },
+        { type: 'warning', text: '[WARNING] Tag (0002,0010) TransferSyntaxUID: \'1.2.840.10008.1.2.4.70\' (JPEG Lossless, Non-Hierarchical)' },
+        { type: 'error', text: '[ERROR] Verification crashed: No available image handler found for compressed TransferSyntax.' },
+        { type: 'error', text: '[ERROR] cad_preprocess.ValidationError: Raw compressed bytes cannot be read without auxiliary codecs.' },
+        { type: 'fix', text: '[REMEDIATION] Fix: Install missing decoders by running: pip install pylibjpeg-libjpeg python-gdcm' }
+      ],
+      error_spatial: [
+        { type: 'parse', text: '[PARSE] Initiating DICOM Part 10 verification on Scan_Missing_Tags.dcm...' },
+        { type: 'parse', text: '[PARSE] Magic bytes \'DICM\' verified.' },
+        { type: 'parse', text: '[PARSE] Tag (0008,0060) Modality: \'CT\'' },
+        { type: 'warning', text: '[WARNING] Tag (0028,1052) RescaleIntercept: missing/absent' },
+        { type: 'warning', text: '[WARNING] Tag (0028,1053) RescaleSlope: missing/absent' },
+        { type: 'error', text: '[ERROR] Verification crashed: Hounsfield Unit scaling requires linear rescaling slope parameters.' },
+        { type: 'error', text: '[ERROR] cad_preprocess.MetadataExtractionError: CT scan scaling missing required rescale slope context.' },
+        { type: 'fix', text: '[REMEDIATION] Fix: Configure fallback presets in YAML: preprocessing.windowing.strategy: fixed_window' }
+      ],
+      error_pixel: [
+        { type: 'parse', text: '[PARSE] Initiating DICOM Part 10 verification on Corrupt_Empty_Scan.dcm...' },
+        { type: 'parse', text: '[PARSE] Magic bytes \'DICM\' verified.' },
+        { type: 'warning', text: '[WARNING] Tag (7FE0,0010) PixelData is completely empty (0 bytes).' },
+        { type: 'error', text: '[ERROR] Verification crashed: Voxel array segment is unreadable or unextracted.' },
+        { type: 'error', text: '[ERROR] cad_preprocess.PreprocessingError: DICOM dataset lacks binary pixel arrays.' },
+        { type: 'fix', text: '[REMEDIATION] Fix: Validate patient study sequence on visual PACS server before processing.' }
+      ]
+    };
+
+    function runSimTerminalDebugger() {
+      const scenarioEl = document.getElementById('terminalScenario');
+      const termBody = document.getElementById('terminalOutput');
+      if (!scenarioEl || !termBody) return;
+
+      const scenario = scenarioEl.value;
+      const logs = scenarioLogs[scenario];
+      
+      termBody.innerHTML = '';
+      
+      logs.forEach((line, index) => {
+        setTimeout(() => {
+          const div = document.createElement('div');
+          div.className = `term-line ${line.type}`;
+          div.textContent = line.text;
+          termBody.appendChild(div);
+          termBody.scrollTop = termBody.scrollHeight;
+        }, index * 250);
+      });
+    }
+
+    // Dynamic JSON Metadata Inspector Builder
+    function updateMetadataInspector() {
+      const profEl = document.getElementById('metaProfileSelect');
+      const customFieldGroup = document.getElementById('customMetaTagsGroup');
+      if (!profEl || !customFieldGroup) return;
+
+      const profile = profEl.value;
+      
+      let fields = [];
+      if (profile === 'minimal') {
+        customFieldGroup.style.display = 'none';
+        fields = ['SOPInstanceUID', 'Modality', 'Rows', 'Columns'];
+      } else if (profile === 'patient') {
+        customFieldGroup.style.display = 'none';
+        fields = ['PatientSex', 'PatientAge', 'PatientSize', 'PatientWeight'];
+      } else if (profile === 'geometry') {
+        customFieldGroup.style.display = 'none';
+        fields = ['Rows', 'Columns', 'PixelSpacing', 'ImageOrientationPatient', 'ImagePositionPatient'];
+      } else if (profile === 'ml') {
+        customFieldGroup.style.display = 'none';
+        fields = ['PhotometricInterpretation', 'BitsAllocated', 'BitsStored', 'HighBit', 'PixelRepresentation', 'RescaleSlope', 'RescaleIntercept', 'WindowCenter', 'WindowWidth', 'PixelSpacing'];
+      } else if (profile === 'acquisition') {
+        customFieldGroup.style.display = 'none';
+        fields = ['ViewPosition', 'BodyPartExamined', 'Laterality'];
+      } else if (profile === 'custom') {
+        customFieldGroup.style.display = 'inline-flex';
+        const rawInputEl = document.getElementById('customMetaTagsInput');
+        if (rawInputEl) {
+          const rawInput = rawInputEl.value;
+          fields = rawInput.split(',').map(s => s.trim()).filter(s => s.length > 0);
+        }
+      }
+      
+      // Simulated DICOM dataset dictionary
+      const masterDicom = {
+        "SOPInstanceUID": "1.2.840.10008.5.1.4.1.1.2.84010.20260520",
+        "Modality": "CT",
+        "Rows": 512,
+        "Columns": 512,
+        "PatientSex": "M",
+        "PatientAge": "062Y",
+        "PatientSize": 1.78,
+        "PatientWeight": 74.5,
+        "PixelSpacing": [0.683594, 0.683594],
+        "ImageOrientationPatient": [1.0, 0.0, 0.0, 0.0, 1.0, 0.0],
+        "ImagePositionPatient": [-174.24, -182.52, -214.80],
+        "PhotometricInterpretation": "MONOCHROME2",
+        "BitsAllocated": 16,
+        "BitsStored": 12,
+        "HighBit": 11,
+        "PixelRepresentation": 1,
+        "RescaleSlope": 1.0,
+        "RescaleIntercept": -1024.0,
+        "WindowCenter": -600.0,
+        "WindowWidth": 1500.0,
+        "ViewPosition": "AP",
+        "BodyPartExamined": "CHEST",
+        "Laterality": "L",
+        "Manufacturer": "SIEMENS",
+        "ImageType": ["ORIGINAL", "PRIMARY", "AXIAL"],
+        "SOPClassUID": "1.2.840.10008.5.1.4.1.1.2",
+        "TransferSyntaxUID": "1.2.840.10008.1.2.1"
+      };
+      
+      let outObj = {};
+      fields.forEach(field => {
+        if (field in masterDicom) {
+          outObj[field] = masterDicom[field];
+        } else {
+          outObj[field] = null; // Yield null like pydicom
+        }
+      });
+      
+      const metaTextEl = document.getElementById('recipeMetadataText');
+      if (metaTextEl) {
+        metaTextEl.textContent = JSON.stringify(outObj, null, 2);
+        delete metaTextEl.dataset.highlighted;
+        hljs.highlightElement(metaTextEl);
+      }
+    }
+
+    // Copy to Clipboard utility
+    function copyRecipeText(elementId, btn) {
+      const text = document.getElementById(elementId).textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        const originalText = btn.textContent;
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = originalText;
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+
+    // Search and filter sections with custom marks
+    function filterDocumentation(keyword) {
+      const term = keyword.toLowerCase().trim();
+      const sections = document.querySelectorAll('.doc-section');
+      const fallback = document.getElementById('searchFallback');
+      
+      if (term.length > 0) {
+        switchReadingMode('spec');
+      }
+
+      let matchCount = 0;
+      
+      sections.forEach(sec => {
+        // Strip previous search highlights
+        sec.querySelectorAll('mark.search-hit').forEach(mark => {
+          mark.replaceWith(document.createTextNode(mark.textContent));
+        });
+
+        if (term === '') {
+          sec.style.display = 'block';
+          return;
+        }
+
+        const text = sec.textContent.toLowerCase();
+        
+        if (text.includes(term)) {
+          sec.style.display = 'block';
+          matchCount++;
+          highlightNodeText(sec, term);
+        } else {
+          sec.style.display = 'none';
+        }
+      });
+
+      if (fallback) {
+        if (term !== '' && matchCount === 0) {
+          fallback.style.display = 'block';
+        } else {
+          fallback.style.display = 'none';
+        }
+      }
+    }
+
+    // Recursive text node highlight builder
+    function highlightNodeText(node, term) {
+      if (node.nodeType === Node.TEXT_NODE) {
+        const text = node.textContent;
+        const index = text.toLowerCase().indexOf(term);
+        
+        if (index >= 0) {
+          const matchLength = term.length;
+          const mark = document.createElement('mark');
+          mark.className = 'search-hit';
+          mark.textContent = text.substr(index, matchLength);
+          
+          const remainingText = document.createTextNode(text.substr(index + matchLength));
+          node.textContent = text.substr(0, index);
+          
+          node.parentNode.insertBefore(mark, node.nextSibling);
+          mark.parentNode.insertBefore(remainingText, mark.nextSibling);
+          
+          highlightNodeText(remainingText, term);
+        }
+      } else if (node.nodeType === Node.ELEMENT_NODE && node.nodeName !== 'SCRIPT' && node.nodeName !== 'STYLE' && node.nodeName !== 'CODE' && node.nodeName !== 'PRE') {
+        for (let i = 0; i < node.childNodes.length; i++) {
+          highlightNodeText(node.childNodes[i], term);
+          if (node.childNodes[i].nodeType === Node.ELEMENT_NODE && node.childNodes[i].classList.contains('search-hit')) {
+            i++;
+          }
+        }
+      }
+    }
+
+    // Scroll to and show specific section
+    function showSection(targetId, updateHash = true) {
+      switchReadingMode('spec');
+      closeMobileMenu();
+      
+      const el = document.getElementById(targetId);
+      if (el) {
+        const yOffset = -70;
+        const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+        window.scrollTo({ top: y, behavior: 'smooth' });
+        
+        if (updateHash) {
+          history.pushState(null, null, `#${targetId}`);
+        }
+      }
+      
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+        if (item.getAttribute('onclick') && item.getAttribute('onclick').includes(targetId)) {
+          item.classList.add('active');
+        }
+      });
+    }
+
+    // Handle deep links from URL hash
+    function handleDeepLink() {
+      const hash = window.location.hash.substring(1);
+      if (hash) {
+        const el = document.getElementById(hash);
+        if (el && el.classList.contains('doc-section')) {
+          showSection(hash, false);
+        }
+      }
+    }
+
+    // Toggle mobile sidebar drawer
+    function toggleMobileMenu() {
+      const sidebar = document.getElementById('sidebar');
+      const menuBtn = document.getElementById('menuBtn');
+      if (!sidebar || !menuBtn) return;
+      
+      if (sidebar.classList.contains('open')) {
+        sidebar.classList.remove('open');
+        menuBtn.textContent = 'Menu';
+      } else {
+        sidebar.classList.add('open');
+        menuBtn.textContent = 'Close';
+      }
+    }
+
+    function closeMobileMenu() {
+      const sidebar = document.getElementById('sidebar');
+      const menuBtn = document.getElementById('menuBtn');
+      if (sidebar) sidebar.classList.remove('open');
+      if (menuBtn) menuBtn.textContent = 'Menu';
+    }
+
+    // Switch between programmatic code tabs inside quickstart
+    function switchTab(event, paneId) {
+      const container = event.currentTarget.closest('.code-tabs-container');
+      if (!container) return;
+      
+      container.querySelectorAll('.code-tab-btn').forEach(btn => btn.classList.remove('active'));
+      container.querySelectorAll('.code-content-pane').forEach(pane => pane.classList.remove('active'));
+      
+      event.currentTarget.classList.add('active');
+      const pane = document.getElementById(paneId);
+      if (pane) pane.classList.add('active');
+    }
+
+    // switchRecipeTab removed (duplicate) — alias of switchTab
+    const switchRecipeTab = switchTab;
+
+    // Active sidebar scrollspy link synchronization
+    window.addEventListener('scroll', () => {
+      const specPane = document.getElementById('specPane');
+      if (!specPane || specPane.style.display === 'none') return;
+      
+      let currentSection = '';
+      const sections = document.querySelectorAll('.doc-section');
+      const scrollPosition = window.scrollY + 120;
+
+      sections.forEach(sec => {
+        const top = sec.offsetTop;
+        const height = sec.offsetHeight;
+        if (scrollPosition >= top && scrollPosition < top + height) {
+          currentSection = sec.getAttribute('id');
+        }
+      });
+
+      // Default to overview if at the very top
+      if (!currentSection && window.scrollY < 200) {
+        currentSection = 'overview';
+      }
+
+      const navItems = document.querySelectorAll('.nav-item');
+      navItems.forEach(item => {
+        item.classList.remove('active');
+        const onClick = item.getAttribute('onclick');
+        // Fix: Only apply active class if currentSection is found and matches precisely
+        if (currentSection && onClick && onClick.includes(`'${currentSection}'`)) {
+          item.classList.add('active');
+        }
+      });
+
+      // Trigger benchmark animation if visible
+      const bench = document.querySelector('.benchmark-container');
+      if (bench && !bench.dataset.animated) {
+        const rect = bench.getBoundingClientRect();
+        if (rect.top < window.innerHeight && rect.bottom >= 0) {
+          animateBenchmarks();
+          bench.dataset.animated = "true";
+        }
+      }
+    });
+
+    function animateBenchmarks() {
+      const bars = document.querySelectorAll('.benchmark-bar-fill');
+      bars.forEach(bar => {
+        const targetWidth = bar.getAttribute('data-width');
+        bar.style.width = '0%';
+        setTimeout(() => {
+          bar.style.width = targetWidth;
+        }, 100);
+      });
+    }
+
+    // Hover listeners for crosshairs
+    function bindHoverProbe() {
+      const container = document.getElementById('sliderContainer');
+      const canvas = document.getElementById('simulatorCanvas');
+      if (!canvas || !container) return;
+      
+      const moveSlider = (e) => {
+        const rect = container.getBoundingClientRect();
+        const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+        sliderPos = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+        updateSliderUI();
+        updateSimConfig();
+      };
+
+      container.addEventListener('mousedown', (e) => {
+        isDraggingSlider = true;
+        moveSlider(e);
+      });
+      
+      window.addEventListener('mouseup', () => isDraggingSlider = false);
+      window.addEventListener('mousemove', (e) => {
+        if (isDraggingSlider) moveSlider(e);
+      });
+      
+      container.addEventListener('touchstart', (e) => {
+        isDraggingSlider = true;
+        moveSlider(e.touches[0]);
+      }, { passive: false });
+      
+      window.addEventListener('touchend', () => isDraggingSlider = false);
+      window.addEventListener('touchmove', (e) => {
+        if (isDraggingSlider) moveSlider(e.touches[0]);
+      }, { passive: false });
+
+      canvas.addEventListener('mousemove', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        isHovering = true;
+        
+        // Scale client mouse positions to matrix space [0, 149]
+        mouseX = Math.floor(((e.clientX - rect.left) / rect.width) * matrixSize);
+        mouseY = Math.floor(((e.clientY - rect.top) / rect.height) * matrixSize);
+        
+        mouseX = Math.max(0, Math.min(matrixSize - 1, mouseX));
+        mouseY = Math.max(0, Math.min(matrixSize - 1, mouseY));
+        
+        // Update simulation frame
+        updateSimConfig();
+      });
+
+      canvas.addEventListener('mouseleave', () => {
+        isHovering = false;
+        updateSimConfig();
+      });
+    }
+
+    window.addEventListener('hashchange', handleDeepLink);
+
+    // Run Initial Setups on Load
+    window.addEventListener('DOMContentLoaded', () => {
+      initMockDicomMatrix();
+      bindHoverProbe();
+      
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      if (savedTheme === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        const themeBtn = document.getElementById('themeBtn');
+        if (themeBtn) themeBtn.textContent = 'Day Mode';
+      }
+      
+      loadSavedCustomPresets();
+      updateSimConfig();
+      runSimTerminalDebugger();
+      
+      // Initialize Highlight.js
+      hljs.highlightAll();
+      
+      // Handle deep link if present
+      setTimeout(handleDeepLink, 100);
+
+      // Open shutter on page load
+      setTimeout(() => {
+        document.querySelector('.shutter-top')?.classList.remove('closing');
+        document.querySelector('.shutter-bottom')?.classList.remove('closing');
+      }, 50);
+      
+      // Advanced Page Transition Effect to go back to homepage (if any links point to index.html)
+      document.querySelectorAll('a[href^="index.html"]').forEach(link => {
+        link.addEventListener('click', function(e) {
+          e.preventDefault();
+          const target = this.href;
+          document.querySelector('.shutter-top').classList.add('closing');
+          document.querySelector('.shutter-bottom').classList.add('closing');
+          
+          setTimeout(() => {
+            window.location.href = target;
+          }, 650);
+        });
+      });
+
+      // Reset shutter on bfcache restore
+      window.addEventListener('pageshow', (event) => {
+        if (event.persisted) {
+          document.querySelector('.shutter-top').classList.remove('closing');
+          document.querySelector('.shutter-bottom').classList.remove('closing');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
