@@ -53,8 +53,9 @@ $VENV_PIP = "$INSTALL_DIR\venv\Scripts\pip.exe"
 
 # 6. Install Package
 Print-Step "Installing cad-preprocess [Full Feature Set]"
-& $VENV_PIP install -q --upgrade pip
-& $VENV_PIP install -q ".[explorer,performance]"
+# Use python -m pip to avoid locking the pip executable during its own upgrade
+& $VENV_PYTHON -m pip install -q --upgrade pip
+& $VENV_PYTHON -m pip install -q ".[explorer,performance]"
 Print-Success "Package installed successfully"
 
 # 7. Create Wrappers
