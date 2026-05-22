@@ -44,7 +44,10 @@ from __future__ import annotations
 
 import hashlib
 import json
+import multiprocessing
+import os
 import uuid
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -257,6 +260,7 @@ class CADPreprocessor:
         output_dir: Optional[Path] = None,
         write_outputs: bool = True,
         create_manifest: bool = True,
+        num_workers: Optional[int] = None,
     ) -> None:
         """
         Initialize the CAD preprocessor.
@@ -266,11 +270,13 @@ class CADPreprocessor:
             output_dir: Default output directory.
             write_outputs: Whether to write images/metadata to disk.
             create_manifest: Whether to create processing manifests.
+            num_workers: Number of worker processes (default: CPU count).
         """
         self._config = config
         self._output_dir = Path(output_dir) if output_dir else None
         self._write_outputs = write_outputs
         self._create_manifest = create_manifest
+        self._num_workers = num_workers or min(32, (os.cpu_count() or 1))
 
         # Compute config hash for reproducibility
         self._config_hash = self._compute_config_hash(config)
@@ -384,7 +390,7 @@ class CADPreprocessor:
                 "resizing": {
                     "target_height": config.preprocessing.resizing.target_height,
                     "target_width": config.preprocessing.resizing.target_width,
-                    "preserve_aspect_ratio": config.preprocessing.resizing.preserve_aspect_ratio,
+                    "keep_aspect_ratio": config.preprocessing.resizing.keep_aspect_ratio,
                     "interpolation": config.preprocessing.resizing.interpolation,
                 },
                 "output_dtype": config.preprocessing.output_dtype,
@@ -528,33 +534,76 @@ class CADPreprocessor:
 
             self._logger.log_batch_start(discovery.total_valid)
 
-            # Process each file
-            for i, file_path in enumerate(discovery.valid_files, 1):
-                self._logger.log_file_start(file_path, i, discovery.total_valid)
+            # Process files in parallel if multiple workers are available
+            if self._num_workers > 1 and len(discovery.valid_files) > 1:
+                self._logger.info(f"Processing {len(discovery.valid_files)} files using {self._num_workers} workers")
+                
+                with ProcessPoolExecutor(max_workers=self._num_workers) as executor:
+                    # Submit all tasks
+                    future_to_file = {
+                        executor.submit(self.process_file, file_path, output_dir): file_path
+                        for file_path in discovery.valid_files
+                    }
+                    
+                    for future in as_completed(future_to_file):
+                        file_path = future_to_file[future]
+                        try:
+                            result = future.result()
+                            results.append(result)
+                            
+                            if result.success:
+                                stats.files_processed += 1
+                                # Note: We don't log success here to avoid console spam in parallel mode
+                                # unless it's a small batch
+                                if len(discovery.valid_files) < 20:
+                                    self._logger.log_file_success(file_path)
+                            else:
+                                stats.files_failed += 1
+                                self._logger.log_file_error(
+                                    file_path,
+                                    Exception(result.error_message or "Unknown error"),
+                                    ProcessingStage.PREPROCESSING,
+                                )
+                                
+                            if manifest:
+                                manifest.add_file(
+                                    input_file=file_path,
+                                    output_file=result.output_image_path,
+                                    metadata_file=result.output_metadata_path,
+                                    success=result.success,
+                                    error_message=result.error_message,
+                                )
+                        except Exception as e:
+                            stats.files_failed += 1
+                            self._logger.log_file_error(file_path, e, ProcessingStage.PREPROCESSING)
+            else:
+                # Sequential processing for single file or small batch
+                for i, file_path in enumerate(discovery.valid_files, 1):
+                    self._logger.log_file_start(file_path, i, discovery.total_valid)
 
-                result = self.process_file(file_path, output_dir)
-                results.append(result)
+                    result = self.process_file(file_path, output_dir)
+                    results.append(result)
 
-                if result.success:
-                    stats.files_processed += 1
-                    self._logger.log_file_success(file_path)
-                else:
-                    stats.files_failed += 1
-                    self._logger.log_file_error(
-                        file_path,
-                        Exception(result.error_message or "Unknown error"),
-                        ProcessingStage.PREPROCESSING,
-                    )
+                    if result.success:
+                        stats.files_processed += 1
+                        self._logger.log_file_success(file_path)
+                    else:
+                        stats.files_failed += 1
+                        self._logger.log_file_error(
+                            file_path,
+                            Exception(result.error_message or "Unknown error"),
+                            ProcessingStage.PREPROCESSING,
+                        )
 
-                # Update manifest
-                if manifest:
-                    manifest.add_file(
-                        input_file=file_path,
-                        output_file=result.output_image_path,
-                        metadata_file=result.output_metadata_path,
-                        success=result.success,
-                        error_message=result.error_message,
-                    )
+                    # Update manifest
+                    if manifest:
+                        manifest.add_file(
+                            input_file=file_path,
+                            output_file=result.output_image_path,
+                            metadata_file=result.output_metadata_path,
+                            success=result.success,
+                            error_message=result.error_message,
+                        )
 
             # Finalize manifest
             if manifest:
@@ -681,7 +730,7 @@ class CADPreprocessor:
                 "resizing": {
                     "target_height": self._config.preprocessing.resizing.target_height,
                     "target_width": self._config.preprocessing.resizing.target_width,
-                    "preserve_aspect_ratio": self._config.preprocessing.resizing.preserve_aspect_ratio,
+                    "keep_aspect_ratio": self._config.preprocessing.resizing.keep_aspect_ratio,
                 },
                 "output_dtype": self._config.preprocessing.output_dtype,
             },

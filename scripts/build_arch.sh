@@ -6,7 +6,7 @@
 # with ALL dependencies bundled in /opt/cad-preprocess/lib
 # ==========================================================================
 
-set -e
+set -euo pipefail
 
 PACKAGE_NAME="cad-preprocess"
 VERSION="0.1.0"
@@ -18,7 +18,7 @@ echo "  CAD-PREPROCESS ARCH LINUX BUNDLE BUILD"
 echo "=========================================================="
 echo ""
 
-# Clean previous builds
+# Clean previous builds safely
 rm -rf build_arch
 mkdir -p build_arch
 
@@ -38,27 +38,37 @@ echo "[1/6] Creating virtual environment..."
 python3 -m venv build_arch/venv
 echo "      - Virtual environment created."
 
+# Create a wrapper function to run pip inside the virtual environment
+function run_pip() {
+    build_arch/venv/bin/pip "$@"
+}
+
 echo "[2/6] Installing ALL dependencies..."
 echo "      - Upgrading pip, wheel, setuptools..."
-build_arch/venv/bin/pip install --upgrade pip wheel setuptools -q
+run_pip install --upgrade pip wheel setuptools -q
 
 echo "      - Installing core data science packages (numpy, pillow, scipy, pandas)..."
-build_arch/venv/bin/pip install numpy pillow scipy pandas python-dateutil -q
+run_pip install numpy pillow scipy pandas python-dateutil -q
 
 echo "      - Installing DICOM specific packages (pydicom, pylibjpeg, gdcm)..."
-build_arch/venv/bin/pip install pydicom pylibjpeg pylibjpeg-libjpeg pylibjpeg-openjpeg -q || true
+run_pip install pydicom pylibjpeg pylibjpeg-libjpeg pylibjpeg-openjpeg -q || echo "      - Warning: Failed to install some pylibjpeg packages"
+
 # Note: python-gdcm might not be available via pip on all platforms easily, 
 # but we try to bundle what we can.
-build_arch/venv/bin/pip install python-gdcm -q || true
+run_pip install python-gdcm -q || echo "      - Warning: python-gdcm not available via pip, skipping"
 
 echo "      - Installing image processing and GUI packages (scikit-image, PyQt6)..."
-build_arch/venv/bin/pip install scikit-image PyYAML click tzdata imageio tifffile PyQt6 -q || true
+run_pip install scikit-image PyYAML click tzdata imageio tifffile PyQt6 -q || echo "      - Warning: Failed to install some optional packages"
+
+# Build and install the actual cad_preprocess package to ensure dependencies match pyproject.toml
+echo "      - Installing cad-preprocess to resolve remaining dependencies..."
+run_pip install . -q
 
 echo "[3/6] Copying bundled libraries..."
-cp -r build_arch/venv/lib/python${PYTHON_VERSION}/site-packages/* "${PKG_ROOT}/opt/cad-preprocess/lib/"
+cp -r "build_arch/venv/lib/python${PYTHON_VERSION}/site-packages/"* "${PKG_ROOT}/opt/cad-preprocess/lib/"
 echo "      - Libraries copied to /opt/cad-preprocess/lib"
 
-# Copy our module
+# Copy our module (this shouldn't be strictly necessary if we pip install it, but keeping for compatibility)
 echo "[4/6] Copying cad_preprocess module..."
 cp -r src/cad_preprocess "${PKG_ROOT}/opt/cad-preprocess/lib/"
 echo "      - Source module copied."
@@ -91,6 +101,16 @@ if __name__ == "__main__":
 ENDSCRIPT
 chmod 755 "${PKG_ROOT}/usr/bin/cad-preprocess-explorer"
 
+cat > "${PKG_ROOT}/usr/bin/cad-preprocess-diagnose" << 'ENDSCRIPT'
+#!/usr/bin/env python3
+import sys
+sys.path.insert(0, '/opt/cad-preprocess/lib')
+from cad_preprocess.diagnose_cli import main
+if __name__ == "__main__":
+    sys.exit(main())
+ENDSCRIPT
+chmod 755 "${PKG_ROOT}/usr/bin/cad-preprocess-diagnose"
+
 # Create .pth file
 cat > "${SITEPACKAGES_DIR}/cad_preprocess.pth" << 'ENDPTH'
 /opt/cad-preprocess/lib
@@ -116,11 +136,12 @@ package() {
 ENDPKGBUILD
 
 echo "[6/6] Building Arch package with makepkg..."
-cd build_arch
+pushd build_arch > /dev/null
 makepkg -f --noconfirm
+popd > /dev/null
 
 # Move to current directory
-mv ${PACKAGE_NAME}-bundled-${VERSION}-${RELEASE}-x86_64.pkg.tar.zst ..
+mv build_arch/${PACKAGE_NAME}-bundled-${VERSION}-${RELEASE}-x86_64.pkg.tar.zst . || echo "Warning: Could not find generated package."
 
 echo ""
 echo "=========================================================="

@@ -18,6 +18,8 @@ On validation failure: skip and log (fail-safe behavior)
 from __future__ import annotations
 
 import logging
+import os
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterator, List, Optional, Set, Tuple
@@ -263,23 +265,44 @@ def discover_dicom_files(
 
     result.total_discovered = len(files_to_process)
 
-    # Process each file
-    for file_path in files_to_process:
-        if validate:
-            validation = validate_dicom_file(
-                file_path,
-                check_pixel_data=check_pixel_data,
-                check_dimensions=check_dimensions,
-            )
-            if validation.is_valid:
-                result.add_valid(file_path)
-                logger.debug(f"Valid DICOM file: {file_path}")
+    # Process each file (parallelize validation if many files)
+    if validate and len(files_to_process) > 50:
+        num_workers = min(32, (os.cpu_count() or 1))
+        logger.info(f"Validating {len(files_to_process)} files using {num_workers} workers")
+        
+        with ProcessPoolExecutor(max_workers=num_workers) as executor:
+            future_to_file = {
+                executor.submit(validate_dicom_file, f, check_pixel_data, check_dimensions): f
+                for f in files_to_process
+            }
+            
+            for future in as_completed(future_to_file):
+                file_path = future_to_file[future]
+                try:
+                    validation = future.result()
+                    if validation.is_valid:
+                        result.add_valid(file_path)
+                    else:
+                        result.add_skipped(file_path, validation.error_message or "Unknown error")
+                except Exception as e:
+                    result.add_skipped(file_path, f"Validation crashed: {e}")
+    else:
+        for file_path in files_to_process:
+            if validate:
+                validation = validate_dicom_file(
+                    file_path,
+                    check_pixel_data=check_pixel_data,
+                    check_dimensions=check_dimensions,
+                )
+                if validation.is_valid:
+                    result.add_valid(file_path)
+                    logger.debug(f"Valid DICOM file: {file_path}")
+                else:
+                    result.add_skipped(file_path, validation.error_message or "Unknown error")
+                    logger.warning(f"Skipped invalid file: {file_path} - {validation.error_message}")
             else:
-                result.add_skipped(file_path, validation.error_message or "Unknown error")
-                logger.warning(f"Skipped invalid file: {file_path} - {validation.error_message}")
-        else:
-            # No validation, assume all files are valid
-            result.add_valid(file_path)
+                # No validation, assume all files are valid
+                result.add_valid(file_path)
 
     logger.info(
         f"Discovery complete: {result.total_valid} valid, "

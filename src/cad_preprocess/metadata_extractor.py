@@ -139,16 +139,16 @@ def convert_value_to_json_serializable(value: Any) -> Any:
     if value is None:
         return None
 
+    # Handle PersonName
+    if hasattr(value, "family_name"):
+        return str(value)
+
     # Handle pydicom MultiValue (list-like)
     if hasattr(value, "__iter__") and not isinstance(value, (str, bytes)):
         try:
             return [convert_value_to_json_serializable(v) for v in value]
         except (TypeError, ValueError):
             return str(value)
-
-    # Handle PersonName
-    if hasattr(value, "family_name"):
-        return str(value)
 
     # Handle bytes (not JSON serializable)
     if isinstance(value, bytes):

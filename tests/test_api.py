@@ -149,7 +149,7 @@ class TestConfigLoading:
                 "resizing": {
                     "target_height": 256,
                     "target_width": 256,
-                    "preserve_aspect_ratio": False,
+                    "keep_aspect_ratio": False,
                 },
                 "output_dtype": "float32",
             },
@@ -167,7 +167,7 @@ class TestConfigLoading:
         assert cfg.preprocessing.windowing.strategy == "fixed_window"
         assert cfg.preprocessing.windowing.window_center == 50
         assert cfg.preprocessing.resizing.target_height == 256
-        assert cfg.preprocessing.resizing.preserve_aspect_ratio is False
+        assert cfg.preprocessing.resizing.keep_aspect_ratio is False
         assert cfg.metadata.profiles == ["minimal", "ml"]
         assert cfg.output.naming_policy == "original_filename"
 
@@ -238,7 +238,7 @@ class TestPreprocessFunction:
         """Test preprocessing with configuration dictionary."""
         config = {
             "preprocessing": {
-                "windowing": {"strategy": "from_dicom"},
+                "windowing": {"strategy": "use_dicom_window"},
             },
             "output": {
                 "format": "png",
@@ -280,3 +280,4 @@ class TestPreprocessIntegration:
 # Run tests
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
+

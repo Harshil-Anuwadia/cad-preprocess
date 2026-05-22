@@ -6,8 +6,8 @@ CAD (Computer-Aided Detection/Diagnosis) systems. The preprocessing logic
 is written once and can be reused across training, inference, and UI workflows.
 """
 
-__version__ = "0.1.0"
-__author__ = "CAD Preprocess Team"
+__version__ = "1.0.0"
+__author__ = "Harshil Anuwadia"
 
 from cad_preprocess.config import (
     Config,

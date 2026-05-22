@@ -311,14 +311,14 @@ class DicomExplorerGUI(QMainWindow):
         self.dicom_path.setMinimumHeight(35)
         step1_layout.addWidget(self.dicom_path, 1)
         
-        browse_btn = QPushButton("📁 Browse...")
+        browse_btn = QPushButton("Browse...")
         browse_btn.setMinimumHeight(35)
         browse_btn.setMinimumWidth(120)
         browse_btn.clicked.connect(self.browse_dicom_folder)
         browse_btn.setToolTip("Select a folder containing DICOM images (.dcm, .dicom files)")
         step1_layout.addWidget(browse_btn)
         
-        self.scan_btn = QPushButton("🔍 Scan")
+        self.scan_btn = QPushButton("Scan")
         self.scan_btn.setMinimumHeight(35)
         self.scan_btn.setMinimumWidth(100)
         self.scan_btn.setStyleSheet("QPushButton { background-color: #4CAF50; color: white; font-weight: bold; }")
@@ -340,7 +340,7 @@ class DicomExplorerGUI(QMainWindow):
         self.csv_list.setMinimumHeight(35)
         csv_row.addWidget(self.csv_list, 1)
         
-        add_csv_btn = QPushButton("📄 Add CSV...")
+        add_csv_btn = QPushButton("Add CSV...")
         add_csv_btn.setMinimumHeight(35)
         add_csv_btn.clicked.connect(self.add_csv_file)
         add_csv_btn.setToolTip("Load a CSV file containing image annotations/labels")
@@ -360,7 +360,7 @@ class DicomExplorerGUI(QMainWindow):
         
         # Row 1: Link CSV to images
         link_row = QHBoxLayout()
-        link_row.addWidget(QLabel("1️⃣ Link CSV to images using column:"))
+        link_row.addWidget(QLabel("1. Link CSV to images using column:"))
         self.id_column = NoScrollComboBox()
         self.id_column.addItem("-- Select column with image filename --")
         self.id_column.setMinimumWidth(200)
@@ -371,13 +371,13 @@ class DicomExplorerGUI(QMainWindow):
         
         # Row 2: Filter by column and value
         filter_row = QHBoxLayout()
-        filter_row.addWidget(QLabel("2️⃣ Find images where"))
+        filter_row.addWidget(QLabel("2. Find images where"))
         
         self.filter_column = NoScrollComboBox()
         self.filter_column.addItem("-- Select column --")
         self.filter_column.setMinimumWidth(150)
         self.filter_column.currentTextChanged.connect(self.on_filter_column_changed)
-        self.filter_column.setToolTip("Which column do you want to filter by? (e.g., 'diagnosis', 'label')")
+        self.filter_column.setToolTip("Which column do you want to filter by(e.g., 'diagnosis', 'label')")
         filter_row.addWidget(self.filter_column)
         
         filter_row.addWidget(QLabel("equals"))
@@ -385,12 +385,12 @@ class DicomExplorerGUI(QMainWindow):
         self.filter_value = NoScrollComboBox()
         self.filter_value.addItem("-- Select value --")
         self.filter_value.setMinimumWidth(150)
-        self.filter_value.setToolTip("What value are you looking for? (e.g., 'TB', 'Pneumonia')")
+        self.filter_value.setToolTip("What value are you looking for(e.g., 'TB', 'Pneumonia')")
         filter_row.addWidget(self.filter_value)
         
         filter_row.addStretch()
         
-        self.filter_btn = QPushButton("🔍 Filter Images")
+        self.filter_btn = QPushButton("Filter Images")
         self.filter_btn.setStyleSheet("QPushButton { background-color: #2196F3; color: white; font-weight: bold; }")
         self.filter_btn.clicked.connect(self.do_filter_by_csv)
         self.filter_btn.setToolTip("Show only images matching this filter")
@@ -405,7 +405,7 @@ class DicomExplorerGUI(QMainWindow):
         
         # Row 3: Bounding Box columns (optional)
         bbox_row = QHBoxLayout()
-        self.show_bbox = QCheckBox("3️⃣ Show bounding boxes from columns:")
+        self.show_bbox = QCheckBox("3. Show bounding boxes from columns:")
         self.show_bbox.setChecked(False)
         self.show_bbox.setToolTip("Enable to draw bounding boxes on the image preview")
         self.show_bbox.toggled.connect(self.on_bbox_toggled)
@@ -493,7 +493,7 @@ class DicomExplorerGUI(QMainWindow):
         # Search/filter bar
         filter_row = QHBoxLayout()
         self.search_input = QLineEdit()
-        self.search_input.setPlaceholderText("🔍 Search images...")
+        self.search_input.setPlaceholderText("Search images...")
         self.search_input.setMinimumHeight(30)
         self.search_input.textChanged.connect(self.apply_filters)
         filter_row.addWidget(self.search_input, 1)
@@ -513,14 +513,9 @@ class DicomExplorerGUI(QMainWindow):
         
         # Image list
         self.image_list = QListWidget()
-        self.image_list.setAlternatingRowColors(True)
-        self.image_list.itemClicked.connect(self.on_image_selected)
+        self.image_list.currentItemChanged.connect(self.on_image_selected)
         self.image_list.itemDoubleClicked.connect(self.on_image_double_clicked)
-        self.image_list.setStyleSheet("""
-            QListWidget::item { padding: 8px; font-size: 13px; }
-            QListWidget::item:selected { background-color: #2196F3; color: white; }
-        """)
-        left_layout.addWidget(self.image_list, 1)
+        left_layout.addWidget(self.image_list)
         
         content_splitter.addWidget(left_widget)
         
@@ -538,12 +533,11 @@ class DicomExplorerGUI(QMainWindow):
         self.preview_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.preview_label.setStyleSheet("color: #888; font-size: 14px;")
         self.preview_label.setMinimumSize(400, 300)
-        self.preview_label.setToolTip("Double-click to open in image viewer")
         self.preview_label.setCursor(Qt.CursorShape.PointingHandCursor)
         self.preview_label.doubleClicked.connect(self.open_current_in_viewer)
         preview_layout.addWidget(self.preview_label)
         
-        right_layout.addWidget(preview_frame, 2)
+        right_layout.addWidget(preview_frame, 3)
         
         # Details
         details_group = QGroupBox("Image Details")
@@ -551,11 +545,11 @@ class DicomExplorerGUI(QMainWindow):
         
         self.details_text = QTextEdit()
         self.details_text.setReadOnly(True)
-        self.details_text.setMaximumHeight(150)
+        self.details_text.setMinimumHeight(150)
         self.details_text.setPlaceholderText("Image metadata and annotations will appear here")
         details_layout.addWidget(self.details_text)
         
-        right_layout.addWidget(details_group, 1)
+        right_layout.addWidget(details_group, 2)
         
         content_splitter.addWidget(right_widget)
         content_splitter.setSizes([350, 550])
@@ -571,7 +565,7 @@ class DicomExplorerGUI(QMainWindow):
         
         bottom_layout.addStretch()
         
-        self.export_btn = QPushButton("📤 Export List to CSV")
+        self.export_btn = QPushButton("Export List to CSV")
         self.export_btn.setEnabled(False)
         self.export_btn.clicked.connect(self.export_filtered)
         self.export_btn.setToolTip("Export the current filtered image list to a CSV file")
@@ -585,7 +579,7 @@ class DicomExplorerGUI(QMainWindow):
         main_layout.addWidget(self.progress_bar)
         
         # Status bar with helpful message
-        self.statusBar().showMessage("👆 Start by selecting a folder with DICOM images, then click 'Scan'")
+        self.statusBar().showMessage("Start by selecting a folder with DICOM images, then click 'Scan'")
         
         # Hidden widgets for compatibility
         self.label_filter = NoScrollComboBox()
@@ -697,7 +691,7 @@ class DicomExplorerGUI(QMainWindow):
         
         # DICOM folder row
         dicom_layout = QHBoxLayout()
-        dicom_layout.addWidget(QLabel("📁 DICOM Folder:"))
+        dicom_layout.addWidget(QLabel("DICOM Folder:"))
         self.dicom_path = QLineEdit()
         self.dicom_path.setPlaceholderText("Select folder containing DICOM images...")
         self.dicom_path.setReadOnly(True)
@@ -711,7 +705,7 @@ class DicomExplorerGUI(QMainWindow):
         
         # CSV files row
         csv_layout = QHBoxLayout()
-        csv_layout.addWidget(QLabel("📄 CSV Files:"))
+        csv_layout.addWidget(QLabel("CSV Files:"))
         self.csv_list = QLineEdit()
         self.csv_list.setPlaceholderText("No CSV files added...")
         self.csv_list.setReadOnly(True)
@@ -731,7 +725,7 @@ class DicomExplorerGUI(QMainWindow):
         scan_layout = QHBoxLayout()
         scan_layout.addStretch()
         
-        self.scan_btn = QPushButton("🔍 Scan && Load")
+        self.scan_btn = QPushButton("Scan && Load")
         self.scan_btn.setStyleSheet("""
             QPushButton {
                 background-color: #2196F3;
@@ -1369,26 +1363,28 @@ class DicomExplorerGUI(QMainWindow):
             
             # Add to list
             item = QListWidgetItem()
-            
+
             # Set icon based on status
+            style = self.style()
             if dicom_file.annotations:
-                icon = "✓"
-                color = "#4CAF50"
+                icon = style.standardIcon(style.StandardPixmap.SP_DialogApplyButton)
+                color = "#2f3640" # Default text color
             elif dicom_file.matched:
-                icon = "○"
-                color = "#9E9E9E"
+                icon = style.standardIcon(style.StandardPixmap.SP_FileIcon)
+                color = "#7f8fa6" # Dim text color
             else:
-                icon = "?"
-                color = "#FF9800"
-            
-            display_text = f"{icon} {dicom_file.filename}"
+                icon = style.standardIcon(style.StandardPixmap.SP_MessageBoxWarning)
+                color = "#e1b12c" # Warning text color
+
+            display_text = f"{dicom_file.filename}"
             if dicom_file.annotations:
                 display_text += f" ({len(dicom_file.annotations)} ann.)"
-            
+
+            item.setIcon(icon)
             item.setText(display_text)
             item.setData(Qt.ItemDataRole.UserRole, dicom_file)
             item.setForeground(QColor(color))
-            
+
             self.image_list.addItem(item)
             filtered_count += 1
         
@@ -1407,9 +1403,15 @@ class DicomExplorerGUI(QMainWindow):
             f"With Annotations: {with_annotations} | Total Annotations: {total_annotations}"
         )
     
-    def on_image_selected(self, item: QListWidgetItem):
+    def on_image_selected(self, current: Optional[QListWidgetItem], previous: Optional[QListWidgetItem] = None):
         """Handle image selection."""
-        dicom_file: DicomFileInfo = item.data(Qt.ItemDataRole.UserRole)
+        if not current:
+            self.current_dicom = None
+            self.preview_label.setText("No image selected")
+            self.details_text.clear()
+            return
+            
+        dicom_file: DicomFileInfo = current.data(Qt.ItemDataRole.UserRole)
         self.current_dicom = dicom_file
         self.show_preview(dicom_file)
         self.show_details(dicom_file)
@@ -1613,11 +1615,12 @@ class DicomExplorerGUI(QMainWindow):
                 # Show more helpful error message for decompression failures
                 transfer_syntax = getattr(ds.file_meta, 'TransferSyntaxUID', 'Unknown')
                 self.preview_label.setText(
-                    f"Cannot decompress image\n\n"
-                    f"Transfer Syntax: {transfer_syntax}\n\n"
-                    f"This image uses compression that requires\n"
-                    f"additional packages (gdcm or pylibjpeg).\n\n"
-                    f"Try: pip install python-gdcm"
+                    f"<div style='color: #e84118; font-size: 14px; text-align: center;'><br><br>"
+                    f"<b>Cannot decompress image</b><br><br>"
+                    f"Transfer Syntax:<br><span style='color: #7f8fa6;'>{transfer_syntax}</span><br><br>"
+                    f"This image uses compression that requires<br>"
+                    f"additional packages (gdcm or pylibjpeg).<br><br>"
+                    f"<i>Try: pip install python-gdcm</i></div>"
                 )
                 return
             
@@ -1738,36 +1741,51 @@ class DicomExplorerGUI(QMainWindow):
     
     def show_details(self, dicom_file: DicomFileInfo):
         """Show annotation details."""
-        # Build details text
-        lines = []
-        lines.append(f"📁 File: {dicom_file.filename}")
-        lines.append(f"📍 Path: {dicom_file.path}")
-        
+        # Build details HTML
+        html = ["<div style='font-family: sans-serif; font-size: 13px; color: #2f3640;'>"]
+
+        # File info section
+        html.append("<h3 style='color: #2196F3; margin-bottom: 5px; border-bottom: 1px solid #ced6e0;'>File Information</h3>")
+        html.append(f"<p><b>File:</b> {dicom_file.filename}<br>")
+        html.append(f"<b>Path:</b> <span style='color: #7f8fa6;'>{dicom_file.path}</span></p>")
+
+        # DICOM metadata section
+        html.append("<h3 style='color: #2196F3; margin-bottom: 5px; border-bottom: 1px solid #ced6e0;'>DICOM Metadata</h3>")
+        html.append("<ul>")
         if dicom_file.sop_instance_uid:
-            lines.append(f"🆔 SOP UID: {dicom_file.sop_instance_uid}")
+            html.append(f"<li><b>SOP UID:</b> {dicom_file.sop_instance_uid}</li>")
         if dicom_file.patient_id:
-            lines.append(f"👤 Patient: {dicom_file.patient_id}")
+            html.append(f"<li><b>Patient:</b> {dicom_file.patient_id}</li>")
         if dicom_file.modality:
-            lines.append(f"📋 Modality: {dicom_file.modality}")
+            html.append(f"<li><b>Modality:</b> {dicom_file.modality}</li>")
         if dicom_file.rows and dicom_file.cols:
-            lines.append(f"📐 Size: {dicom_file.cols}x{dicom_file.rows}")
-        
-        lines.append("")
-        lines.append(f"✓ Matched: {'Yes' if dicom_file.matched else 'No'}")
-        lines.append(f"📝 Annotations: {len(dicom_file.annotations)}")
-        
+            html.append(f"<li><b>Size:</b> {dicom_file.cols} x {dicom_file.rows}</li>")
+        html.append("</ul>")
+
+        # Match status section
+        html.append("<h3 style='color: #2196F3; margin-bottom: 5px; border-bottom: 1px solid #ced6e0;'>Match Status</h3>")
+        match_color = "green" if dicom_file.matched else "#e1b12c"
+        html.append(f"<p><b>Matched:</b> <span style='color: {match_color}; font-weight: bold;'>{'Yes' if dicom_file.matched else 'No'}</span><br>")
+        html.append(f"<b>Annotations:</b> {len(dicom_file.annotations)}</p>")
+
+        # Annotations section
         if dicom_file.annotations:
-            lines.append("")
-            lines.append("─── Annotation Details ───")
+            html.append("<h3 style='color: #2196F3; margin-bottom: 5px; border-bottom: 1px solid #ced6e0;'>Annotation Details</h3>")
             for i, ann in enumerate(dicom_file.annotations[:5]):  # Limit to first 5
-                lines.append(f"\n[{i+1}]")
+                html.append(f"<div style='background-color: #f1f2f6; padding: 8px; margin-bottom: 8px; border-radius: 4px;'>")
+                html.append(f"<b>[Annotation {i+1}]</b><br>")
+
+                # Use a small table for key-value pairs
+                html.append("<table style='width: 100%; border-collapse: collapse; margin-top: 4px;'>")
                 for key, value in list(ann.items())[:6]:  # Limit fields shown
-                    lines.append(f"  {key}: {value}")
+                    html.append(f"<tr><td style='padding: 2px; color: #7f8fa6; width: 40%;'><b>{key}</b>:</td><td style='padding: 2px;'>{value}</td></tr>")
+                html.append("</table></div>")
+
             if len(dicom_file.annotations) > 5:
-                lines.append(f"\n... and {len(dicom_file.annotations) - 5} more")
-        
-        self.details_text.setText("\n".join(lines))
-    
+                html.append(f"<p style='color: #7f8fa6; font-style: italic;'>... and {len(dicom_file.annotations) - 5} more annotations</p>")
+
+        html.append("</div>")
+        self.details_text.setHtml("".join(html))    
     def export_filtered(self):
         """Export filtered images to a folder."""
         output_folder = QFileDialog.getExistingDirectory(
@@ -1865,6 +1883,82 @@ def main():
     app.setApplicationName("DICOM Explorer")
     app.setApplicationVersion("0.1.0")
     app.setStyle("Fusion")
+    
+    # Modern stylesheet for a professional look
+    style_sheet = """
+    QMainWindow {
+        background-color: #f5f6fa;
+    }
+    QGroupBox {
+        font-weight: bold;
+        border: 1px solid #dcdde1;
+        border-radius: 6px;
+        margin-top: 12px;
+        background-color: white;
+    }
+    QGroupBox::title {
+        subcontrol-origin: margin;
+        left: 10px;
+        padding: 0 5px;
+        color: #2f3640;
+    }
+    QPushButton {
+        background-color: #f1f2f6;
+        border: 1px solid #ced6e0;
+        border-radius: 4px;
+        padding: 5px 12px;
+        color: #2f3640;
+    }
+    QPushButton:hover {
+        background-color: #eccc68;
+        border-color: #eccc68;
+        color: white;
+    }
+    QPushButton:pressed {
+        background-color: #ffa502;
+        border-color: #ffa502;
+    }
+    QLineEdit, QComboBox, QSpinBox {
+        border: 1px solid #ced6e0;
+        border-radius: 4px;
+        padding: 4px 8px;
+        background-color: white;
+        selection-background-color: #7bed9f;
+    }
+    QLineEdit:focus, QComboBox:focus {
+        border: 1px solid #7bed9f;
+    }
+    QListWidget {
+        border: 1px solid #dcdde1;
+        border-radius: 4px;
+        background-color: white;
+        alternate-background-color: #fcfcfc;
+    }
+    QListWidget::item {
+        padding: 8px;
+        border-bottom: 1px solid #f1f2f6;
+    }
+    QListWidget::item:selected {
+        background-color: #eccc68;
+        color: #2f3640;
+    }
+    QTableWidget {
+        border: 1px solid #dcdde1;
+        border-radius: 4px;
+        background-color: white;
+        alternate-background-color: #f5f6fa;
+        selection-background-color: #eccc68;
+    }
+    QHeaderView::section {
+        background-color: #f1f2f6;
+        padding: 4px;
+        border: none;
+        border-right: 1px solid #dcdde1;
+        border-bottom: 1px solid #dcdde1;
+        font-weight: bold;
+    }
+    """
+    app.setStyleSheet(style_sheet)
     
     window = DicomExplorerGUI()
     window.show()

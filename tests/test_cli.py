@@ -38,11 +38,9 @@ class TestCreateParser:
 
     def test_required_arguments(self):
         """Test required arguments are enforced."""
-        parser = create_parser()
-
-        # Missing required arguments should fail
+        # Missing required arguments should fail in main
         with pytest.raises(SystemExit):
-            parser.parse_args([])
+            main([])
 
     def test_input_output_arguments(self):
         """Test input and output arguments."""

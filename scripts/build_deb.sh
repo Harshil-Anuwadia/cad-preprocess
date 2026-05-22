@@ -6,7 +6,7 @@
 # including JPEG lossless decompression support for medical DICOM files
 # ==========================================================================
 
-set -e
+set -euo pipefail
 
 PACKAGE_NAME="cad-preprocess"
 VERSION="0.1.0"
@@ -33,34 +33,42 @@ mkdir -p "${PKG_DIR}/usr/lib/python3/dist-packages"
 echo "[1/6] Creating virtual environment..."
 python3 -m venv build_deb/venv
 
+# Create a wrapper function to run pip inside the virtual environment
+function run_pip() {
+    build_deb/venv/bin/pip "$@"
+}
+
 echo "[2/6] Installing ALL dependencies (this may take a while)..."
-build_deb/venv/bin/pip install --upgrade pip wheel setuptools -q
+run_pip install --upgrade pip wheel setuptools -q
 
 # Core dependencies
 echo "       - Core packages (numpy, pillow, scipy, pandas, python-dateutil)..."
-build_deb/venv/bin/pip install numpy pillow scipy pandas python-dateutil -q
+run_pip install numpy pillow scipy pandas python-dateutil -q
 
 # DICOM handling with ALL decompression plugins
 echo "       - DICOM packages with decompression support..."
-build_deb/venv/bin/pip install pydicom -q
-build_deb/venv/bin/pip install pylibjpeg pylibjpeg-libjpeg pylibjpeg-openjpeg -q || true
-build_deb/venv/bin/pip install python-gdcm -q || true
+run_pip install pydicom -q
+run_pip install pylibjpeg pylibjpeg-libjpeg pylibjpeg-openjpeg -q || echo "       - Warning: Failed to install some pylibjpeg packages"
+run_pip install python-gdcm -q || echo "       - Warning: python-gdcm not available via pip, skipping"
 
 # Image processing
 echo "       - Image processing (scikit-image)..."
-build_deb/venv/bin/pip install scikit-image -q
+run_pip install scikit-image -q
 
 # Configuration and utilities  
 echo "       - Utilities (PyYAML, click, tzdata)..."
-build_deb/venv/bin/pip install PyYAML click tzdata -q
+run_pip install PyYAML click tzdata -q
 
 # Additional image format support
 echo "       - Image format support (imageio, tifffile)..."
-build_deb/venv/bin/pip install imageio tifffile -q
+run_pip install imageio tifffile -q
 
 # GUI support
 echo "       - GUI support (PyQt6)..."
-build_deb/venv/bin/pip install PyQt6 -q
+run_pip install PyQt6 -q
+
+echo "       - Installing cad-preprocess to resolve remaining dependencies..."
+run_pip install . -q
 
 echo "[3/6] Copying bundled libraries..."
 # Copy site-packages (all dependencies)
@@ -113,6 +121,19 @@ if __name__ == "__main__":
     sys.exit(main())
 ENDSCRIPT
 chmod 755 "${PKG_DIR}/usr/bin/cad-preprocess-explorer"
+
+# Create the DICOM Diagnose wrapper script
+cat > "${PKG_DIR}/usr/bin/cad-preprocess-diagnose" << 'ENDSCRIPT'
+#!/usr/bin/env python3
+import sys
+sys.path.insert(0, '/opt/cad-preprocess/lib')
+
+from cad_preprocess.diagnose_cli import main
+
+if __name__ == "__main__":
+    sys.exit(main())
+ENDSCRIPT
+chmod 755 "${PKG_DIR}/usr/bin/cad-preprocess-diagnose"
 
 # Create a .pth file so Python can find the module when importing
 cat > "${PKG_DIR}/usr/lib/python3/dist-packages/cad_preprocess.pth" << 'ENDPTH'

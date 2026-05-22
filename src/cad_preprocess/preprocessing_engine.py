@@ -30,6 +30,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Optional, Tuple, Union
 
+import cv2
 import numpy as np
 import pydicom
 from numpy.typing import NDArray
@@ -60,6 +61,16 @@ class InterpolationMethod(str, Enum):
     BILINEAR = "bilinear"
     BICUBIC = "bicubic"
     LANCZOS = "lanczos"
+
+    def to_cv2(self) -> int:
+        """Convert to cv2 resampling constant."""
+        mapping = {
+            InterpolationMethod.NEAREST: cv2.INTER_NEAREST,
+            InterpolationMethod.BILINEAR: cv2.INTER_LINEAR,
+            InterpolationMethod.BICUBIC: cv2.INTER_CUBIC,
+            InterpolationMethod.LANCZOS: cv2.INTER_LANCZOS4,
+        }
+        return mapping[self]
 
     def to_pil(self) -> int:
         """Convert to PIL resampling constant."""
@@ -215,7 +226,11 @@ def apply_rescale(
 
     if slope != 1.0 or intercept != 0.0:
         logger.debug(f"Applying rescale: slope={slope}, intercept={intercept}")
-        rescaled = pixel_array * slope + intercept
+        if slope != 1.0:
+            pixel_array *= slope
+        if intercept != 0.0:
+            pixel_array += intercept
+        rescaled = pixel_array
     else:
         rescaled = pixel_array
 
@@ -340,7 +355,9 @@ def normalize_min_max(pixel_array: NDArray) -> NDArray:
     arr_max = np.max(pixel_array)
 
     if arr_max > arr_min:
-        normalized = (pixel_array - arr_min) / (arr_max - arr_min)
+        pixel_array -= arr_min
+        pixel_array /= (arr_max - arr_min)
+        normalized = pixel_array
     else:
         normalized = np.zeros_like(pixel_array)
 
@@ -365,15 +382,18 @@ def normalize_z_score(pixel_array: NDArray) -> NDArray:
     std = np.std(pixel_array)
 
     if std > 0:
-        normalized = (pixel_array - mean) / std
+        pixel_array -= mean
+        pixel_array /= std
+        normalized = pixel_array
     else:
         normalized = np.zeros_like(pixel_array)
 
     # Clip to [-3, 3] (99.7% of data for normal distribution)
-    normalized = np.clip(normalized, -3, 3)
+    np.clip(normalized, -3, 3, out=normalized)
 
     # Scale to [0, 1]
-    normalized = (normalized + 3) / 6
+    normalized += 3
+    normalized /= 6
 
     logger.debug(f"Z-score normalization: mean={mean:.2f}, std={std:.2f}")
 
@@ -475,17 +495,9 @@ def resize_image(
     new_h, new_w = new_size
     pad_top, pad_bottom, pad_left, pad_right = padding
 
-    # Convert to PIL for resizing
-    # Scale to 0-255 temporarily for PIL
-    img_uint8 = (pixel_array * 255).astype(np.uint8)
-    pil_image = Image.fromarray(img_uint8, mode="L")
-
-    # Resize
-    resample = config.interpolation.to_pil()
-    pil_resized = pil_image.resize((new_w, new_h), resample=resample)
-
-    # Convert back to numpy and scale back to [0, 1]
-    resized = np.array(pil_resized).astype(np.float64) / 255.0
+    # Resize directly on float array using OpenCV
+    resample = config.interpolation.to_cv2()
+    resized = cv2.resize(pixel_array, (new_w, new_h), interpolation=resample)
 
     # Apply padding if needed
     if any(p > 0 for p in padding):

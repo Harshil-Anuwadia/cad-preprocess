@@ -261,7 +261,7 @@ def preprocess(
         files_to_process = discovery.valid_files
         skipped_files = [
             {"file": str(f), "reason": "Invalid DICOM"}
-            for f in discovery.invalid_files
+            for f in discovery.skipped_files
         ]
     
     # Track skipped files
@@ -384,7 +384,7 @@ def _config_from_dict(config_dict: Dict[str, Any]) -> Config:
         if "windowing" in prep:
             w = prep["windowing"]
             cfg.preprocessing.windowing = WindowingSettings(
-                strategy=w.get("strategy", "from_dicom"),
+                strategy=w.get("strategy", "use_dicom_window"),
                 window_center=w.get("window_center"),
                 window_width=w.get("window_width"),
             )

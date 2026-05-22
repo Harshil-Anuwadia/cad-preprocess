@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+# python-argcomplete-check
 """
 Command Line Interface for CAD Preprocess.
 
@@ -24,6 +26,7 @@ Examples:
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 from pathlib import Path
 from typing import List, Optional
@@ -173,17 +176,31 @@ def create_parser() -> argparse.ArgumentParser:
     required_group.add_argument(
         "--input", "-i",
         type=str,
-        required=True,
+        default=None,
         metavar="PATH",
-        help="Input DICOM file or directory containing DICOM files",
+        help="Input DICOM file or directory (can also be provided as first positional argument)",
     )
 
     required_group.add_argument(
         "--output", "-o",
         type=str,
-        required=True,
+        default=None,
         metavar="PATH",
-        help="Output directory for processed images and metadata",
+        help="Output directory (can also be provided as second positional argument)",
+    )
+
+    # Positional arguments as fallbacks
+    parser.add_argument(
+        "pos_input",
+        nargs="?",
+        metavar="INPUT",
+        help=argparse.SUPPRESS,  # Hide from help to keep it clean, but allow usage
+    )
+    parser.add_argument(
+        "pos_output",
+        nargs="?",
+        metavar="OUTPUT",
+        help=argparse.SUPPRESS,
     )
 
     # =========================================================================
@@ -241,12 +258,19 @@ def create_parser() -> argparse.ArgumentParser:
         help="Resize images to HxW pixels (e.g., --target-size 512 512)",
     )
 
+    window_group = processing_group.add_mutually_exclusive_group()
+
+    # To support both window_center and window_width being required together, 
+    # we can't easily use purely mutually exclusive groups for the pair vs other options.
+    # Instead, we will keep them as regular arguments and enforce in apply_cli_overrides.
+    # The original implementation had them as separate arguments. Let's improve the logic in apply_cli_overrides instead.
+
     processing_group.add_argument(
         "--window-center",
         type=float,
         default=None,
         metavar="WC",
-        help="Window center for intensity mapping (use with --window-width)",
+        help="Window center for intensity mapping (must use with --window-width)",
     )
 
     processing_group.add_argument(
@@ -254,7 +278,7 @@ def create_parser() -> argparse.ArgumentParser:
         type=float,
         default=None,
         metavar="WW",
-        help="Window width for intensity mapping (use with --window-center)",
+        help="Window width for intensity mapping (must use with --window-center)",
     )
 
     processing_group.add_argument(
@@ -299,6 +323,14 @@ def create_parser() -> argparse.ArgumentParser:
         action="store_true",
         default=False,
         help="Show files to be processed without executing",
+    )
+
+    behavior_group.add_argument(
+        "--workers", "-w",
+        type=int,
+        default=None,
+        metavar="N",
+        help="Number of worker processes for parallel processing (default: CPU count)",
     )
 
     # =========================================================================
@@ -369,7 +401,9 @@ def apply_cli_overrides(config: Config, args: argparse.Namespace) -> Config:
         config.preprocessing.windowing.window_center = args.window_center
         config.preprocessing.windowing.window_width = args.window_width
     elif args.window_center is not None or args.window_width is not None:
-        logger.warning("Both --window-center and --window-width must be specified for fixed windowing")
+        import sys
+        print("Error: Both --window-center and --window-width must be specified together.", file=sys.stderr)
+        sys.exit(1)
 
     return config
 
@@ -379,6 +413,7 @@ def run_pipeline(
     output_path: Path,
     config: Config,
     dry_run: bool = False,
+    num_workers: Optional[int] = None,
 ) -> ProcessingStats:
     """
     Run the complete preprocessing pipeline.
@@ -391,137 +426,33 @@ def run_pipeline(
         output_path: Output directory.
         config: Processing configuration.
         dry_run: If True, only show what would be processed.
+        num_workers: Number of worker processes.
 
     Returns:
         ProcessingStats with processing statistics.
     """
-    # Use processing logger with structured tracking
-    proc_logger = ProcessingLogger("cad_preprocess.pipeline")
-
-    with proc_logger.processing_context("cli_batch") as stats:
-        # Initialize components
-        input_handler = InputHandler(
+    from cad_preprocess.integration import CADPreprocessor
+    
+    # Use CADPreprocessor for batch processing as it now supports parallelism
+    processor = CADPreprocessor(
+        config=config,
+        output_dir=output_path,
+        num_workers=num_workers
+    )
+    
+    if dry_run:
+        # We still need to discover for dry-run
+        from cad_preprocess.input_handler import InputHandler
+        handler = InputHandler(
             validate=config.input.validate,
             recursive=config.input.recursive,
-            check_pixel_data=config.input.check_pixel_data,
-            check_dimensions=config.input.check_dimensions,
         )
+        discovery = handler.discover(input_path)
+        print(f"\nDry run: Found {discovery.total_valid} files to process.")
+        return ProcessingStats()
 
-        preprocessing_engine = PreprocessingEngine(
-            config=config.preprocessing.to_preprocessing_config()
-        )
-
-        metadata_extractor = MetadataExtractor(
-            profiles=config.metadata.profiles,
-            additional_fields=config.metadata.additional_fields,
-            include_all_profiles=config.metadata.include_all_profiles,
-        )
-
-        output_config = OutputConfig(
-            output_root=output_path,
-            naming_policy=config.output.get_naming_policy(),
-            overwrite_policy=config.output.get_overwrite_policy(),
-            image_format=config.output.image_format,
-            images_subdir=config.output.images_subdir,
-            metadata_subdir=config.output.metadata_subdir,
-            logs_subdir=config.output.logs_subdir,
-        )
-        output_writer = OutputWriter(output_path, config=output_config)
-
-        # Discover input files
-        proc_logger.info(f"Discovering DICOM files in: {input_path}")
-        discovery_result = input_handler.discover(input_path)
-        stats.files_discovered = discovery_result.total_discovered
-        stats.files_valid = discovery_result.total_valid
-
-        proc_logger.info(
-            f"Found {discovery_result.total_valid} valid DICOM files "
-            f"({discovery_result.total_skipped} skipped)"
-        )
-
-        if dry_run:
-            proc_logger.info("Dry run mode - no files will be processed")
-            print("\nFiles that would be processed:")
-            for file_path in discovery_result.valid_files:
-                print(f"  {file_path}")
-            print(f"\nTotal: {discovery_result.total_valid} files")
-            return stats
-
-        # Log batch start
-        proc_logger.log_batch_start(discovery_result.total_valid)
-
-        # Process each file with fail-safe error handling
-        for i, file_path in enumerate(discovery_result.valid_files, 1):
-            proc_logger.log_file_start(file_path, i, discovery_result.total_valid)
-
-            # Use file context for automatic error handling
-            with proc_logger.file_context(
-                file_path, stats, ProcessingStage.PREPROCESSING
-            ):
-                # Preprocess image
-                result = preprocessing_engine.process(file_path)
-
-                if not result.success:
-                    proc_logger.log_file_error(
-                        file_path,
-                        Exception(result.error_message),
-                        ProcessingStage.PREPROCESSING,
-                    )
-                    stats.files_failed += 1
-                    stats.errors.append(
-                        ErrorRecord(
-                            file_path=file_path,
-                            stage=ProcessingStage.PREPROCESSING,
-                            error_type="PreprocessingError",
-                            error_message=result.error_message or "Unknown error",
-                        )
-                    )
-                    continue
-
-                # Extract metadata
-                metadata_result = metadata_extractor.extract(file_path)
-                if not metadata_result.success:
-                    proc_logger.warning(
-                        f"Metadata extraction failed: {metadata_result.error_message}"
-                    )
-
-                # Get SOPInstanceUID for naming
-                sop_uid = metadata_result.metadata.get("SOPInstanceUID")
-
-                # Write outputs
-                img_result = output_writer.write_image(
-                    result.image,
-                    sop_instance_uid=sop_uid,
-                    original_path=file_path,
-                )
-
-                meta_result = output_writer.write_metadata(
-                    metadata_result.metadata,
-                    sop_instance_uid=sop_uid,
-                    original_path=file_path,
-                )
-
-                if img_result.action == "skipped":
-                    proc_logger.log_file_skipped(file_path, "already exists")
-                    stats.files_skipped += 1
-                elif img_result.success:
-                    proc_logger.log_file_success(file_path)
-                    stats.files_processed += 1
-                else:
-                    proc_logger.log_file_error(
-                        file_path,
-                        Exception(img_result.error_message or "Write failed"),
-                        ProcessingStage.OUTPUT_WRITING,
-                    )
-                    stats.files_failed += 1
-
-        # Write processing log with stats
-        stats_dict = stats.to_dict()
-        stats_dict["input_path"] = str(input_path)
-        stats_dict["output_path"] = str(output_path)
-        output_writer.write_batch_summary(stats_dict)
-
-    return stats
+    batch_result = processor.process_directory(input_path, output_path)
+    return batch_result.stats or ProcessingStats()
 
 
 def print_summary(stats: ProcessingStats) -> None:
@@ -540,21 +471,54 @@ def main(argv: Optional[List[str]] = None) -> int:
         Exit code (0 for success, non-zero for errors).
     """
     parser = create_parser()
+
+    try:
+        import argcomplete
+        argcomplete.autocomplete(parser)
+    except ImportError:
+        pass
+
     args = parser.parse_args(argv)
 
-    # Handle --create-config
+    # Handle fallbacks for input and output
+    input_val = args.input or args.pos_input
+    output_val = args.output or args.pos_output
+
     if args.create_config:
         from cad_preprocess.config import create_config_template
         create_config_template(args.create_config)
         print(f"Created configuration template: {args.create_config}")
         return 0
 
+    # Ensure required arguments are present if not creating config
+    if not input_val or not output_val:
+        # If we are in argcomplete mode, exit quietly instead of printing error
+        # to avoid breaking shell completion UI.
+        if "_ARGCOMPLETE" in os.environ:
+            sys.exit(0)
+            
+        parser.error("the following arguments are required: --input/-i, --output/-o (or positional INPUT OUTPUT)")
+
     # Validate input/output paths
-    input_path = Path(args.input).resolve()
-    output_path = Path(args.output).resolve()
+    input_path = Path(input_val).resolve()
+    output_path = Path(output_val).resolve()
 
     if not input_path.exists():
         print(f"Error: Input path does not exist: {input_path}", file=sys.stderr)
+        return 1
+
+    # Check output directory permissions
+    try:
+        output_path.mkdir(parents=True, exist_ok=True)
+        # Test write permission
+        test_file = output_path / ".write_test"
+        test_file.touch()
+        test_file.unlink()
+    except PermissionError:
+        print(f"Error: Output directory is not writable: {output_path}", file=sys.stderr)
+        return 1
+    except Exception as e:
+        print(f"Error creating output directory: {e}", file=sys.stderr)
         return 1
 
     # Load configuration
@@ -601,6 +565,7 @@ def main(argv: Optional[List[str]] = None) -> int:
             output_path=output_path,
             config=config,
             dry_run=args.dry_run,
+            num_workers=args.workers,
         )
     except KeyboardInterrupt:
         print("\nProcessing interrupted by user", file=sys.stderr)
