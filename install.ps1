@@ -53,8 +53,8 @@ $VENV_PIP = "$INSTALL_DIR\venv\Scripts\pip.exe"
 
 # 6. Install Package
 Print-Step "Installing cad-preprocess [Full Feature Set]"
-# Use python -m pip to avoid locking the pip executable during its own upgrade
-& $VENV_PYTHON -m pip install -q --upgrade pip
+# Install the package directly. Pip handles its own logic, and skipping the explicit 
+# upgrade avoids common Windows file-locking issues.
 & $VENV_PYTHON -m pip install -q ".[explorer,performance]"
 Print-Success "Package installed successfully"
 
@@ -73,7 +73,12 @@ Create-Wrapper "cad-preprocess-explorer" "cad_preprocess.explorer"
 
 # Create uninstaller wrapper
 Print-Step "Configuring uninstaller"
-Copy-Item "uninstall.ps1" "$INSTALL_DIR\uninstall.ps1" -Force
+# Only copy if we are not already in the target directory (to avoid "overwrite itself" error)
+if (!(Test-Path "$INSTALL_DIR\uninstall.ps1") -or ($PWD.Path -ne $INSTALL_DIR)) {
+    if (Test-Path "uninstall.ps1") {
+        Copy-Item "uninstall.ps1" "$INSTALL_DIR\uninstall.ps1" -Force
+    }
+}
 $UninstallPath = "$BIN_DIR\cad-preprocess-uninstall.bat"
 "@echo off`npowershell -ExecutionPolicy Bypass -File `"$INSTALL_DIR\uninstall.ps1`"" | Out-File -FilePath $UninstallPath -Encoding ascii
 
