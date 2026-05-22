@@ -12,8 +12,8 @@ $INSTALL_DIR = "$HOME\.local\share\cad-preprocess"
 $BIN_DIR = "$HOME\.local\bin"
 
 function Print-Step { param($msg) Write-Host "[*] $msg..." -ForegroundColor Cyan }
-function Print-Success { param($msg) Write-Host "[✓] $msg" -ForegroundColor Green }
-function Print-Error { param($msg) Write-Host "[✗] ERROR: $msg" -ForegroundColor Red; exit 1 }
+function Print-Success { param($msg) Write-Host "[V] $msg" -ForegroundColor Green }
+function Print-Error { param($msg) Write-Host "[X] ERROR: $msg" -ForegroundColor Red; exit 1 }
 
 Write-Host "================================================================================" -ForegroundColor Magenta
 Write-Host "          CAD-PREPROCESS — Windows Installation Utility" -ForegroundColor Magenta
@@ -106,7 +106,7 @@ if ($UserPath -split ';' -notcontains $BIN_DIR) {
 }
 
 Write-Host "`n================================================================================" -ForegroundColor Green
-Print-Success "INSTALLATION COMPLETE!"
+Print-Success "INSTALLATION SUCCESSFUL"
 Write-Host "================================================================================" -ForegroundColor Green
 Write-Host "  Available Commands:"
 Write-Host "    - cad-preprocess"

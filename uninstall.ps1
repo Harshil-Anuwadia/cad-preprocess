@@ -8,12 +8,14 @@ $INSTALL_DIR = "$HOME\.local\share\cad-preprocess"
 $BIN_DIR = "$HOME\.local\bin"
 
 Write-Host "================================================================================" -ForegroundColor Yellow
-Write-Host "          CAD-PREPROCESS — Windows Uninstallation Utility" -ForegroundColor Yellow
+Write-Host "          CAD-PREPROCESS -- Windows Uninstallation Utility" -ForegroundColor Yellow
 Write-Host "================================================================================" -ForegroundColor Yellow
 
 # 1. Remove Binary Wrappers
 Write-Host "[*] Removing command wrappers from $BIN_DIR..." -ForegroundColor Cyan
-Get-ChildItem -Path $BIN_DIR -Filter "cad-preprocess*" | Remove-Item -Force -ErrorAction SilentlyContinue
+if (Test-Path $BIN_DIR) {
+    Get-ChildItem -Path $BIN_DIR -Filter "cad-preprocess*" | Remove-Item -Force -ErrorAction SilentlyContinue
+}
 
 # 2. Remove Installation Directory
 if (Test-Path $INSTALL_DIR) {
@@ -29,11 +31,12 @@ if ($CurrentPath -like "*$BIN_DIR*") {
     $NewPathArray = $PathArray | Where-Object { $_ -ne $BIN_DIR -and $_ -ne "" }
     $NewPath = $NewPathArray -join ";"
     [Environment]::SetEnvironmentVariable("Path", $NewPath, "User")
-    Write-Host "[✓] PATH updated." -ForegroundColor Green
+    Write-Host "[V] PATH updated." -ForegroundColor Green
 }
 
-Write-Host "`n================================================================================" -ForegroundColor Green
-Write-Host "          ✨ CAD-PREPROCESS HAS BEEN REMOVED FROM YOUR SYSTEM ✨" -ForegroundColor Green
+Write-Host ""
+Write-Host "================================================================================" -ForegroundColor Green
+Write-Host "          CAD-PREPROCESS HAS BEEN REMOVED FROM YOUR SYSTEM" -ForegroundColor Green
 Write-Host "================================================================================" -ForegroundColor Green
 Write-Host "  Note: Global Python and Git installations were kept."
 Write-Host "================================================================================" -ForegroundColor Green
