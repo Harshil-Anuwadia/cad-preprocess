@@ -1,121 +1,112 @@
 # ==============================================================================
-# CAD-PREPROCESS WINDOWS INSTALLER (PowerShell)
+# CAD-PREPROCESS WINDOWS INSTALLER (PRO)
 # ==============================================================================
-# A one-line installer for Windows that sets up the Python environment,
-# dependencies, and CLI wrappers.
+# A professional, high-feedback installer for Windows.
+# Handles Python environment setup, dependencies, and PATH natively.
 # ==============================================================================
 
 $ErrorActionPreference = "Stop"
 
+# --- Configuration ---
 $REPO_URL = "https://github.com/Harshil-Anuwadia/cad-preprocess.git"
 $INSTALL_DIR = "$HOME\.local\share\cad-preprocess"
 $BIN_DIR = "$HOME\.local\bin"
 
-function Print-Step { param($msg) Write-Host "[*] $msg..." -ForegroundColor Cyan }
-function Print-Success { param($msg) Write-Host "[V] $msg" -ForegroundColor Green }
-function Print-Error { param($msg) Write-Host "[X] ERROR: $msg" -ForegroundColor Red; exit 1 }
-
-Write-Host "================================================================================" -ForegroundColor Magenta
-Write-Host "          CAD-PREPROCESS — Windows Installation Utility" -ForegroundColor Magenta
-Write-Host "================================================================================" -ForegroundColor Magenta
-
-# 1. Check for Python
-if (!(Get-Command python -ErrorAction SilentlyContinue)) {
-    Print-Error "Python not found. Please install Python 3.9+ from python.org and add it to your PATH."
+# --- Professional UI Components ---
+function Print-Header {
+    Clear-Host
+    Write-Host "  +----------------------------------------------------------------------+" -ForegroundColor Magenta
+    Write-Host "  |                                                                      |" -ForegroundColor Magenta
+    Write-Host "  |    CAD-PREPROCESS -- Medical Imaging Preprocessing Pipeline          |" -ForegroundColor Magenta
+    Write-Host "  |    Standardizing DICOM Workflows for Production & Research           |" -ForegroundColor Magenta
+    Write-Host "  |                                                                      |" -ForegroundColor Magenta
+    Write-Host "  +----------------------------------------------------------------------+" -ForegroundColor Magenta
+    Write-Host ""
 }
 
-# 2. Check for Git
-if (!(Get-Command git -ErrorAction SilentlyContinue)) {
-    Print-Error "Git not found. Please install Git for Windows."
-}
+function Print-Section { param($msg) Write-Host "`n==> " -NoNewline -ForegroundColor White; Write-Host $msg -ForegroundColor White -FontWeight Bold }
+function Print-Step { param($msg) Write-Host "  ➜ $msg..." -ForegroundColor Cyan }
+function Print-Success { param($msg) Write-Host "  [V] $msg" -ForegroundColor Green }
+function Print-Error { param($msg) Write-Host "`n  [X] ERROR: $msg" -ForegroundColor Red; exit 1 }
 
-# 3. Setup Directories
-Print-Step "Preparing installation path: $INSTALL_DIR"
-if (!(Test-Path $INSTALL_DIR)) { New-Item -ItemType Directory -Path $INSTALL_DIR -Force | Out-Null }
-if (!(Test-Path $BIN_DIR)) { New-Item -ItemType Directory -Path $BIN_DIR -Force | Out-Null }
+# --- Installation Logic ---
+function Main {
+    Print-Header
 
-# 4. Clone or Update
-if (Test-Path "$INSTALL_DIR\.git") {
-    Print-Step "Updating source code"
-    Set-Location $INSTALL_DIR
-    git pull -q
-} else {
-    Print-Step "Downloading source code"
-    git clone -q $REPO_URL $INSTALL_DIR
-}
-
-# 5. Virtual Environment
-Print-Step "Setting up Python virtual environment"
-Set-Location $INSTALL_DIR
-python -m venv venv
-$VENV_PYTHON = "$INSTALL_DIR\venv\Scripts\python.exe"
-$VENV_PIP = "$INSTALL_DIR\venv\Scripts\pip.exe"
-
-# 6. Install Package
-Print-Step "Installing cad-preprocess [Full Feature Set]"
-# Install the package directly. Pip handles its own logic, and skipping the explicit 
-# upgrade avoids common Windows file-locking issues.
-& $VENV_PYTHON -m pip install -q ".[explorer,performance]"
-Print-Success "Package installed successfully"
-
-# 7. Create Wrappers
-Print-Step "Creating command wrappers"
-function Create-Wrapper {
-    param($name, $module)
-    $path = "$BIN_DIR\$name.bat"
-    "@echo off`nset PYTHONPATH=$INSTALL_DIR\src;%PYTHONPATH%`n`"$VENV_PYTHON`" -m $module %*" | Out-File -FilePath $path -Encoding ascii
-}
-
-Create-Wrapper "cad-preprocess" "cad_preprocess.cli"
-Create-Wrapper "cad-preprocess-benchmark" "cad_preprocess.benchmark"
-Create-Wrapper "cad-preprocess-diagnose" "cad_preprocess.diagnose_cli"
-Create-Wrapper "cad-preprocess-explorer" "cad_preprocess.explorer"
-
-# Create uninstaller wrapper
-Print-Step "Configuring uninstaller"
-try {
-    # Check if the source uninstall.ps1 exists in the current directory (from git clone)
-    if (Test-Path "uninstall.ps1") {
-        # Only copy if source and destination are different
-        $DestPath = "$INSTALL_DIR\uninstall.ps1"
-        if ((Get-Item "uninstall.ps1").FullName -ne (Get-Item $DestPath -ErrorAction SilentlyContinue).FullName) {
-            Copy-Item "uninstall.ps1" $DestPath -Force -ErrorAction SilentlyContinue
-        }
+    # 1. System Inspection
+    Print-Section "System Inspection"
+    if (!(Get-Command python -ErrorAction SilentlyContinue)) {
+        Print-Error "Python 3.9+ not found. Please install from python.org"
     }
-} catch {
-    # Non-critical failure, continue to PATH update
+    if (!(Get-Command git -ErrorAction SilentlyContinue)) {
+        Print-Error "Git not found. Please install Git for Windows"
+    }
+    $osVersion = (Get-CimInstance Win32_OperatingSystem).Caption
+    Write-Host "      Platform:  $osVersion" -ForegroundColor Gray
+    Write-Host "      Arch:      $env:PROCESSOR_ARCHITECTURE" -ForegroundColor Gray
+
+    # 2. Repository Management
+    Print-Section "Repository Management"
+    if (!(Test-Path $INSTALL_DIR)) { New-Item -ItemType Directory -Path $INSTALL_DIR -Force | Out-Null }
+    if (!(Test-Path $BIN_DIR)) { New-Item -ItemType Directory -Path $BIN_DIR -Force | Out-Null }
+
+    if (Test-Path "$INSTALL_DIR\.git") {
+        Print-Step "Pulling latest updates"
+        Set-Location $INSTALL_DIR
+        git pull -q
+    } else {
+        Print-Step "Cloning from GitHub"
+        git clone -q $REPO_URL $INSTALL_DIR
+    }
+    Print-Success "Source code synchronized"
+
+    # 3. Python Environment
+    Print-Section "Python Environment"
+    Print-Step "Initializing isolated venv"
+    Set-Location $INSTALL_DIR
+    python -m venv venv
+    $VENV_PYTHON = "$INSTALL_DIR\venv\Scripts\python.exe"
+
+    Print-Step "Installing package [Full Feature Set]"
+    & $VENV_PYTHON -m pip install -q ".[explorer,performance]"
+    Print-Success "Runtime environment ready"
+
+    # 4. CLI Configuration
+    Print-Section "CLI Configuration"
+    function Create-Wrapper {
+        param($name, $module)
+        $path = "$BIN_DIR\$name.bat"
+        "@echo off`nset PYTHONPATH=$INSTALL_DIR\src;%PYTHONPATH%`n`"$VENV_PYTHON`" -m $module %*" | Out-File -FilePath $path -Encoding ascii
+    }
+
+    Create-Wrapper "cad-preprocess" "cad_preprocess.cli"
+    Create-Wrapper "cad-preprocess-benchmark" "cad_preprocess.benchmark"
+    Create-Wrapper "cad-preprocess-diagnose" "cad_preprocess.diagnose_cli"
+    Create-Wrapper "cad-preprocess-explorer" "cad_preprocess.explorer"
+
+    # Uninstaller
+    Copy-Item "uninstall.ps1" "$INSTALL_DIR\uninstall.ps1" -Force -ErrorAction SilentlyContinue
+    "@echo off`npowershell -ExecutionPolicy Bypass -File `"$INSTALL_DIR\uninstall.ps1`"" | Out-File -FilePath "$BIN_DIR\cad-preprocess-uninstall.bat" -Encoding ascii
+    Print-Success "CLI commands registered in $BIN_DIR"
+
+    # 5. PATH Integration
+    $UserPath = [Environment]::GetEnvironmentVariable("Path", "User")
+    if ($UserPath -split ';' -notcontains $BIN_DIR) {
+        Print-Step "Updating User PATH"
+        $NewPath = "$UserPath;$BIN_DIR"
+        [Environment]::SetEnvironmentVariable("Path", $NewPath, "User")
+        $env:Path = "$env:Path;$BIN_DIR"
+        Print-Success "Global PATH updated"
+    }
+
+    Write-Host "`n  🎉 INSTALLATION SUCCESSFUL!" -ForegroundColor Green
+    Write-Host "  ----------------------------------------------------------------------" -ForegroundColor Gray
+    Write-Host "  Try these commands:" -ForegroundColor White
+    Write-Host "    cad-preprocess           (Processing)" -ForegroundColor Cyan
+    Write-Host "    cad-preprocess-benchmark (Stress Test)" -ForegroundColor Cyan
+    Write-Host "    cad-preprocess-explorer  (GUI Viewer)" -ForegroundColor Cyan
+    Write-Host "  ----------------------------------------------------------------------" -ForegroundColor Gray
+    Write-Host "  NOTE: Please RESTART your terminal to use commands globally.`n" -ForegroundColor Yellow
 }
 
-$UninstallPath = "$BIN_DIR\cad-preprocess-uninstall.bat"
-"@echo off`npowershell -ExecutionPolicy Bypass -File `"$INSTALL_DIR\uninstall.ps1`"" | Out-File -FilePath $UninstallPath -Encoding ascii
-
-# 8. Update PATH
-$UserPath = [Environment]::GetEnvironmentVariable("Path", "User")
-$PathUpdated = $false
-
-if ($UserPath -split ';' -notcontains $BIN_DIR) {
-    Print-Step "Adding $BIN_DIR to User PATH"
-    $NewPath = "$UserPath;$BIN_DIR"
-    [Environment]::SetEnvironmentVariable("Path", $NewPath, "User")
-    $env:Path = "$env:Path;$BIN_DIR" # Update current session
-    $PathUpdated = $true
-    Print-Success "Global PATH updated."
-} else {
-    $env:Path = "$env:Path;$BIN_DIR" # Ensure current session is always updated
-    Print-Success "Binary directory already in PATH."
-}
-
-Write-Host "`n================================================================================" -ForegroundColor Green
-Print-Success "INSTALLATION SUCCESSFUL"
-Write-Host "================================================================================" -ForegroundColor Green
-Write-Host "  Available Commands:"
-Write-Host "    - cad-preprocess"
-Write-Host "    - cad-preprocess-benchmark"
-Write-Host "    - cad-preprocess-explorer"
-Write-Host ""
-if ($PathUpdated) {
-    Write-Host "  NOTE: Please RESTART your terminal (close and open again) to use the commands." -ForegroundColor Yellow
-}
-Write-Host "  Or run this to use them immediately in this window:"
-Write-Host "  `$env:Path += ';$BIN_DIR'" -ForegroundColor Cyan
-Write-Host "================================================================================" -ForegroundColor Green
+Main

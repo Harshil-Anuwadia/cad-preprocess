@@ -1,48 +1,88 @@
 #!/bin/bash
 
 # ==============================================================================
-# CAD-PREPROCESS UNIVERSAL INSTALLER (V2)
+# CAD-PREPROCESS UNIVERSAL INSTALLER (PRO)
 # ==============================================================================
-# A robust, one-line installer that handles system dependencies, 
-# python environments, and package installation across Linux distributions.
-#
-# Usage:
-#   curl -sSL https://raw.githubusercontent.com/.../install.sh | bash
-#
-# For testing:
-#   INSTALL_DIR=/tmp/cad-test BIN_DIR=/tmp/bin bash install.sh
+# A professional, high-feedback installer for Linux distributions.
+# Handles system deps, native builds, and venv isolation with modern UI.
 # ==============================================================================
 
 set -e
 
-# --- Configuration (with overrides for testing) ---
+# --- Configuration ---
 REPO_URL="https://github.com/Harshil-Anuwadia/cad-preprocess.git"
 INSTALL_DIR="${INSTALL_DIR:-$HOME/.local/share/cad-preprocess}"
 BIN_DIR="${BIN_DIR:-$HOME/.local/bin}"
 
-# --- UI Helpers ---
+# --- Professional UI Styling ---
 BOLD="\033[1m"
-GREEN="\033[92m"
-BLUE="\033[94m"
-YELLOW="\033[93m"
-RED="\033[91m"
+DIM="\033[2m"
+ITALIC="\033[3m"
+UNDERLINE="\033[4m"
+
+RED="\033[31m"
+GREEN="\033[32m"
+YELLOW="\033[33m"
+BLUE="\033[34m"
+MAGENTA="\033[35m"
+CYAN="\033[36m"
+WHITE="\033[37m"
 RESET="\033[0m"
 
-print_header() {
+# Status Icons
+TICK="${GREEN}✔${RESET}"
+CROSS="${RED}✘${RESET}"
+INFO="${BLUE}ℹ${RESET}"
+STEP="${CYAN}➜${RESET}"
+WAIT="${YELLOW}⏳${RESET}"
+
+# --- UI Components ---
+print_banner() {
+    clear
     echo -e "${BOLD}${MAGENTA}"
-    echo "================================================================================"
-    echo "          CAD-PREPROCESS — Unified Medical Imaging Setup"
-    echo "================================================================================"
+    echo "  ╔══════════════════════════════════════════════════════════════════════╗"
+    echo "  ║                                                                      ║"
+    echo "  ║    CAD-PREPROCESS — Medical Imaging Preprocessing Pipeline           ║"
+    echo "  ║    Standardizing DICOM Workflows for Production & Research           ║"
+    echo "  ║                                                                      ║"
+    echo "  ╚══════════════════════════════════════════════════════════════════════╝"
     echo -e "${RESET}"
 }
 
-print_step() { echo -e "${BLUE}[*]${RESET} $1..."; }
-print_success() { echo -e "${GREEN}[✓]${RESET} $1"; }
-print_error() { echo -e "${RED}[✗] ERROR:${RESET} $1" >&2; exit 1; }
+print_section() {
+    echo -e "\n${BOLD}${WHITE}==>${RESET} ${BOLD}$1${RESET}"
+}
 
-# --- System Detection ---
+print_step() {
+    echo -e "  ${STEP} $1..."
+}
+
+print_success() {
+    echo -e "  ${TICK} $1"
+}
+
+print_error() {
+    echo -e "\n  ${CROSS} ${RED}${BOLD}ERROR:${RESET} $1" >&2
+    exit 1
+}
+
+show_spinner() {
+    local pid=$1
+    local delay=0.1
+    local spinstr='|/-\'
+    while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
+        local temp=${spinstr#?}
+        printf "  ${WAIT}  [%c]  " "$spinstr"
+        local spinstr=$temp${spinstr%"$temp"}
+        sleep $delay
+        printf "\b\b\b\b\b\b\b\b\b"
+    done
+    printf "    \b\b\b\b"
+}
+
+# --- System Logic ---
 detect_os() {
-    print_step "Detecting system environment"
+    print_section "System Inspection"
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         if [ -f /etc/os-release ]; then
             . /etc/os-release
@@ -53,209 +93,170 @@ detect_os() {
     else
         print_error "This installer currently only supports Linux-based systems."
     fi
-    print_success "Platform: $OS ($(uname -m))"
+    echo -e "      ${DIM}Platform:${RESET}  $OS ($(uname -m))"
+    echo -e "      ${DIM}Kernel:${RESET}    $(uname -r)"
 }
 
-# --- Dependency Installation ---
 install_dependencies() {
+    print_section "Environment Preparation"
     print_step "Validating system dependencies"
     
-    # Check for sudo
     SUDO_CMD=""
-    if command -v sudo &> /dev/null; then
-        SUDO_CMD="sudo"
-    fi
+    if command -v sudo &> /dev/null; then SUDO_CMD="sudo"; fi
 
     case $OS in
         ubuntu|debian|kali|pop|linuxmint)
             if [ -n "$SUDO_CMD" ]; then
                 $SUDO_CMD apt-get update -qq
-                # Added dpkg-dev and build-essential for building .deb
                 $SUDO_CMD apt-get install -y -qq git python3-pip python3-venv libgl1-mesa-glx libglib2.0-0 \
-                    build-essential dpkg-dev \
-                    libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 \
-                    libxcb-render-util0 libxcb-xinerama0 libxcb-xinput0 libxcb-xfixes0 libxcb-shape0
-            else
-                print_step "Sudo not found, skipping system package installation."
+                    build-essential dpkg-dev libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 \
+                    libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 \
+                    libxcb-xinput0 libxcb-xfixes0 libxcb-shape0 > /dev/null 2>&1 &
+                show_spinner $!
             fi
             ;;
         arch|manjaro|endeavouros)
             if [ -n "$SUDO_CMD" ]; then
-                $SUDO_CMD pacman -Sy --noconfirm --needed git python-pip python-virtualenv mesa libglvnd \
-                    libxkbcommon-x11 base-devel
-            else
-                print_step "Sudo not found, skipping system package installation."
+                $SUDO_CMD pacman -Sy --noconfirm --needed git python-pip python-virtualenv mesa \
+                    libglvnd libxkbcommon-x11 base-devel > /dev/null 2>&1 &
+                show_spinner $!
             fi
             ;;
         fedora|rhel|centos|almalinux|rocky)
             if [ -n "$SUDO_CMD" ]; then
-                $SUDO_CMD dnf install -y -q git python3-pip mesa-libGL libxkbcommon-x11 glib2 libxcb gcc
-            else
-                print_step "Sudo not found, skipping system package installation."
+                $SUDO_CMD dnf install -y -q git python3-pip mesa-libGL libxkbcommon-x11 glib2 libxcb gcc > /dev/null 2>&1 &
+                show_spinner $!
             fi
             ;;
-        *)
-            print_step "Distribution $OS not explicitly supported for auto-dep install."
-            ;;
     esac
-    print_success "System environment verified"
+    print_success "System environment hardened"
 }
 
-# --- Native Build and Install ---
 install_native() {
+    print_section "Native Package Build"
     local SUDO_CMD=""
     if command -v sudo &> /dev/null; then SUDO_CMD="sudo"; fi
 
     case $OS in
         ubuntu|debian|kali|pop|linuxmint)
-            print_step "Building native Debian package (.deb)"
-            bash scripts/build_deb.sh
+            print_step "Assembling Debian package (.deb)"
+            bash scripts/build_deb.sh > /dev/null 2>&1 &
+            show_spinner $!
             local deb_file=$(ls cad-preprocess_*.deb | head -n 1)
             if [ -n "$deb_file" ]; then
-                print_step "Installing $deb_file via apt"
+                print_step "Installing system-wide via apt"
                 if [ -n "$SUDO_CMD" ]; then
-                    $SUDO_CMD apt install -y ./"$deb_file"
-                    print_success "Native installation complete"
+                    $SUDO_CMD apt install -y -qq ./"$deb_file" > /dev/null 2>&1
                     return 0
                 fi
             fi
             ;;
         arch|manjaro|endeavouros)
-            print_step "Building native Arch Linux package (.pkg.tar.zst)"
-            bash scripts/build_arch.sh
+            print_step "Assembling Arch package (.pkg.tar.zst)"
+            bash scripts/build_arch.sh > /dev/null 2>&1 &
+            show_spinner $!
             local pkg_file=$(ls cad-preprocess-bundled-*.pkg.tar.zst | head -n 1)
             if [ -n "$pkg_file" ]; then
-                print_step "Installing $pkg_file via pacman"
+                print_step "Installing system-wide via pacman"
                 if [ -n "$SUDO_CMD" ]; then
-                    $SUDO_CMD pacman -U --noconfirm "$pkg_file"
-                    print_success "Native installation complete"
+                    $SUDO_CMD pacman -U --noconfirm "$pkg_file" > /dev/null 2>&1
                     return 0
                 fi
             fi
             ;;
     esac
-    return 1 # Fallback to venv
+    return 1
 }
 
-# --- Installation Logic ---
-main_install() {
-    print_header
+# --- Main Flow ---
+main() {
+    print_banner
     detect_os
-    install_dependencies
+    
+    if [[ "$INSTALL_DIR" != "/tmp/"* ]]; then
+        install_dependencies
+    fi
 
-    # Setup Directory
-    print_step "Preparing installation path: $INSTALL_DIR"
-    mkdir -p "$INSTALL_DIR"
-    mkdir -p "$BIN_DIR"
-
-    # Clone or Update
+    print_section "Repository Management"
+    mkdir -p "$INSTALL_DIR" "$BIN_DIR"
+    
     if [ -d "$INSTALL_DIR/.git" ]; then
-        print_step "Updating existing source code"
-        cd "$INSTALL_DIR"
-        git pull -q
+        print_step "Pulling latest updates"
+        cd "$INSTALL_DIR" && git pull -q
     else
-        print_step "Downloading source code from GitHub"
+        print_step "Cloning from GitHub"
         git clone -q "$REPO_URL" "$INSTALL_DIR"
         cd "$INSTALL_DIR"
     fi
+    print_success "Source code synchronized"
 
-    # Try Native Install first if running as root/sudo available
     if [[ "$INSTALL_DIR" != "/tmp/"* ]]; then
         if install_native; then
-            echo -e "\n${BOLD}${GREEN}================================================================================"
-            echo "          ✨ NATIVE SYSTEM INSTALLATION SUCCESSFUL ✨"
-            echo "================================================================================${RESET}"
-            echo "  Commands are now globally available in /usr/bin"
+            echo -e "\n${BOLD}${GREEN}  ${TICK} NATIVE SYSTEM INSTALLATION SUCCESSFUL${RESET}"
+            echo -e "      ${DIM}Type 'cad-preprocess --help' to get started.${RESET}\n"
             exit 0
         fi
     fi
 
-    # Fallback to Virtual Environment (Venv)
-    print_step "Falling back to isolated Python environment (venv)"
+    print_section "Python Environment"
+    print_step "Initializing isolated venv"
     python3 -m venv venv
     source venv/bin/activate
-
-    # Install Package with progress feel
-    print_step "Installing cad-preprocess with full feature set (GUI + Performance)"
+    
+    print_step "Installing package [Full Feature Set]"
     pip install -q --upgrade pip
-    
-    # Simulate progress for better UX since pip is quiet
-    echo -n "  [ Progress: "
     pip install -q ".[explorer,performance]" &
-    PID=$!
-    while kill -0 $PID 2>/dev/null; do
-        echo -n "■"
-        sleep 0.5
-    done
-    echo " ] Done!"
-    
-    print_success "Package and dependencies installed successfully"
+    show_spinner $!
+    print_success "Runtime environment ready"
 
-    # Create Wrapper Scripts
-    print_step "Registering CLI commands"
-    
-    # We use a template for the wrappers
+    print_section "CLI Configuration"
     create_wrapper() {
-        local cmd_name=$1
-        local module=$2
-        cat > "$BIN_DIR/$cmd_name" <<EOF
+        cat > "$BIN_DIR/$1" <<EOF
 #!/bin/bash
-# Auto-generated wrapper for $cmd_name
 export PYTHONPATH="$INSTALL_DIR/src:\$PYTHONPATH"
 source "$INSTALL_DIR/venv/bin/activate"
-exec python3 -m $module "\$@"
+exec python3 -m $2 "\$@"
 EOF
-        chmod +x "$BIN_DIR/$cmd_name"
+        chmod +x "$BIN_DIR/$1"
     }
 
     create_wrapper "cad-preprocess" "cad_preprocess.cli"
     create_wrapper "cad-preprocess-benchmark" "cad_preprocess.benchmark"
     create_wrapper "cad-preprocess-diagnose" "cad_preprocess.diagnose_cli"
     create_wrapper "cad-preprocess-explorer" "cad_preprocess.explorer"
-
-    # Create uninstaller wrapper
-    print_step "Configuring uninstaller"
+    
     cp uninstall.sh "$INSTALL_DIR/uninstall.sh"
     chmod +x "$INSTALL_DIR/uninstall.sh"
+    create_wrapper "cad-preprocess-uninstall" "cad_preprocess.cli" # dummy for bash template
     cat > "$BIN_DIR/cad-preprocess-uninstall" <<EOF
 #!/bin/bash
 exec bash "$INSTALL_DIR/uninstall.sh"
 EOF
     chmod +x "$BIN_DIR/cad-preprocess-uninstall"
+    print_success "CLI commands registered in $BIN_DIR"
 
-    print_success "Binary wrappers created in $BIN_DIR"
-
-    # Setup Shell Path
+    # Shell Integration
     if [[ ":$PATH:" != *":$BIN_DIR:"* ]]; then
-        print_step "Adding installation binaries to your PATH"
         SHELL_RC=""
         case $SHELL in
             */zsh) SHELL_RC="$HOME/.zshrc" ;;
             */bash) SHELL_RC="$HOME/.bashrc" ;;
         esac
-
         if [ -n "$SHELL_RC" ] && [ -f "$SHELL_RC" ]; then
             if ! grep -q "$BIN_DIR" "$SHELL_RC"; then
-                echo "" >> "$SHELL_RC"
-                echo "# CAD-Preprocess Binary Path" >> "$SHELL_RC"
-                echo "export PATH=\"\$PATH:$BIN_DIR\"" >> "$SHELL_RC"
-                print_success "Modified $SHELL_RC. Run 'source $SHELL_RC' to update current session."
+                echo -e "\n# CAD-Preprocess Binary Path\nexport PATH=\"\$PATH:$BIN_DIR\"" >> "$SHELL_RC"
+                print_success "Updated $SHELL_RC"
             fi
         fi
     fi
 
-    echo -e "\n${BOLD}${GREEN}================================================================================"
-    echo "          ✨ INSTALLATION SUCCESSFUL — WELCOME TO CAD-PREPROCESS ✨"
-    echo "================================================================================${RESET}"
-    echo -e "  ${BOLD}Commands Available Now:${RESET}"
-    echo -e "    ${CYAN}• cad-preprocess${RESET}           (Main preprocessing tool)"
-    echo -e "    ${CYAN}• cad-preprocess-benchmark${RESET} (Performance testing suite)"
-    echo -e "    ${CYAN}• cad-preprocess-diagnose${RESET}  (DICOM health checker)"
-    echo -e "    ${CYAN}• cad-preprocess-explorer${RESET}  (GUI Results Viewer)"
-    echo ""
-    echo -e "  ${YELLOW}Quick Start:${RESET}"
-    echo -e "    ${BOLD}cad-preprocess -i ./input_dicoms -o ./output_results${RESET}"
-    echo "================================================================================"
+    echo -e "\n${BOLD}${GREEN}  🎉 INSTALLATION COMPLETE!${RESET}"
+    echo -e "  ${DIM}──────────────────────────────────────────────────────────────────────${RESET}"
+    echo -e "  ${BOLD}Try these commands:${RESET}"
+    echo -e "    ${CYAN}cad-preprocess${RESET}           ${DIM}(Processing)${RESET}"
+    echo -e "    ${CYAN}cad-preprocess-benchmark${RESET} (Stress Test)"
+    echo -e "    ${CYAN}cad-preprocess-explorer${RESET}  ${DIM}(GUI Viewer)${RESET}"
+    echo -e "  ${DIM}──────────────────────────────────────────────────────────────────────${RESET}\n"
 }
 
-main_install
+main
