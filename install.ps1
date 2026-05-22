@@ -70,6 +70,12 @@ Create-Wrapper "cad-preprocess-benchmark" "cad_preprocess.benchmark"
 Create-Wrapper "cad-preprocess-diagnose" "cad_preprocess.diagnose_cli"
 Create-Wrapper "cad-preprocess-explorer" "cad_preprocess.explorer"
 
+# Create uninstaller wrapper
+Print-Step "Configuring uninstaller"
+Copy-Item "uninstall.ps1" "$INSTALL_DIR\uninstall.ps1" -Force
+$UninstallPath = "$BIN_DIR\cad-preprocess-uninstall.bat"
+"@echo off`npowershell -ExecutionPolicy Bypass -File `"$INSTALL_DIR\uninstall.ps1`"" | Out-File -FilePath $UninstallPath -Encoding ascii
+
 # 8. Update PATH
 $CurrentPath = [Environment]::GetEnvironmentVariable("Path", "User")
 if ($CurrentPath -notlike "*$BIN_DIR*") {

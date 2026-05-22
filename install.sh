@@ -213,6 +213,16 @@ EOF
     create_wrapper "cad-preprocess-diagnose" "cad_preprocess.diagnose_cli"
     create_wrapper "cad-preprocess-explorer" "cad_preprocess.explorer"
 
+    # Create uninstaller wrapper
+    print_step "Configuring uninstaller"
+    cp uninstall.sh "$INSTALL_DIR/uninstall.sh"
+    chmod +x "$INSTALL_DIR/uninstall.sh"
+    cat > "$BIN_DIR/cad-preprocess-uninstall" <<EOF
+#!/bin/bash
+exec bash "$INSTALL_DIR/uninstall.sh"
+EOF
+    chmod +x "$BIN_DIR/cad-preprocess-uninstall"
+
     print_success "Binary wrappers created in $BIN_DIR"
 
     # Setup Shell Path
