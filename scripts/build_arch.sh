@@ -111,6 +111,23 @@ if __name__ == "__main__":
 ENDSCRIPT
 chmod 755 "${PKG_ROOT}/usr/bin/cad-preprocess-diagnose"
 
+cat > "${PKG_ROOT}/usr/bin/cad-preprocess-benchmark" << 'ENDSCRIPT'
+#!/usr/bin/env python3
+import sys
+sys.path.insert(0, '/opt/cad-preprocess/lib')
+from cad_preprocess.benchmark import main
+if __name__ == "__main__":
+    sys.exit(main())
+ENDSCRIPT
+chmod 755 "${PKG_ROOT}/usr/bin/cad-preprocess-benchmark"
+
+cat > "${PKG_ROOT}/usr/bin/cad-preprocess-uninstall" << 'ENDSCRIPT'
+#!/bin/bash
+echo "Removing native Arch package..."
+sudo pacman -Rs cad-preprocess-bundled
+ENDSCRIPT
+chmod 755 "${PKG_ROOT}/usr/bin/cad-preprocess-uninstall"
+
 # Create .pth file
 cat > "${SITEPACKAGES_DIR}/cad_preprocess.pth" << 'ENDPTH'
 /opt/cad-preprocess/lib

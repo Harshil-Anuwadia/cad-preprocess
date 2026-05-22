@@ -135,6 +135,27 @@ if __name__ == "__main__":
 ENDSCRIPT
 chmod 755 "${PKG_DIR}/usr/bin/cad-preprocess-diagnose"
 
+# Create the Benchmark wrapper script
+cat > "${PKG_DIR}/usr/bin/cad-preprocess-benchmark" << 'ENDSCRIPT'
+#!/usr/bin/env python3
+import sys
+sys.path.insert(0, '/opt/cad-preprocess/lib')
+
+from cad_preprocess.benchmark import main
+
+if __name__ == "__main__":
+    sys.exit(main())
+ENDSCRIPT
+chmod 755 "${PKG_DIR}/usr/bin/cad-preprocess-benchmark"
+
+# Create the Uninstall wrapper script
+cat > "${PKG_DIR}/usr/bin/cad-preprocess-uninstall" << 'ENDSCRIPT'
+#!/bin/bash
+echo "Removing native Debian package..."
+sudo apt-get remove cad-preprocess
+ENDSCRIPT
+chmod 755 "${PKG_DIR}/usr/bin/cad-preprocess-uninstall"
+
 # Create a .pth file so Python can find the module when importing
 cat > "${PKG_DIR}/usr/lib/python3/dist-packages/cad_preprocess.pth" << 'ENDPTH'
 /opt/cad-preprocess/lib
