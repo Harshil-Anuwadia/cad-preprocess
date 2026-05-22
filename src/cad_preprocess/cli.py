@@ -258,9 +258,8 @@ def create_parser() -> argparse.ArgumentParser:
         help="Resize images to HxW pixels (e.g., --target-size 512 512)",
     )
 
-    window_group = processing_group.add_mutually_exclusive_group()
-
-    # To support both window_center and window_width being required together, 
+    # To support both window_center and window_width being required together,
+ 
     # we can't easily use purely mutually exclusive groups for the pair vs other options.
     # Instead, we will keep them as regular arguments and enforce in apply_cli_overrides.
     # The original implementation had them as separate arguments. Let's improve the logic in apply_cli_overrides instead.
