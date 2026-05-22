@@ -532,13 +532,21 @@ class CADPreprocessor:
             stats.files_discovered = discovery.total_discovered
             stats.files_valid = discovery.total_valid
 
-            self._logger.log_batch_start(discovery.total_valid)
+            # Check if sequential naming is used, which is not safe for multi-processing
+            effective_workers = self._num_workers
+            from cad_preprocess.output_writer import NamingPolicy
+            if self._config.output.get_naming_policy() == NamingPolicy.SEQUENTIAL and effective_workers > 1:
+                self._logger.warning(
+                    "SEQUENTIAL naming policy detected. Falling back to single worker "
+                    "to prevent filename collisions."
+                )
+                effective_workers = 1
 
             # Process files in parallel if multiple workers are available
-            if self._num_workers > 1 and len(discovery.valid_files) > 1:
-                self._logger.info(f"Processing {len(discovery.valid_files)} files using {self._num_workers} workers")
+            if effective_workers > 1 and len(discovery.valid_files) > 1:
+                self._logger.info(f"Processing {len(discovery.valid_files)} files using {effective_workers} workers")
                 
-                with ProcessPoolExecutor(max_workers=self._num_workers) as executor:
+                with ProcessPoolExecutor(max_workers=effective_workers) as executor:
                     # Submit all tasks
                     future_to_file = {
                         executor.submit(self.process_file, file_path, output_dir): file_path

@@ -149,14 +149,15 @@ def preprocess(
     input_path: Union[str, Path],
     output_path: Union[str, Path],
     config: Optional[Union[str, Path, Dict[str, Any]]] = None,
+    num_workers: Optional[int] = None,
 ) -> PreprocessingResult:
     """
     Preprocess DICOM files for CAD system usage.
-    
+
     This is the primary API entry point for preprocessing DICOM images.
     It handles both single files and directories, applies the preprocessing
     pipeline, and writes outputs to the specified location.
-    
+
     Args:
         input_path: Path to a DICOM file or directory containing DICOM files.
         output_path: Path to the output directory for processed files.
@@ -164,171 +165,71 @@ def preprocess(
             - str/Path: Path to a YAML configuration file
             - dict: Configuration dictionary
             - None: Use default configuration
-    
+        num_workers: Number of worker processes for parallel processing.
+                     Defaults to CPU count.
+
     Returns:
-        PreprocessingResult with:
-            - processed_count: Number of successfully processed files
-            - skipped_count: Number of skipped files
-            - error_summary: List of error details for failed files
-    
-    Examples:
-        # Basic usage
-        >>> result = preprocess("./dicoms", "./output")
-        >>> print(f"Processed {result.processed_count} files")
-        
-        # With YAML config file
-        >>> result = preprocess("./dicoms", "./output", config="config.yaml")
-        
-        # With configuration dict
-        >>> result = preprocess("./dicoms", "./output", config={
-        ...     "preprocessing": {
-        ...         "windowing": {
-        ...             "strategy": "fixed_window",
-        ...             "window_center": 40,
-        ...             "window_width": 400
-        ...         },
-        ...         "normalization": "min_max",
-        ...         "resizing": {
-        ...             "target_height": 512,
-        ...             "target_width": 512
-        ...         }
-        ...     },
-        ...     "metadata": {
-        ...         "profiles": ["minimal", "ml"]
-        ...     },
-        ...     "output": {
-        ...         "naming_policy": "sop_instance_uid",
-        ...         "format": "png"
-        ...     }
-        ... })
-        
-        # Check results
-        >>> if result.errors:
-        ...     print("Some files failed:")
-        ...     for err in result.error_summary:
-        ...         print(f"  {err['file']}: {err['message']}")
-        
-        # Get summary
-        >>> print(result.summary())
+        PreprocessingResult with processed counts and error summaries.
     """
+    from cad_preprocess.integration import CADPreprocessor
+
     input_path = Path(input_path)
     output_path = Path(output_path)
-    
-    # Initialize result
-    result = PreprocessingResult(output_dir=str(output_path))
-    
+
     # Load configuration
     cfg = _load_configuration(config)
-    
-    # Initialize components
-    input_handler = InputHandler(
-        validate=cfg.input.validate,
-        recursive=cfg.input.recursive,
-        check_pixel_data=cfg.input.check_pixel_data,
-        check_dimensions=cfg.input.check_dimensions,
+
+    # Initialize high-performance processor
+    processor = CADPreprocessor(
+        config=cfg,
+        output_dir=output_path,
+        num_workers=num_workers
     )
-    
-    preprocessing_engine = PreprocessingEngine(
-        config=cfg.preprocessing.to_preprocessing_config()
+
+    # Create result object
+    result = PreprocessingResult(
+        output_dir=str(output_path),
+        config_hash=processor.config_hash
     )
-    
-    metadata_extractor = MetadataExtractor(
-        profiles=cfg.metadata.profiles,
-        additional_fields=cfg.metadata.additional_fields,
-        include_all_profiles=cfg.metadata.include_all_profiles,
-    )
-    
-    output_config = OutputConfig(
-        output_root=output_path,
-        naming_policy=cfg.output.get_naming_policy(),
-        overwrite_policy=cfg.output.get_overwrite_policy(),
-        image_format=cfg.output.image_format,
-        images_subdir=cfg.output.images_subdir,
-        metadata_subdir=cfg.output.metadata_subdir,
-        logs_subdir=cfg.output.logs_subdir,
-    )
-    output_writer = OutputWriter(output_path, config=output_config)
-    
-    # Compute config hash
-    result.config_hash = _compute_config_hash(cfg)
-    
-    # Discover files
+
+    # Process
     if input_path.is_file():
-        files_to_process = [input_path]
-        skipped_files: List[Dict[str, str]] = []
+        # Handle single file
+        batch_res = processor.process_file(input_path)
+        if batch_res.success:
+            result.processed_count = 1
+            result.processed_files = [str(input_path)]
+        else:
+            result.error_count = 1
+            result.error_summary = [{
+                "file": str(input_path),
+                "message": batch_res.error_message or "Unknown error"
+            }]
     else:
-        discovery = input_handler.discover(input_path)
-        files_to_process = discovery.valid_files
-        skipped_files = [
-            {"file": str(f), "reason": "Invalid DICOM"}
-            for f in discovery.skipped_files
-        ]
-    
-    # Track skipped files
-    result.skipped_count = len(skipped_files)
-    result.skipped_files = skipped_files
-    
-    # Process each file
-    logger = ProcessingLogger("cad_preprocess.api")
-    
-    for file_path in files_to_process:
-        try:
-            # Preprocess
-            prep_result = preprocessing_engine.process(file_path)
-            
-            if not prep_result.success:
-                result.error_count += 1
+        # Handle directory (using multi-processing)
+        batch_res = processor.process_directory(input_path, output_path)
+
+        # Map batch result back to API result format
+        if batch_res.stats:
+            stats = batch_res.stats
+            result.processed_count = stats.files_processed
+            result.skipped_count = stats.files_skipped
+            result.error_count = stats.files_failed
+
+            # Map errors
+            for err in stats.errors:
                 result.error_summary.append({
-                    "file": str(file_path),
-                    "stage": "preprocessing",
-                    "message": prep_result.error_message or "Unknown preprocessing error",
+                    "file": str(err.file_path) if err.file_path else "unknown",
+                    "stage": err.stage.value,
+                    "message": err.error_message
                 })
-                continue
-            
-            # Extract metadata
-            meta_result = metadata_extractor.extract(file_path)
-            metadata = meta_result.metadata if meta_result.success else {}
-            
-            # Get SOP Instance UID for naming
-            sop_uid = metadata.get("SOPInstanceUID")
-            
-            # Write image
-            img_result = output_writer.write_image(
-                prep_result.image,
-                sop_instance_uid=sop_uid,
-                original_path=file_path,
-            )
-            
-            if not img_result.success:
-                result.error_count += 1
-                result.error_summary.append({
-                    "file": str(file_path),
-                    "stage": "output",
-                    "message": img_result.message or "Failed to write image",
-                })
-                continue
-            
-            # Write metadata
-            output_writer.write_metadata(
-                metadata,
-                sop_instance_uid=sop_uid,
-                original_path=file_path,
-            )
-            
-            # Success
-            result.processed_count += 1
-            result.processed_files.append(str(file_path))
-            
-        except Exception as e:
-            result.error_count += 1
-            result.error_summary.append({
-                "file": str(file_path),
-                "stage": "unknown",
-                "message": f"{type(e).__name__}: {str(e)}",
-            })
-            logger.error(f"Error processing {file_path}: {e}")
-    
+
+            # Extract skipped files if possible
+            # Note: We don't track successful paths in batch stats currently to save memory,
+            # but we can add them if needed.
+
     return result
+
 
 
 def _load_configuration(
